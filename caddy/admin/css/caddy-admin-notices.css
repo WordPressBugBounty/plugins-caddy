@@ -1,0 +1,124 @@
+.caddy-notice {
+	display: flex;
+	padding: 20px;
+	align-items: flex-start;
+	border: 1px solid #c3c4c7;
+	background-color: #fff;
+	border-radius: 5px;
+}
+
+.kt-welcome {
+	border: 1px solid #1699c1;
+	background-color: #e8f6ff;
+	border-radius: 5px;
+}
+
+.kt-welcome a {
+	color: #000;
+}
+
+.kt-right {
+	padding: 0 20px;
+}
+
+.rk-promo {
+	padding: 20px !important;
+}
+
+.kt-right .welcome-heading {
+	font-weight: bold;
+	font-size: 20px;
+	margin: 0 0 5px;
+	padding: 0 0 4px;
+	line-height: 1.3;
+	text-transform: capitalize;
+	color: #000;
+}
+
+.kt-right p {
+	margin-top: 0;
+	font-size: 1rem;
+	color: #333;
+}
+
+.rk-promo .kt-right p {
+	color: #3c434a;
+}
+
+.rk-promo .kt-left {
+	padding-right: 5px;
+}
+
+.rk-promo .kt-right .button {
+	background-color: #2f90e0;
+	border-color: #185b91;
+	font-size: 14px;
+	color: #fff;
+	padding: 3px 20px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	transition: all 150ms linear;
+}
+
+.rk-promo .kt-right .button:hover {
+	background-color: #000;
+	border-color: #000;
+}
+
+.rk-promo .kt-right .button svg {
+	width: 16px;
+	height: 16px;
+	color: #fff;
+}
+
+.caddy-notice-ctas {
+	display: flex;
+	flex-direction: column;
+	align-items: start;
+	gap: 20px;
+	margin-top: 15px !important;
+	width: auto;
+}
+
+.caddy-notice-ctas a {
+	font-size: 14px;
+	color: #3c434a;
+}
+
+.rk-message a {
+	color: #000;
+}
+
+.rk-promo .cancel-count,
+.rk-promo .pending-cancel-count {
+	color: #ff5937;
+}
+
+.kt-steps {
+	font-weight: normal;
+	color: #000;
+}
+
+.kt-steps .completed {
+	text-decoration: line-through;
+	opacity: 0.5;
+	font-weight: normal;
+}
+
+.kt-steps svg {
+	display: none;
+}
+
+.kt-steps .completed svg {
+	display: inline-block;
+	width: 15px;
+	position: relative;
+	left: 5px;
+	top: 2px;
+	color: green;
+}
+
+.toplevel_page_klaviyo-toolkit #wpbody {
+	margin-top: 0;
+}

@@ -176,6 +176,15 @@ class Caddy {
 
 		// Add action to display submit deactivation form data
 		$this->loader->add_action( 'wp_ajax_cc_submit_deactivation_form_data', $caddy_admin_obj, 'caddy_submit_deactivation_form_data' );
+	
+		// Add action to include header
+		$this->loader->add_action( 'caddy_admin_header', $caddy_admin_obj, 'caddy_load_admin_header' );
+
+		// Add Caddy Recommendations field to WooCommerce product data
+		$this->loader->add_action('woocommerce_product_options_related', $caddy_admin_obj, 'add_caddy_recommendations_field');
+		
+		// Save Caddy Recommendations data
+		$this->loader->add_action('woocommerce_process_product_meta', $caddy_admin_obj, 'save_caddy_recommendations_field');
 	}
 
 	/**
@@ -265,6 +274,10 @@ class Caddy {
 
 		// Add action to display free shipping Congrats text
 		$this->loader->add_action( 'caddy_fs_spend_text', $caddy_public_obj, 'caddy_display_free_shipping_spend_text', 10, 2 );
+
+		// Add WooCommerce AJAX handlers for fragments
+		$this->loader->add_action( 'wc_ajax_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments' );
+		$this->loader->add_action( 'wc_ajax_nopriv_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments' );
 
 		// Add action for add item to the cart
 		$this->loader->add_action( 'wc_ajax_cc_add_to_cart', $caddy_public_obj, 'caddy_add_to_cart' );

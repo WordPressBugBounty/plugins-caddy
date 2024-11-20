@@ -14,6 +14,8 @@
 $cc_product_recommendation = get_option( 'cc_product_recommendation' );
 $cc_product_recommendation = ( 'disabled' !== $cc_product_recommendation ) ? 'checked' : '';
 
+$cc_product_recommendation_type = get_option( 'cc_product_recommendation_type' );
+
 $cc_free_shipping_amount = get_option( 'cc_free_shipping_amount' );
 
 $cc_shipping_country = get_option( 'cc_shipping_country' );
@@ -36,7 +38,7 @@ $cc_menu_saves_widget = ! empty( $cc_menu_saves_widget ) ? esc_attr( $cc_menu_sa
 
 <?php do_action( 'caddy_before_product_recommendations_section' ); ?>
 	<h2><i class="dashicons dashicons-star-filled section-icons"></i>&nbsp;<?php echo esc_html( __( 'Product Recommendations', 'caddy' ) ); ?></h2>
-	<p><?php echo esc_html( __( 'Caddy uses your product\'s "up-sell" settings to show product recommendations every time a product is added to the cart.', 'caddy' ) ); ?></p>
+	<p><?php echo esc_html( __( 'Display targeted product recommendations every time a product is added to the cart.', 'caddy' ) ); ?></p>
 	<table class="form-table">
 		<tbody>
 		<?php do_action( 'caddy_before_product_recommendations_row' ); ?>
@@ -51,6 +53,19 @@ $cc_menu_saves_widget = ! empty( $cc_menu_saves_widget ) ? esc_attr( $cc_menu_sa
 						<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
 					</label>
 				</div>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row">
+				<label for="cc_product_recommendation_type"><?php esc_html_e( 'Recommendation Type', 'caddy' ); ?></label>
+			</th>
+			<td>
+				<select name="cc_product_recommendation_type" id="cc_product_recommendation_type">
+					<option value="" selected><?php esc_html_e( '-- Select recommendation type --', 'caddy' ); ?></option>
+					<option value="caddy-recommendations" <?php echo $cc_product_recommendation_type === 'caddy-recommendations' ? 'selected' : ''; ?>	><?php esc_html_e( 'Caddy Recommendations', 'caddy' ); ?></option>
+					<option value="cross-sells" <?php echo $cc_product_recommendation_type === 'cross-sells' ? 'selected' : ''; ?>><?php esc_html_e( 'Product Cross-sells', 'caddy' ); ?></option>
+					<option value="upsells" <?php echo $cc_product_recommendation_type === 'upsells' ? 'selected' : ''; ?>><?php esc_html_e( 'Product Upsells', 'caddy' ); ?></option>
+				</select>
 			</td>
 		</tr>
 
@@ -247,6 +262,7 @@ if ( ! isset( $caddy_license_status ) || 'valid' !== $caddy_license_status ) {
 			</tr>
 		</tbody>
 	</table>
+	<?php do_action( 'caddy_end_settings_section' ); ?>
 
 <?php
 $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );

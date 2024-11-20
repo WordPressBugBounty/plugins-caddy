@@ -11,11 +11,35 @@ if ( ! is_object( WC()->cart ) ) {
 // Determine if the cart is empty and set a class accordingly
 $cc_empty_class = WC()->cart->is_empty() ? ' cc-empty' : '';
 
-// Get the total cart amount after removing non-numeric characters
-$cart_total = floatval(preg_replace('#[^\d.]#', '', WC()->cart->get_cart_contents_total()));
-
-// Retrieve the free shipping amount from options
+// Get the free shipping amount setting first
 $cc_free_shipping_amount = get_option('cc_free_shipping_amount');
+
+// Calculate cart total for free shipping
+$cart_total = 0;
+
+// Get cart subtotal excluding virtual products
+foreach (WC()->cart->get_cart() as $cart_item) {
+    $product = $cart_item['data'];
+    
+    // Skip virtual products in the free shipping calculation
+    if ($product->is_virtual()) {
+        continue;
+    }
+    
+    $item_total = WC()->cart->get_product_subtotal($product, $cart_item['quantity']);
+    $item_total = preg_replace('/[^0-9.]/', '', $item_total); // Remove currency symbols
+    $cart_total += floatval($item_total);
+}
+
+// Calculate the remaining amount for free shipping
+$free_shipping_remaining_amount = floatval($cc_free_shipping_amount) - floatval($cart_total);
+$free_shipping_remaining_amount = !empty($free_shipping_remaining_amount) ? $free_shipping_remaining_amount : 0;
+
+// Calculate the width of the free shipping bar as a percentage
+$cc_bar_amount = 100;
+if (!empty($cc_free_shipping_amount) && $cart_total <= $cc_free_shipping_amount) {
+    $cc_bar_amount = ($cart_total * 100 / $cc_free_shipping_amount);
+}
 
 // Get the WooCommerce currency symbol
 $wc_currency_symbol = get_woocommerce_currency_symbol();
@@ -25,16 +49,6 @@ $total_cart_item_count = is_object(WC()->cart) ? WC()->cart->get_cart_contents_c
 
 // Flag to determine if free shipping bar is enabled
 $cc_free_shipping_bar = true;
-
-// Calculate the remaining amount for free shipping
-$free_shipping_remaining_amount = floatval($cc_free_shipping_amount) - floatval($cart_total);
-$free_shipping_remaining_amount = !empty($free_shipping_remaining_amount) ? $free_shipping_remaining_amount : 0;
-
-// Calculate the width of the free shipping bar as a percentage
-$cc_bar_amount = 100;
-if (!empty($cc_free_shipping_amount) && $cart_total <= $cc_free_shipping_amount) {
-	$cc_bar_amount = ($cart_total * 100 / $cc_free_shipping_amount);
-}
 
 // Retrieve the current user's ID and their saved for later items
 $current_user_id = get_current_user_id();
@@ -73,7 +87,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 
 	<?php do_action( 'caddy_before_cart_screen_data' ); ?>
 
-	<div class="cc-notice"></div>
+	<div class="cc-notice"><i class="ccicon-close"></i></div>
 	
 	<?php if ( ! empty( $cc_free_shipping_amount ) && $cc_free_shipping_bar ) { ?>
 		<div class="cc-fs cc-text-left">
@@ -106,61 +120,11 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 				
 				<?php do_action( 'caddy_after_cart_items' ); ?>
 	
-				<?php
-				if ( wc_coupons_enabled() ) {
-					$applied_coupons = WC()->cart->get_applied_coupons();
-					?>
-					<div class="cc-coupon">
-						<div class="woocommerce-notices-wrapper"><?php wc_print_notices(); ?></div>
-						<?php
-						// Coupon form will only display when there is no coupon code applied.
-						if ( empty( $applied_coupons ) ) {
-							?>
-							<div class="cc-coupon-title"><?php esc_html_e( 'Apply a promo code:', 'caddy' ); ?></div>
-						<?php } ?>
-						<div class="cc-coupon-form">
-							<?php
-							// Coupon form will only display when there is no coupon code applied.
-							if ( empty( $applied_coupons ) ) {
-								?>
-								<div class="coupon">
-									<form name="apply_coupon_form" id="apply_coupon_form" method="post">
-										<input type="text" name="cc_coupon_code" id="cc_coupon_code" placeholder="<?php echo esc_attr__( 'Promo code', 'caddy' ); ?>" />
-										<input type="submit" class="cc-button-sm cc-coupon-btn" name="cc_apply_coupon" value="<?php echo esc_attr__( 'Apply', 'caddy' ); ?>">
-									</form>
-								</div>
-							<?php } ?>
-	
-							<?php
-							// Check if there is any coupon code is applied.
-							if ( ! empty( $applied_coupons ) ) {
-								foreach ( $applied_coupons as $code ) {
-									$coupon_detail   = new WC_Coupon( $code );
-									$coupon_data     = $coupon_detail->get_data();
-									$discount_amount = $coupon_data['amount'];
-									$discount_type   = $coupon_data['discount_type'];
-	
-									if ( 'percent' == $discount_type ) {
-										$coupon_amount_text = $discount_amount . '%';
-									} else {
-										$coupon_amount_text = $currency_symbol . $discount_amount;
-									}
-									?>
-									<div class="cc-applied-coupon">
-										<span class="cc_applied_code"><?php echo esc_html( $code ); ?></span><?php echo esc_html( __( ' promo code ( ', 'caddy' ) . $coupon_amount_text . __( ' off ) applied.', 'caddy' ) ); ?>
-										<a href="javascript:void(0);" class="cc-remove-coupon"><?php esc_html_e( 'Remove', 'caddy' ); ?></a>
-									</div>
-									<?php
-								}
-							} ?>
-	
-						</div>
-					</div>
-				<?php } ?>
+				
 			<?php } else { ?>
 				<div class="cc-empty-msg">
 					<i class="ccicon-cart-empty"></i>
-					<span class="cc-title"><?php esc_html_e( 'Your Cart is empty!', 'caddy' ); ?></span>
+					<span class="cc-title"><?php esc_html_e( 'Your Cart is Empty!', 'caddy' ); ?></span>
 	
 					<?php if ( ! empty( $cc_sfl_items ) ) { ?>
 						<p><?php esc_html_e( 'You haven\'t added any items to your cart yet, but you do have products in your saved list.', 'caddy' ); ?></p>
@@ -180,17 +144,95 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 		<div class="cc-cart-actions<?php echo esc_attr( $cc_disable_branding_class ); ?>">
 
 			<?php do_action( 'caddy_before_cart_screen_totals' ); ?>
+			<?php if ( wc_coupons_enabled() ) {
+				$applied_coupons = WC()->cart->get_applied_coupons();
+				?>
+				<div class="cc-coupon">
+					<div class="woocommerce-notices-wrapper">
+						<?php
+						$notices = wc_get_notices();
+						// Only print error notices
+						if (isset($notices['error'])) {
+							WC()->session->set('wc_notices', ['error' => $notices['error']]);
+							wc_print_notices();
+						}
+						?>
+					</div>
+					<a class="cc-coupon-title" href="javascript:void(0);">
+						<?php esc_html_e( 'Apply a promo code', 'caddy' ); ?>
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" version="1.1" id="Tailless-Line-Arrow-Up-1--Streamline-Core">
+							<path d="M9.6881 4.9297C9.524140000000001 4.965380000000001 9.37644 5.02928 9.22 5.13224C9.1265 5.19378 7.92168 6.38728 4.928 9.3839C0.24 14.07654 0.6706399999999999 13.61372 0.67022 13.96C0.67002 14.126520000000001 0.6769799999999999 14.165080000000001 0.72642 14.2721C0.79824 14.4275 0.953 14.581199999999999 1.10956 14.65258C1.2111 14.698879999999999 1.25632 14.707180000000001 1.40956 14.7076C1.56528 14.70804 1.6078200000000002 14.700239999999999 1.72 14.65076C1.84446 14.59584 2.02348 14.42008 5.925 10.52196L10 6.45052 14.075000000000001 10.52196C17.88932 14.33296 18.15768 14.5967 18.27 14.6448C18.336 14.673060000000001 18.435840000000002 14.702200000000001 18.491880000000002 14.70954C18.62038 14.726379999999999 18.82024 14.690840000000001 18.93874 14.6301C19.06538 14.56516 19.20752 14.41248 19.274 14.27C19.32306 14.16488 19.329980000000003 14.12646 19.32978 13.96C19.32936 13.61372 19.76 14.07654 15.072000000000001 9.3839C12.1177 6.42668 10.872280000000002 5.19276 10.78 5.1315599999999995C10.4682 4.92474 10.05878 4.849060000000001 9.6881 4.9297" stroke="none" fill="currentColor" fill-rule="evenodd"></path>
+						</svg>
+					</a>
+					<div class="cc-coupon-form" style="display: none;">
+						<div class="coupon">
+							<form name="apply_coupon_form" id="apply_coupon_form" method="post">
+								<input type="text" name="cc_coupon_code" id="cc_coupon_code" placeholder="<?php echo esc_attr__( 'Promo code', 'caddy' ); ?>" />
+								<input type="submit" class="cc-button-sm cc-coupon-btn" name="cc_apply_coupon" value="<?php echo esc_attr__( 'Apply', 'caddy' ); ?>">
+							</form>
+						</div>
+					</div>
+				</div>
+			<?php } ?>
+			<?php if ( ! empty( $applied_coupons ) ) { ?>
+			<div class="cc-discounts">
+				<div class="cc-discount">
+					<?php 
+					foreach ( $applied_coupons as $code ) {
+						$coupon_detail = new WC_Coupon( $code );
+						?>
+						<div class="cc-applied-coupon">
+							<img src="<?php echo plugin_dir_url( __DIR__ ) ?>img/tag-icon.svg" alt="Discount Code">
+							<span class="cc_applied_code"><?php echo esc_html( $code ); ?></span>
+							<a href="javascript:void(0);" class="cc-remove-coupon"><i class="ccicon-close"></i></a>
+						</div>
+						<?php
+					}
+					?>
+				</div>
+				<?php
+				// Calculate sale discounts
+				$sale_discount_total = 0;
+				foreach (WC()->cart->get_cart() as $cart_item) {
+					$product = $cart_item['data'];
+					if ($product->is_on_sale()) {
+						$regular_price = floatval($product->get_regular_price());
+						$sale_price = floatval($product->get_sale_price());
+						$discount = ($regular_price - $sale_price) * $cart_item['quantity'];
+						$sale_discount_total += $discount;
+					}
+				}
 
+				// Get coupon discounts
+				$coupon_discount_total = 0;
+				foreach ($applied_coupons as $code) {
+					$coupon = new WC_Coupon($code);
+					$coupon_discount_total += WC()->cart->get_coupon_discount_amount($coupon->get_code(), WC()->cart->display_cart_ex_tax);
+				}
+
+				// Calculate total savings
+				$total_savings = $sale_discount_total + $coupon_discount_total;
+
+				// Display total savings if greater than 0
+				if ($total_savings > 0) {
+					echo '<div class="cc-savings">' . 
+						esc_html__('-', 'caddy') . 
+						wc_price($total_savings) . 
+						'</div>';
+				}
+				?>
+			</div>
+			<?php } ?>
 			<div class="cc-totals">
 				<div class="cc-total-box">
-					<span class="cc-total-text">
-						<?php if ( $total_cart_item_count > 1 ) { ?>
-							<?php echo esc_html__( 'Subtotal - ', 'caddy' ) . esc_html( $total_cart_item_count ) . esc_html__( ' items', 'caddy' ); ?>
-						<?php } else { ?>
-							<?php echo esc_html__( 'Subtotal - ', 'caddy' ) . esc_html( $total_cart_item_count ) . esc_html__( ' item', 'caddy' ); ?>
-						<?php } ?>
+					<div class="cc-total-text">
+						<?php 
+						echo esc_html__( 'Subtotal - ', 'caddy' ) . esc_html( $total_cart_item_count ) . ' ' . 
+						esc_html( _n( 'item', 'items', $total_cart_item_count, 'caddy' ) ); 
+						?>
 						<br><span class="cc-subtotal-subtext"><?php esc_html_e( 'Shipping &amp; taxes calculated at checkout.', 'caddy' ); ?></span>
-					</span>
+					</div>
+
 					<?php
 					$coupon_discount_amount = 0;
 					if ( wc_coupons_enabled() ) {
@@ -205,7 +247,23 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					$cc_cart_subtotal    = WC()->cart->get_displayed_subtotal();
 					$caddy_cart_subtotal = (float) ( $cc_cart_subtotal - $coupon_discount_amount );
 					?>
-					<span class="cc-total-amount"><?php echo wc_price( $caddy_cart_subtotal, array( 'currency' => get_woocommerce_currency() ) ); ?></span>
+					<div class="cc-total-amount">
+						<?php 
+						// Calculate original total (before any discounts)
+						$original_total = 0;
+						foreach (WC()->cart->get_cart() as $cart_item) {
+							$product = $cart_item['data'];
+							$original_price = $product->get_regular_price();
+							$original_total += floatval($original_price) * $cart_item['quantity'];
+						}
+
+						// Only show original price if there are discounts
+						if ($original_total > $caddy_cart_subtotal) {
+							echo '<span class="cc-original-price"><del>' . wc_price($original_total) . '</del></span> ';
+						}
+						echo wc_price($caddy_cart_subtotal, array('currency' => get_woocommerce_currency()));
+						?>
+					</div>
 				</div>
 			</div>
 

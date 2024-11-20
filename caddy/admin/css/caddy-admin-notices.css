@@ -49,6 +49,24 @@
 	padding-right: 5px;
 }
 
+.caddy-notice .button {
+	background-color: #2f90e0;
+	border-color: #185b91;
+	font-size: 14px;
+	color: #fff;
+	padding: 3px 20px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	transition: all 150ms linear;
+}
+
+.caddy-notice .button:hover {
+	background-color: #000;
+	border-color: #000;
+	color: #fff;
+}
+
 .rk-promo .kt-right .button {
 	background-color: #2f90e0;
 	border-color: #185b91;
@@ -121,4 +139,51 @@
 
 .toplevel_page_klaviyo-toolkit #wpbody {
 	margin-top: 0;
+}
+
+.caddy-2-promo {
+	gap: 10px;
+}
+
+.caddy-2-promo .welcome-heading {
+	margin-bottom: 0;
+	font-size: 24px;
+}
+
+.caddy-2-promo .button {
+    border: none;
+    background: #000;
+}
+
+.caddy-2-promo .kt-left img {
+    border-radius: 5px;
+	width: auto;
+    height: 260px;
+}
+
+
+.caddy-2-promo ul li {
+    position: relative;
+    padding-left: 28px;
+    margin-bottom: 8px;
+    list-style: none;
+	font-size: 15px;
+}
+
+.caddy-2-promo ul li:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 14px;
+    height: 14px;
+    background-image: url('../img/check.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.caddy-2-promo p.caddy-notice-ctas {
+    flex-direction: row;
+    align-items: center;
 }

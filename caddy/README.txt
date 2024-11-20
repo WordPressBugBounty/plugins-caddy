@@ -4,9 +4,9 @@ Author URI: https://www.usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
 Tags: caddy, woocommerce, woo, cart, side cart, sticky cart, cart notices, popup cart, woocommerce cart, shopping cart, mini-cart, floating cart
 Requires at least: 5.0
-Tested up to: 6.5.5
+Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: v2.0.2
+Stable tag: v2.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,7 +34,7 @@ A high performance, conversion-boosting side cart for your WooCommerce store tha
 * Show a sticky floating cart button with a cart quantity indicator
 * Let customers add coupons in the side cart
 * Show a free shipping meter in the side cart that lets customers know when they qualify for free shipping
-* Show product up-sell recommendations when customers add products to their cart
+* Show product recommendations when customers add products to their cart
 * Let customers save products for later
 * Add cart and saved list links to your navigation menu (short codes + widgets)
 * Add save for later buttons on product pages
@@ -123,6 +123,15 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.0.3 = 
+* Feature: Added "Recommendations" field option in product settings
+* Feature: Added "Recommendation Type" field option in Caddy settings
+* Improvement: Improved coupon form experience
+* Improvement: Improved performance
+* Improvement: Cart processing improvements
+* Improvement: Setting core styles as variables
+* Fix: Various bug fixes and improvements
 
 = 2.0.2 = 
 * Fix: Composer dependency include

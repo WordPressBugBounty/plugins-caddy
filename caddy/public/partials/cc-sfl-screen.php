@@ -79,7 +79,7 @@ $cc_empty_class = ( empty( $cc_sfl_items ) ) ? ' cc-empty' : '';
 								</div>
 								<?php
 								echo sprintf(
-									'<a href="%s" class="remove remove_from_sfl_button" aria-label="%s" data-product_id="%s"><i class="ccicon-trash"></i></a>',
+									'<a href="%s" class="remove remove_from_sfl_button" aria-label="%s" data-product_id="%s"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke="currentColor" d="M1 6H23"></path><path stroke="currentColor" d="M4 6H20V22H4V6Z"></path><path stroke="currentColor" d="M9 10V18"></path><path stroke="currentColor" d="M15 10V18"></path><path stroke="currentColor" d="M8 6V6C8 3.79086 9.79086 2 12 2V2C14.2091 2 16 3.79086 16 6V6"></path></svg></a>',
 									'javascript:void(0);',
 									esc_attr__( 'Remove this item', 'caddy' ),
 									esc_attr( $product_id )

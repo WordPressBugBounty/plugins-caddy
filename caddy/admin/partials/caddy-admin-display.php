@@ -50,6 +50,9 @@ if ( isset( $_POST['cc_submit_hidden'] ) && $_POST['cc_submit_hidden'] == 'Y' ) 
 		$cc_product_recommendation = isset( $_POST['cc_product_recommendation'] ) ? sanitize_text_field( $_POST['cc_product_recommendation'] ) : 'disabled';
 		update_option( 'cc_product_recommendation', $cc_product_recommendation );
 
+		$cc_product_recommendation_type = ! empty( $_POST['cc_product_recommendation_type'] ) ? sanitize_text_field( $_POST['cc_product_recommendation_type'] ) : '';
+		update_option( 'cc_product_recommendation_type', $cc_product_recommendation_type );
+
 		$cc_free_shipping_amount = ! empty( $_POST['cc_free_shipping_amount'] ) ? intval( $_POST['cc_free_shipping_amount'] ) : '';
 		update_option( 'cc_free_shipping_amount', $cc_free_shipping_amount );
 
@@ -86,11 +89,8 @@ if ( isset( $_POST['cc_submit_hidden'] ) && $_POST['cc_submit_hidden'] == 'Y' ) 
 <?php } ?>
 
 <div class="wrap">
-	<div class="cc-header-wrap">
-		<img src="<?php echo plugin_dir_url( __DIR__ ) ?>img/caddy-logo.svg" width="110" height="32" class="cc-logo">
-		<div class="cc-version"><?php echo CADDY_VERSION; ?></div>
-		<?php do_action( 'caddy_header_links' ); ?>
-	</div>
+	
+	<?php do_action( 'caddy_admin_header' ); ?>
 
 	<h2 class="nav-tab-wrapper">
 		<?php

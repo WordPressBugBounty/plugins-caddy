@@ -203,8 +203,11 @@ class Caddy_Admin {
 				<h3><?php echo esc_html( __( 'Upgrade to Premium', 'caddy' ) ); ?></h3>
 				<p><?php echo esc_html( __( 'Unlock powerful new Caddy features:', 'caddy' ) ); ?></p>
 				<ul>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( '7 different cart icon styles.', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( '15+ custom color options.', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Analytics dashboard.', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart & conversion tracking.', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Custom recommendation logic.', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Targeted workflows.', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Total design control.', 'caddy' ) ); ?></li>
 					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Bubble positioning options.', 'caddy' ) ); ?></li>
 					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart notices, add-ons & more.', 'caddy' ) ); ?></li>
 				</ul>
@@ -426,40 +429,35 @@ class Caddy_Admin {
 		}
 
 		global $wp_version;
-		$current_user          = wp_get_current_user();
+		$current_user = wp_get_current_user();
 		
-		// Get the 'popUpSelectedReason' parameter from the POST request
-		$raw_popup_selected_reason = filter_input(INPUT_POST, 'popUpSelectedReason', FILTER_DEFAULT);
-		
-		// Sanitize the 'popUpSelectedReason' parameter
-		$popup_selected_reason = sanitize_text_field($raw_popup_selected_reason);
-		
-		// Get the 'deactivationReason' parameter from the POST request
-		$raw_deactivation_reason = filter_input(INPUT_POST, 'deactivationReason', FILTER_DEFAULT);
-		
-		// Sanitize the 'deactivationReason' parameter
-		$deactivation_reason = sanitize_text_field($raw_deactivation_reason);
-		
-		// Get the 'contactMeCheckbox' parameter from the POST request
-		$raw_contact_me_checkbox = filter_input(INPUT_POST, 'contactMeCheckbox', FILTER_DEFAULT);
-		
-		// Sanitize the 'contactMeCheckbox' parameter
-		$contact_me_checkbox = sanitize_text_field($raw_contact_me_checkbox);
+		// Get and sanitize POST parameters
+		$popup_selected_reason = sanitize_text_field(filter_input(INPUT_POST, 'popUpSelectedReason', FILTER_DEFAULT));
+		$deactivation_reason = sanitize_text_field(filter_input(INPUT_POST, 'deactivationReason', FILTER_DEFAULT));
+		$contact_me_checkbox = sanitize_text_field(filter_input(INPUT_POST, 'contactMeCheckbox', FILTER_DEFAULT));
 
-		$mail_to      = 'success@usecaddy.com';
+		$mail_to = 'success@usecaddy.com';
 		$mail_subject = __( 'Caddy Deactivation Survey Response', 'caddy' );
-		$mail_body    = sprintf( __( 'WordPress website URL: %s', 'caddy' ), esc_url( site_url() ) ) . '<br>';
-		$mail_body    .= sprintf( __( 'WordPress version: %s', 'caddy' ), esc_html( $wp_version ) ) . '<br>';
-		$mail_body    .= sprintf( __( 'The plugin version: %s', 'caddy' ), esc_html( CADDY_VERSION ) ) . '<br>';
-		$mail_body    .= sprintf( __( 'Selected Deactivation Reason: %s', 'caddy' ), esc_html( $popup_selected_reason ) ) . '<br>';
-		$mail_body    .= sprintf( __( 'Deactivation Reason Text: %s', 'caddy' ), esc_html( $deactivation_reason ) ) . '<br>';
+		
+		/* translators: %s: Website URL */
+		$mail_body = sprintf( __( 'WordPress website URL: %s', 'caddy' ), esc_url( site_url() ) ) . '<br>';
+		/* translators: %s: WordPress version number */
+		$mail_body .= sprintf( __( 'WordPress version: %s', 'caddy' ), esc_html( $wp_version ) ) . '<br>';
+		/* translators: %s: Plugin version number */
+		$mail_body .= sprintf( __( 'The plugin version: %s', 'caddy' ), esc_html( CADDY_VERSION ) ) . '<br>';
+		/* translators: %s: Selected reason from deactivation survey */
+		$mail_body .= sprintf( __( 'Selected Deactivation Reason: %s', 'caddy' ), esc_html( $popup_selected_reason ) ) . '<br>';
+		/* translators: %s: Detailed reason text from deactivation survey */
+		$mail_body .= sprintf( __( 'Deactivation Reason Text: %s', 'caddy' ), esc_html( $deactivation_reason ) ) . '<br>';
 
 		if ( 'yes' === $contact_me_checkbox ) {
 			$first_name = $current_user->first_name;
-			$last_name  = $current_user->last_name;
-			$full_name  = $first_name . ' ' . $last_name;
-			$mail_body  .= sprintf( __( 'User display name: %s', 'caddy' ), esc_html( $full_name ) ) . '<br>';
-			$mail_body  .= sprintf( __( 'User email: %s', 'caddy' ), esc_html( $current_user->user_email ) );
+			$last_name = $current_user->last_name;
+			$full_name = $first_name . ' ' . $last_name;
+			/* translators: %s: User's full name */
+			$mail_body .= sprintf( __( 'User display name: %s', 'caddy' ), esc_html( $full_name ) ) . '<br>';
+			/* translators: %s: User's email address */
+			$mail_body .= sprintf( __( 'User email: %s', 'caddy' ), esc_html( $current_user->user_email ) );
 		}
 
 		$mail_headers = array( 'Content-Type: text/html; charset=UTF-8' );
@@ -467,5 +465,50 @@ class Caddy_Admin {
 		wp_mail( $mail_to, $mail_subject, $mail_body, $mail_headers );
 
 		wp_die();
+	}
+
+	/**
+	 * Include header
+	 */
+	public function caddy_load_admin_header() {
+		include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-header.php';
+	}
+
+	/**
+	 * Add Caddy Recommendations field to WooCommerce product data
+	 */
+	public function add_caddy_recommendations_field() {
+		global $woocommerce, $post;
+		
+		?>
+		<div class="options_group">
+			<p class="form-field">
+				<label for="caddy_recommendations"><?php _e('Caddy Recommendations', 'caddy'); ?></label>
+				<select class="wc-product-search" multiple="multiple" style="width: 50%;" id="caddy_recommendations" name="caddy_recommendations[]" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'caddy'); ?>" data-action="woocommerce_json_search_products_and_variations" data-exclude="<?php echo intval($post->ID); ?>">
+					<?php
+					$product_ids = get_post_meta($post->ID, '_caddy_recommendations', true);
+					
+					if (!empty($product_ids)) {
+						foreach ($product_ids as $product_id) {
+							$product = wc_get_product($product_id);
+							if (is_object($product)) {
+								echo '<option value="' . esc_attr($product_id) . '"' . selected(true, true, false) . '>' . wp_kses_post($product->get_formatted_name()) . '</option>';
+							}
+						}
+					}
+					?>
+				</select>
+				<?php echo wc_help_tip(__('These products will be shown as recommendations in the Caddy cart for this product.', 'caddy')); ?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Save Caddy Recommendations data
+	 */
+	public function save_caddy_recommendations_field($post_id) {
+		$recommendations = isset($_POST['caddy_recommendations']) ? array_map('intval', (array) $_POST['caddy_recommendations']) : array();
+		update_post_meta($post_id, '_caddy_recommendations', $recommendations);
 	}
 }

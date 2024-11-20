@@ -42,11 +42,7 @@ $caddy_addon_sections = apply_filters( 'caddy_get_addons_sections', $addon_secti
 ?>
 
 <div class="wrap">
-	<div class="cc-header-wrap">
-		<img src="<?php echo plugin_dir_url( __DIR__ ) ?>img/caddy-logo.svg" width="110" height="32" class="cc-logo">
-		<div class="cc-version"><?php echo CADDY_VERSION; ?></div>
-		<?php do_action( 'caddy_header_links' ); ?>
-	</div>
+	<?php do_action( 'caddy_admin_header' ); ?>
 	<h2 class="nav-tab-wrapper">
 		<?php
 		foreach ( $addon_tab_name as $key => $value ) {

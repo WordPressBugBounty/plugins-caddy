@@ -49,19 +49,6 @@ class Caddy_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
-
-		if ( is_checkout() ) {
-			$caddy                         = new Caddy();
-			$cc_premium_license_activation = $caddy->cc_check_premium_license_activation();
-			if ( $cc_premium_license_activation ) {
-				$cc_enable_on_checkout_page = get_option( 'cc_enable_on_checkout_page' );
-				if ( 'enabled' !== $cc_enable_on_checkout_page ) {
-					return;
-				}
-			} else {
-				return;
-			}
-		}
 		wp_enqueue_style( 'cc-slick', CADDY_DIR_URL . '/public/css/caddy-slick.min.css', array(), $this->version, 'all' );
 		wp_enqueue_style( 'caddy-public', CADDY_DIR_URL . '/public/css/caddy-public.css', array(), $this->version, 'all' );
 		wp_enqueue_style( 'cc-icons', CADDY_DIR_URL . '/public/css/caddy-icons.css', array(), $this->version, 'all' );
@@ -77,34 +64,31 @@ class Caddy_Public {
 			// Return if current screen is elementor editor
 			return;
 		}
-		if ( is_checkout() ) {
-			$caddy                         = new Caddy();
-			$cc_premium_license_activation = $caddy->cc_check_premium_license_activation();
-			if ( $cc_premium_license_activation ) {
-				$cc_enable_on_checkout_page = get_option( 'cc_enable_on_checkout_page' );
-				if ( 'enabled' !== $cc_enable_on_checkout_page ) {
-					return;
-				}
-			} else {
-				return;
-			}
-		}
 
-		wp_enqueue_script( 'cc-tabby-js', CADDY_DIR_URL . '/public/js/tabby.min.js', array( 'jquery' ), null, true );
-		wp_enqueue_script( 'cc-tabby-polyfills-js', CADDY_DIR_URL . '/public/js/tabby.polyfills.min.js', array( 'jquery' ), null, true );
-		wp_enqueue_script( 'cc-slick-js', CADDY_DIR_URL . '/public/js/slick.min.js', array( 'jquery' ), null, true );
-		wp_enqueue_script( 'caddy-public', CADDY_DIR_URL . '/public/js/caddy-public.js', array( 'jquery' ), $this->version, true );
-
-		// make the ajaxurl var available to the above script
+		// First, localize the script data
 		$params = array(
 			'ajaxurl'            => esc_url( admin_url( 'admin-ajax.php' ) ),
-			'wc_ajax_url'        => esc_url( WC_AJAX::get_endpoint( '%%endpoint%%' ) ),
+			'wc_ajax_url'        => WC_AJAX::get_endpoint( '%%endpoint%%' ),
 			'wc_currency_symbol' => esc_html( get_woocommerce_currency_symbol() ),
 			'nonce'              => wp_create_nonce( 'caddy' ),
 			'wc_archive_page'    => ( is_shop() || is_product_category() || is_product_tag() ) ? true : false,
 			'is_mobile'          => wp_is_mobile(),
 		);
+
+		// Register scripts first
+		wp_register_script( 'cc-tabby-js', CADDY_DIR_URL . '/public/js/tabby.min.js', array( 'jquery' ), null, true );
+		wp_register_script( 'cc-tabby-polyfills-js', CADDY_DIR_URL . '/public/js/tabby.polyfills.min.js', array( 'jquery' ), null, true );
+		wp_register_script( 'cc-slick-js', CADDY_DIR_URL . '/public/js/slick.min.js', array( 'jquery' ), null, true );
+		wp_register_script( 'caddy-public', CADDY_DIR_URL . '/public/js/caddy-public.js', array( 'jquery' ), $this->version, true );
+
+		// Localize before enqueuing
 		wp_localize_script( 'caddy-public', 'cc_ajax_script', $params );
+
+		// Now enqueue the scripts
+		wp_enqueue_script( 'cc-tabby-js' );
+		wp_enqueue_script( 'cc-tabby-polyfills-js' );
+		wp_enqueue_script( 'cc-slick-js' );
+		wp_enqueue_script( 'caddy-public' );
 	}
 
 	/**
@@ -114,19 +98,6 @@ class Caddy_Public {
 		if ( isset( $_GET['elementor-preview']) || isset($_GET['et_fb']) ) {
 			// Return if current screen is elementor editor
 			return;
-		}
-
-		if ( is_checkout() ) {
-			$caddy                         = new Caddy();
-			$cc_premium_license_activation = $caddy->cc_check_premium_license_activation();
-			if ( $cc_premium_license_activation ) {
-				$cc_enable_on_checkout_page = get_option( 'cc_enable_on_checkout_page' );
-				if ( 'enabled' !== $cc_enable_on_checkout_page ) {
-					return;
-				}
-			} else {
-				return;
-			}
 		}
 
 		require_once( plugin_dir_path( __FILE__ ) . 'partials/caddy-public-display.php' );
@@ -145,7 +116,7 @@ class Caddy_Public {
 		$cc_cart_zero = ( $cart_count == 0 ) ? ' cc-cart-zero' : '';
 		?>
 		<span class="cc-compass-count<?php echo esc_attr( $cc_cart_zero ); ?>">
-			<?php echo sprintf( esc_html( _n( '%d', '%d', $cart_count, 'caddy' ) ), $cart_count ); ?>
+			<?php echo esc_html( $cart_count ); ?>
 		</span>
 		<?php
 		$fragments['.cc-compass-count'] = ob_get_clean();
@@ -165,7 +136,9 @@ class Caddy_Public {
 		$cart_count = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
 		$cc_cart_zero = ( $cart_count == 0 ) ? ' cc_cart_zero' : '';
 		?>
-		<span class="cc_cart_count<?php echo esc_attr( $cc_cart_zero ); ?>"><?php echo sprintf( esc_html( _n( '%d', '%d', $cart_count, 'caddy' ) ), $cart_count ); ?></span>
+		<span class="cc_cart_count<?php echo esc_attr( $cc_cart_zero ); ?>">
+			<?php echo esc_html( $cart_count ); ?>
+		</span>
 		<?php
 		$fragments['.cc_cart_count'] = ob_get_clean();
 		
@@ -174,18 +147,18 @@ class Caddy_Public {
 
 	public function cc_cart_html_fragments( $fragments ) {
 
-		ob_start();
-		$this->cc_cart_screen();
-		$cc_cart_screen_container = ob_get_clean();
+			ob_start();
+			$this->cc_cart_screen();
+			$cc_cart_screen_container = ob_get_clean();
 
-		ob_start();
-		$this->cc_sfl_screen();
-		$cc_sfl_screen_container = ob_get_clean();
+			ob_start();
+			$this->cc_sfl_screen();
+			$cc_sfl_screen_container = ob_get_clean();
 
-		$fragments['div.cc-cart-container'] = $cc_cart_screen_container;
-		$fragments['div.cc-sfl-container']  = $cc_sfl_screen_container;
+			$fragments['div.cc-cart-container'] = $cc_cart_screen_container;
+			$fragments['div.cc-sfl-container']  = $cc_sfl_screen_container;
 
-		return $fragments;
+			return $fragments;
 	}
 
 	/**
@@ -215,34 +188,39 @@ class Caddy_Public {
 	 * Caddy add item to the cart.
 	 */
 	public function caddy_add_to_cart() {
+		// Verify nonce if user is logged in
+		if (is_user_logged_in() && (!isset($_POST['security']) || !wp_verify_nonce($_POST['security'], 'caddy'))) {
+			wp_send_json_error('Invalid nonce');
+			return;
+		}
 
-		$product_id        = apply_filters( 'woocommerce_add_to_cart_product_id', absint( $_POST['add-to-cart'] ) );
-		$quantity          = empty( $_POST['quantity'] ) ? 1 : wc_stock_amount( wp_unslash( $_POST['quantity'] ) );
-		$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $quantity );
-		$product_status    = get_post_status( $product_id );
+		$product_id = apply_filters('woocommerce_add_to_cart_product_id', absint($_POST['add-to-cart']));
+		$quantity = empty($_POST['quantity']) ? 1 : wc_stock_amount( wp_unslash($_POST['quantity']) );
+		$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
+		$product_status = get_post_status($product_id);
 
-		if ( $passed_validation && 'publish' === $product_status ) {
+		if ($passed_validation && 'publish' === $product_status) {
 
-			do_action( 'woocommerce_ajax_added_to_cart', $product_id );
+			do_action('woocommerce_ajax_added_to_cart', $product_id);
 
-			$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
+			$caddy_license_status = get_option('caddy_premium_edd_license_status');
 			$open_cc_compass_flag = true;
-			if ( 'valid' === $caddy_license_status ) {
-				if ( wp_is_mobile() ) {
-					$cp_mobile_notices = get_option( 'cp_mobile_notices' );
-					if ( 'mob_no_notice' === $cp_mobile_notices ) {
+			if ('valid' === $caddy_license_status) {
+				if (wp_is_mobile()) {
+					$cp_mobile_notices = get_option('cp_mobile_notices');
+					if ('mob_no_notice' === $cp_mobile_notices) {
 						$open_cc_compass_flag = false;
 					}
 				} else {
-					$cp_desktop_notices = get_option( 'cp_desktop_notices' );
-					if ( 'desk_notices_only' === $cp_desktop_notices ) {
+					$cp_desktop_notices = get_option('cp_desktop_notices');
+					if ('desk_notices_only' === $cp_desktop_notices) {
 						$open_cc_compass_flag = false;
 					}
 				}
 			}
 
-			if ( 'yes' === get_option( 'woocommerce_cart_redirect_after_add' ) ) {
-				wc_add_to_cart_message( array( $product_id => $quantity ), true );
+			if ('yes' === get_option('woocommerce_cart_redirect_after_add')) {
+				wc_add_to_cart_message(array($product_id => $quantity), true);
 			}
 
 			$this->get_refreshed_fragments();
@@ -250,23 +228,44 @@ class Caddy_Public {
 			$data = array(
 				'cc_compass_open' => $open_cc_compass_flag,
 			);
-			wp_send_json( $data );
+			wp_send_json($data);
 
 		} else {
 
 			$data = array(
 				'error'       => true,
-				'product_url' => apply_filters( 'woocommerce_cart_redirect_after_error', get_permalink( $product_id ), $product_id ),
+				'product_url' => apply_filters('woocommerce_cart_redirect_after_error', get_permalink($product_id), $product_id),
 			);
 
-			wp_send_json( $data );
+			wp_send_json($data);
 		}
 
 		wp_die();
 	}
 
 	public function get_refreshed_fragments() {
-		WC_AJAX::get_refreshed_fragments();
+		
+		try {
+			// Check if this is a WC AJAX request
+			if (defined('DOING_AJAX') && DOING_AJAX && isset($_GET['wc-ajax'])) {
+				
+				// Get cart fragments directly
+				$cart_fragments = WC_AJAX::get_refreshed_fragments();
+				
+				// If fragments were retrieved successfully, send them back
+				if ($cart_fragments) {
+					wp_send_json($cart_fragments);
+				} else {
+					wp_send_json_error('Unable to get cart fragments');
+				}
+			} else {
+				wp_send_json_error('Invalid request type');
+			}
+		} catch (Exception $e) {
+			wp_send_json_error($e->getMessage());
+		}
+		
+		wp_die();
 	}
 
 	/**
@@ -326,10 +325,13 @@ class Caddy_Public {
 			$this->get_refreshed_fragments();
 			$data = array();
 			if ( $qty_error_flag ) {
+				
 				$data['qty_error_msg'] = sprintf(
+					/* translators: %1$s: product name, %2$s: available stock quantity */
 					esc_html__( 'Sorry, we do not have enough "%1$s" in stock to fulfill your order (%2$s available). We apologize for any inconvenience caused.', 'caddy' ),
 					$product_name,
-					$product_stock_qty );
+					$product_stock_qty 
+				);
 			}
 			wp_send_json( $data );
 
@@ -441,10 +443,12 @@ class Caddy_Public {
 				$data = array(
 					'error'         => true,
 					'product_url'   => apply_filters( 'woocommerce_cart_redirect_after_error', get_permalink( $product_id ), $product_id ),
+					/* translators: %1$s: product name, %2$s: available stock quantity */
 					'error_message' => sprintf(
-						__( 'Sorry, we do not have enough "%1$s" in stock to fulfill your order (%2$s available). We apologize for any inconvenience caused.', 'caddy' ),
+						esc_html__( 'Sorry, we do not have enough "%1$s" in stock to fulfill your order (%2$s available). We apologize for any inconvenience caused.', 'caddy' ),
 						$product_name,
-						$product_stock_qty ),
+						$product_stock_qty 
+					),
 				);
 
 				wp_send_json( $data );
@@ -865,7 +869,9 @@ class Caddy_Public {
 			<div class="cc-compass">
 				<span class="licon"></span>
 				<div class="cc-loader" style="display: none;"></div>
-				<span class="cc-compass-count<?php echo esc_attr( $cc_cart_zero ); ?> cc-hidden"><?php echo sprintf( _n( '%d', '%d', $cart_count ), $cart_count ); ?></span>
+				<span class="cc-compass-count<?php echo esc_attr( $cc_cart_zero ); ?>">
+					<?php echo esc_html( $cart_count ); ?>
+				</span>
 			</div>
 			<?php
 		}
@@ -882,7 +888,7 @@ class Caddy_Public {
 
 		// Check if premium plugin is active or not
 		if ( ! class_exists( 'Caddy_Premium' ) ||
-			 ( isset( $caddy_license_status ) && ! empty( $caddy_license_status ) ) ) {
+			( isset( $caddy_license_status ) && ! empty( $caddy_license_status ) ) ) {
 
 			// Return if the license key is valid
 			if ( 'valid' === $caddy_license_status || empty( $product_id ) ) {
@@ -946,8 +952,7 @@ class Caddy_Public {
 		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 
 		// Check if premium plugin is active or not
-		if ( ! class_exists( 'Caddy_Premium' ) ||
-			 ( isset( $caddy_license_status ) && 'valid' !== $caddy_license_status ) ) {
+		if ( ! class_exists( 'Caddy_Premium' ) ) {
 			
 			$calculate_with_tax = 'enabled' === get_option('cc_free_shipping_tax', 'disabled');
 			$final_cart_subtotal = $calculate_with_tax ? WC()->cart->get_cart_contents_total() + WC()->cart->get_cart_contents_tax() : WC()->cart->get_displayed_subtotal();
@@ -1025,7 +1030,7 @@ class Caddy_Public {
 	
 					$plus_disable = '';
 					if ( $product_stock_qty > 0 ) {
-						if ( ( $product_stock_qty <= $cart_item['quantity'] && ! $_product->backorders_allowed() ) ) {
+						if ( ( $product_stock_qty <= $cart_item['quantity'] && ! $_product->backorders_allowed() )) {
 							$plus_disable = ' cc-qty-disabled';
 						}
 					}
@@ -1061,12 +1066,24 @@ class Caddy_Public {
 								</div>
 								<div class="cc_item_total_price">
 									<div class="price">
+										<?php if ( $_product->is_on_sale() ) : 
+											$regular_price = $_product->get_regular_price() * $cart_item['quantity'];
+											?>
+											<del><?php echo wc_price($regular_price); ?></del>
+										<?php endif; ?>
 										<?php
-										echo apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $_product, $cart_item['quantity'] ), $cart_item, $cart_item_key ); // PHPCS: XSS ok.
+										echo apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $_product, $cart_item['quantity'] ), $cart_item, $cart_item_key );
 										?>
 									</div>
-									<?php if ( $_product->is_on_sale() ) { ?>
-										<div class="cc_saved_amount"><?php echo '(Save ' . round( $percentage ) . '%)'; ?></div>
+									<?php if ( $_product->get_regular_price() > $_product->get_price() ) { 
+										$percentage = (($_product->get_regular_price() - $_product->get_price()) / $_product->get_regular_price()) * 100;
+									?>
+										<div class="cc_saved_amount">
+											<?php 
+											/* translators: %d: percentage discount */
+											echo sprintf( esc_html__('(Save %d%%)', 'caddy'), round($percentage) ); 
+											?>
+										</div>
 									<?php } ?>
 								</div>
 							</div>
@@ -1130,38 +1147,59 @@ class Caddy_Public {
 	}
 
 	public function caddy_add_cart_widget_to_menu($items, $args) {
-		// Check if $args->menu is an object and has the property 'slug'
+		$menu_slug = '';
+		
+		// Handle cases where menu is passed as object or string
 		if (is_object($args->menu) && property_exists($args->menu, 'slug')) {
-			if ($args->menu->slug === get_option('cc_menu_cart_widget')) {
-				$cart_widget = new caddy_cart_widget();
-	
-				// Simulate the arguments required for the widget method
-				$widget_args = array(
-					'before_widget' => '<li class="menu-item">',
-					'after_widget'  => '</li>',
-					'before_title'  => '<h2 class="widget-title">',
-					'after_title'   => '</h2>'
-				);
-				$instance = array(); // Adjust or populate as needed
-	
-				// Use output buffering to capture the widget output
-				ob_start();
-				$cart_widget->widget($widget_args, $instance);
-				$widget_output = ob_get_clean();
-	
-				// Append the widget output to the menu items
-				$items .= $widget_output;
-			}
+			$menu_slug = $args->menu->slug;
+		} elseif (is_string($args->menu)) {
+			$menu_slug = $args->menu;
 		}
-	
+
+		// Check if this is the menu we want to add the widget to
+		if ($menu_slug === get_option('cc_menu_cart_widget')) {
+			$cart_widget = new caddy_cart_widget();
+
+			// Simulate the arguments required for the widget method
+			$widget_args = array(
+				'before_widget' => '<li class="menu-item">',
+				'after_widget'  => '</li>',
+				'before_title'  => '<h2 class="widget-title">',
+				'after_title'   => '</h2>'
+			);
+			$instance = array(); // Adjust or populate as needed
+
+			// Use output buffering to capture the widget output
+			ob_start();
+			$cart_widget->widget($widget_args, $instance);
+			$widget_output = ob_get_clean();
+
+			// Append the widget output to the menu items
+			$items .= $widget_output;
+		}
+
 		return $items;
 	}
-	
+
 	public function caddy_add_saves_widget_to_menu($items, $args) {
 		// Check if user is logged in
-		if (is_user_logged_in() && $args->menu->slug === get_option('cc_menu_saves_widget')) {
+		if (!is_user_logged_in()) {
+			return $items;
+		}
+
+		$menu_slug = '';
+		
+		// Handle cases where menu is passed as object or string
+		if (is_object($args->menu) && property_exists($args->menu, 'slug')) {
+			$menu_slug = $args->menu->slug;
+		} elseif (is_string($args->menu)) {
+			$menu_slug = $args->menu;
+		}
+
+		// Check if this is the menu we want to add the widget to
+		if ($menu_slug === get_option('cc_menu_saves_widget')) {
 			$save_for_later_widget = new caddy_saved_items_widget();
-	
+
 			// Simulate the arguments required for the widget method
 			$widget_args = array(
 				'before_widget' => '<li class="menu-item">',
@@ -1169,22 +1207,22 @@ class Caddy_Public {
 				'before_title'  => '', // Title wrappers removed
 				'after_title'   => ''
 			);
-	
-			// Provide default or expected values for the instance, excluding si_widget_title
+
+			// Provide default or expected values for the instance
 			$instance = array(
 				'si_text'    => __('Saves', 'caddy'),  // Default text
 				'cc_si_icon' => 'off'                  // Set icon display behavior
 			);
-	
+
 			// Use output buffering to capture the widget output
 			ob_start();
 			$save_for_later_widget->widget($widget_args, $instance);
 			$widget_output = ob_get_clean();
-	
+
 			// Append the widget output to the menu items
 			$items .= $widget_output;
 		}
-	
+
 		return $items;
 	}
 

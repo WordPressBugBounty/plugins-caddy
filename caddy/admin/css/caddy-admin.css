@@ -115,22 +115,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 	padding-top: 0 !important;
 }
 
-.cc-primary-save-btn {
-	color: #fff;
-	text-decoration: none;
-	background-color: #6633ea;
-	background: linear-gradient(272deg, #6633ea, #e06666) !important;
-	border: none !important;
-	font-weight: 800;
-	padding: 6px 20px !important;
-	font-size: 17px !important;
-	-webkit-transition: all 250ms linear;
-}
-
-.cc-primary-save-btn:hover {
-	transform: translateY(-3px);
-}
-
 .cc-settings-wrap {
 	display: flex;
 }
@@ -809,6 +793,7 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 
 .cc-settings-wrap .form-table .description {
 	font-size: 13px;
+	font-weight: normal;
 }
 
 .cc-upgrade {

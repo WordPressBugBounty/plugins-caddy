@@ -124,6 +124,9 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 
 == Changelog ==
 
+= 2.0.4 = 
+* Fix: Release fix
+
 = 2.0.3 = 
 * Feature: Added "Recommendations" field option in product settings
 * Feature: Added "Recommendation Type" field option in Caddy settings

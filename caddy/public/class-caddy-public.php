@@ -75,11 +75,14 @@ class Caddy_Public {
 			'is_mobile'          => wp_is_mobile(),
 		);
 
+		// Force load WooCommerce add-to-cart script regardless of settings
+		wp_enqueue_script( 'wc-add-to-cart', WC()->plugin_url() . '/assets/js/frontend/add-to-cart.min.js', array('jquery'), WC()->version, true );
+
 		// Register scripts first
-		wp_register_script( 'cc-tabby-js', CADDY_DIR_URL . '/public/js/tabby.min.js', array( 'jquery' ), null, true );
-		wp_register_script( 'cc-tabby-polyfills-js', CADDY_DIR_URL . '/public/js/tabby.polyfills.min.js', array( 'jquery' ), null, true );
-		wp_register_script( 'cc-slick-js', CADDY_DIR_URL . '/public/js/slick.min.js', array( 'jquery' ), null, true );
-		wp_register_script( 'caddy-public', CADDY_DIR_URL . '/public/js/caddy-public.js', array( 'jquery' ), $this->version, true );
+		wp_register_script( 'cc-tabby-js', CADDY_DIR_URL . '/public/js/tabby.min.js', array( 'jquery' ), $this->version, true );
+		wp_register_script( 'cc-tabby-polyfills-js', CADDY_DIR_URL . '/public/js/tabby.polyfills.min.js', array( 'jquery' ), $this->version, true );
+		wp_register_script( 'cc-slick-js', CADDY_DIR_URL . '/public/js/slick.min.js', array( 'jquery' ), $this->version, true );
+		wp_register_script( 'caddy-public', CADDY_DIR_URL . '/public/js/caddy-public.js', array( 'jquery', 'wc-add-to-cart' ), $this->version, true );
 
 		// Localize before enqueuing
 		wp_localize_script( 'caddy-public', 'cc_ajax_script', $params );

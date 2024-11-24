@@ -806,6 +806,7 @@
   border-radius: 10px;
   margin-top: 5px;
   line-height: 0;
+  text-align: left;
 }
 
 .cc-fs-meter-used {
@@ -859,11 +860,12 @@
   list-style: none !important;
   display: inline-block !important;
   margin-right: 25px !important;
+  margin-top: 0 !important;
   margin-left: 0 !important;
+  padding-top: 15px !important;
+  padding-bottom: 0 !important;
   text-align: center !important;
   font-size: 0 !important;
-  padding-top: 15px !important;
-  margin-top: 0 !important;
   line-height: 22px !important;
 }
 
@@ -959,6 +961,7 @@ body.cc-window-open {
 .cc_item_quantity_wrap input.cc_item_quantity {
   width: 30px;
   height: 33px;
+  min-height: 33px;
   box-sizing: border-box;
   vertical-align: top;
   border-right-style: initial;
@@ -1053,8 +1056,9 @@ body.cc-window-open {
 }
 
 .cc-pl-upsells .cc-pl-upsells-slider {
-  width: 87%;
+  width: auto;
   margin: 0 auto;
+  padding: 0 30px;
 }
 
 .cc-pl-upsells .cc-pl-upsells-slider .slide {
@@ -2078,7 +2082,7 @@ i.ccicon-left-arrow {
   }
   
   .cc-pl-upsells .cc-pl-upsells-slider {
-    width: 88%;
+    padding: 0 20px;
   }
   
   .cc-pl-info-wrapper {

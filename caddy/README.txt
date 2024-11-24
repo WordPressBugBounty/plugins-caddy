@@ -6,7 +6,7 @@ Tags: caddy, woocommerce, woo, cart, side cart, sticky cart, cart notices, popup
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: v2.0.3
+Stable tag: v2.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -123,6 +123,14 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.0.5 = 
+* Improvement: Improved mobile styling for recommendations
+* Fix: Added dependency on WooCommerce add-to-cart script
+* Fix: Added version numbers to scripts to prevent caching issues
+* Fix: Minor styling fixes
+* Fix: Removed obsolete files
+* Fix: Android Chrome styling issues
 
 = 2.0.4 = 
 * Fix: Release fix

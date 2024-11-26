@@ -51,7 +51,7 @@ class Caddy_Public {
 	public function enqueue_styles() {
 		wp_enqueue_style( 'cc-slick', CADDY_DIR_URL . '/public/css/caddy-slick.min.css', array(), $this->version, 'all' );
 		wp_enqueue_style( 'caddy-public', CADDY_DIR_URL . '/public/css/caddy-public.css', array(), $this->version, 'all' );
-		wp_enqueue_style( 'cc-icons', CADDY_DIR_URL . '/public/css/caddy-icons.css', array(), $this->version, 'all' );
+		wp_enqueue_style( 'caddy-icons', CADDY_DIR_URL . '/public/css/caddy-icons.css', array(), $this->version, 'all' );
 	}
 
 	/**
@@ -79,8 +79,8 @@ class Caddy_Public {
 		wp_enqueue_script( 'wc-add-to-cart', WC()->plugin_url() . '/assets/js/frontend/add-to-cart.min.js', array('jquery'), WC()->version, true );
 
 		// Register scripts first
-		wp_register_script( 'cc-tabby-js', CADDY_DIR_URL . '/public/js/tabby.min.js', array( 'jquery' ), $this->version, true );
-		wp_register_script( 'cc-tabby-polyfills-js', CADDY_DIR_URL . '/public/js/tabby.polyfills.min.js', array( 'jquery' ), $this->version, true );
+		wp_register_script( 'caddy-tabby-js', CADDY_DIR_URL . '/public/js/tabby.min.js', array( 'jquery' ), $this->version, true );
+		wp_register_script( 'caddy-tabby-polyfills-js', CADDY_DIR_URL . '/public/js/tabby.polyfills.min.js', array( 'jquery' ), $this->version, true );
 		wp_register_script( 'cc-slick-js', CADDY_DIR_URL . '/public/js/slick.min.js', array( 'jquery' ), $this->version, true );
 		wp_register_script( 'caddy-public', CADDY_DIR_URL . '/public/js/caddy-public.js', array( 'jquery', 'wc-add-to-cart' ), $this->version, true );
 
@@ -88,8 +88,8 @@ class Caddy_Public {
 		wp_localize_script( 'caddy-public', 'cc_ajax_script', $params );
 
 		// Now enqueue the scripts
-		wp_enqueue_script( 'cc-tabby-js' );
-		wp_enqueue_script( 'cc-tabby-polyfills-js' );
+		wp_enqueue_script( 'caddy-tabby-js' );
+		wp_enqueue_script( 'caddy-tabby-polyfills-js' );
 		wp_enqueue_script( 'cc-slick-js' );
 		wp_enqueue_script( 'caddy-public' );
 	}
@@ -168,7 +168,7 @@ class Caddy_Public {
 	 * Cart screen template.
 	 */
 	public function cc_cart_screen() {
-		include( plugin_dir_path( __FILE__ ) . 'partials/cc-cart-screen.php' );
+		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-cart.php' );
 	}
 
 	/**
@@ -184,7 +184,7 @@ class Caddy_Public {
 			return;
 		}
 
-		include( plugin_dir_path( __FILE__ ) . 'partials/cc-sfl-screen.php' );
+		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-saves.php' );
 	}
 
 	/**
@@ -395,7 +395,7 @@ class Caddy_Public {
 	 * Window screen template.
 	 */
 	public function cc_window_screen() {
-		include( plugin_dir_path( __FILE__ ) . 'partials/cc-window-screen.php' );
+		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-window.php' );
 	}
 
 	/**
@@ -898,7 +898,7 @@ class Caddy_Public {
 				return;
 			}
 
-			include( plugin_dir_path( __FILE__ ) . 'partials/cc-product-recommendations-screen.php' );
+			include( plugin_dir_path( __FILE__ ) . 'partials/caddy-recommendations.php' );
 		}
 	}
 

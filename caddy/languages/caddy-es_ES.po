@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: admin/class-caddy-admin.php:93 admin/class-caddy-admin.php:94
-#: public/partials/cc-cart-screen.php:214 public/partials/cc-sfl-screen.php:109
+#: public/partials/caddy-cart.php:214 public/partials/caddy-saves.php:109
 msgid "Caddy"
 msgstr "Caddy"
 
@@ -282,7 +282,7 @@ msgid "Made with"
 msgstr "Hecho con"
 
 #: admin/partials/caddy-admin-display.php:194
-#: public/partials/cc-cart-screen.php:212 public/partials/cc-sfl-screen.php:107
+#: public/partials/caddy-cart.php:212 public/partials/caddy-saves.php:107
 msgid "by"
 msgstr "por"
 
@@ -469,7 +469,7 @@ msgstr "Widget de lista guardada de Caddy"
 
 #: includes/class-caddy-saved-items-widget.php:39
 #: includes/class-caddy-saved-items-widget.php:57
-#: public/class-caddy-public.php:805 public/partials/cc-window-screen.php:27
+#: public/class-caddy-public.php:805 public/partials/caddy-window.php:27
 msgid "Saved Items"
 msgstr "Artículos guardados"
 
@@ -525,39 +525,39 @@ msgstr "Guardado"
 msgid "Save for later"
 msgstr "Guardar para más adelante"
 
-#: public/class-caddy-public.php:1166 public/partials/cc-sfl-screen.php:49
+#: public/class-caddy-public.php:1166 public/partials/caddy-saves.php:49
 msgid "Remove this item"
 msgstr "Eliminar este elemento"
 
-#: public/partials/cc-cart-screen.php:95
+#: public/partials/caddy-cart.php:95
 msgid "Apply a promo code:"
 msgstr "Aplicar un código promocional:"
 
-#: public/partials/cc-cart-screen.php:104
+#: public/partials/caddy-cart.php:104
 msgid "Promo code"
 msgstr "Código promocional"
 
-#: public/partials/cc-cart-screen.php:105
+#: public/partials/caddy-cart.php:105
 msgid "Apply"
 msgstr "Aplicar"
 
-#: public/partials/cc-cart-screen.php:126
+#: public/partials/caddy-cart.php:126
 msgid " promo code ( "
 msgstr " código promocional ( "
 
-#: public/partials/cc-cart-screen.php:126
+#: public/partials/caddy-cart.php:126
 msgid " off ) applied."
 msgstr " apagado) aplicado."
 
-#: public/partials/cc-cart-screen.php:127
+#: public/partials/caddy-cart.php:127
 msgid "Remove"
 msgstr "Eliminar"
 
-#: public/partials/cc-cart-screen.php:139
+#: public/partials/caddy-cart.php:139
 msgid "Your Cart is empty!"
 msgstr "¡Tu carrito está vacío!"
 
-#: public/partials/cc-cart-screen.php:142
+#: public/partials/caddy-cart.php:142
 msgid ""
 "You haven't added any items to your cart yet, but you do have products in "
 "your saved list."
@@ -565,69 +565,69 @@ msgstr ""
 "Todavía no has agregado ningún artículo a tu carrito, pero sí tienes "
 "productos en tu lista guardada."
 
-#: public/partials/cc-cart-screen.php:143
+#: public/partials/caddy-cart.php:143
 msgid "View Saved Items"
 msgstr "Ver elementos guardados"
 
-#: public/partials/cc-cart-screen.php:145
+#: public/partials/caddy-cart.php:145
 msgid "It looks like you haven't added any items to your cart yet."
 msgstr "Parece que todavía no has agregado ningún artículo a tu carrito."
 
-#: public/partials/cc-cart-screen.php:146
+#: public/partials/caddy-cart.php:146
 msgid "Browse Products"
 msgstr "Buscar productos"
 
-#: public/partials/cc-cart-screen.php:161
-#: public/partials/cc-cart-screen.php:163
+#: public/partials/caddy-cart.php:161
+#: public/partials/caddy-cart.php:163
 msgid "Subtotal - "
 msgstr "Total estimado - "
 
-#: public/partials/cc-cart-screen.php:161
+#: public/partials/caddy-cart.php:161
 msgid " items"
 msgstr " artículos"
 
-#: public/partials/cc-cart-screen.php:163
+#: public/partials/caddy-cart.php:163
 msgid " item"
 msgstr " artículo"
 
-#: public/partials/cc-cart-screen.php:165
+#: public/partials/caddy-cart.php:165
 msgid "Shipping &amp; taxes calculated at checkout."
 msgstr "Impuestos y envío calculados al finalizar la compra."
 
-#: public/partials/cc-cart-screen.php:184
+#: public/partials/caddy-cart.php:184
 msgid "Checkout Now"
 msgstr "Ordenar ahora"
 
-#: public/partials/cc-cart-screen.php:210 public/partials/cc-sfl-screen.php:105
+#: public/partials/caddy-cart.php:210 public/partials/caddy-saves.php:105
 msgid "Powered"
 msgstr "Desarrollado"
 
-#: public/partials/cc-product-recommendations-screen.php:58
+#: public/partials/caddy-recommendations.php:58
 msgid "We think you might also like..."
 msgstr "¡Creemos que también te puede gustar!"
 
-#: public/partials/cc-sfl-screen.php:74 public/partials/cc-sfl-screen.php:76
+#: public/partials/caddy-saves.php:74 public/partials/caddy-saves.php:76
 msgid "Move to cart"
 msgstr "Mover al carrito"
 
-#: public/partials/cc-sfl-screen.php:89
+#: public/partials/caddy-saves.php:89
 msgid "You haven't saved any items yet!"
 msgstr "¡Aún no has guardado ningún artículo!"
 
-#: public/partials/cc-sfl-screen.php:91
+#: public/partials/caddy-saves.php:91
 msgid "You can save your shopping cart items for later here."
 msgstr ""
 "Puedes guardar los artículos de su carrito de compras para más adelante aquí."
 
-#: public/partials/cc-sfl-screen.php:93
+#: public/partials/caddy-saves.php:93
 msgid "You must be logged into an account in order to save items."
 msgstr "Debes iniciar sesión en una cuenta para guardar productos."
 
-#: public/partials/cc-sfl-screen.php:95
+#: public/partials/caddy-saves.php:95
 msgid "Login or Register"
 msgstr "Inicia sesión o Regístrate"
 
-#: public/partials/cc-window-screen.php:25
+#: public/partials/caddy-window.php:25
 msgid "Your Cart"
 msgstr "Tu carrito"
 

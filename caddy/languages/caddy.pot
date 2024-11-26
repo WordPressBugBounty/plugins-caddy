@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Caddy - Smart Side Cart for WooCommerce 2.0.5\n"
+"Project-Id-Version: Caddy - Smart Side Cart for WooCommerce 2.0.6\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/caddy\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,8 +37,8 @@ msgstr ""
 
 #: admin/class-caddy-admin.php:112
 #: admin/class-caddy-admin.php:113
-#: public/partials/cc-cart-screen.php:316
-#: public/partials/cc-sfl-screen.php:124
+#: public/partials/caddy-cart.php:316
+#: public/partials/caddy-saves.php:124
 msgid "Caddy"
 msgstr ""
 
@@ -413,8 +413,8 @@ msgid "Made with"
 msgstr ""
 
 #: admin/partials/caddy-admin-display.php:267
-#: public/partials/cc-cart-screen.php:314
-#: public/partials/cc-sfl-screen.php:122
+#: public/partials/caddy-cart.php:314
+#: public/partials/caddy-saves.php:122
 msgid "by"
 msgstr ""
 
@@ -631,7 +631,7 @@ msgstr ""
 #: includes/class-caddy-saved-items-widget.php:38
 #: includes/class-caddy-saved-items-widget.php:56
 #: public/class-caddy-public.php:680
-#: public/partials/cc-window-screen.php:32
+#: public/partials/caddy-window.php:32
 msgid "Saved Items"
 msgstr ""
 
@@ -683,7 +683,7 @@ msgid "(Save %d%%)"
 msgstr ""
 
 #: public/class-caddy-public.php:1129
-#: public/partials/cc-sfl-screen.php:84
+#: public/partials/caddy-saves.php:84
 msgid "Remove this item"
 msgstr ""
 
@@ -691,94 +691,94 @@ msgstr ""
 msgid "Saves"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:127
+#: public/partials/caddy-cart.php:127
 msgid "Your Cart is Empty!"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:130
+#: public/partials/caddy-cart.php:130
 msgid "You haven't added any items to your cart yet, but you do have products in your saved list."
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:131
+#: public/partials/caddy-cart.php:131
 msgid "View Saved Items"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:133
+#: public/partials/caddy-cart.php:133
 msgid "It looks like you haven't added any items to your cart yet."
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:134
+#: public/partials/caddy-cart.php:134
 msgid "Browse Products"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:162
+#: public/partials/caddy-cart.php:162
 msgid "Apply a promo code"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:170
+#: public/partials/caddy-cart.php:170
 msgid "Promo code"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:171
+#: public/partials/caddy-cart.php:171
 msgid "Apply"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:219
+#: public/partials/caddy-cart.php:219
 msgid "-"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:230
+#: public/partials/caddy-cart.php:230
 msgid "Subtotal - "
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:231
+#: public/partials/caddy-cart.php:231
 msgid "item"
 msgid_plural "items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: public/partials/cc-cart-screen.php:233
+#: public/partials/caddy-cart.php:233
 msgid "Shipping &amp; taxes calculated at checkout."
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:275
+#: public/partials/caddy-cart.php:275
 msgid "Checkout Now"
 msgstr ""
 
-#: public/partials/cc-cart-screen.php:313
-#: public/partials/cc-sfl-screen.php:121
+#: public/partials/caddy-cart.php:313
+#: public/partials/caddy-saves.php:121
 msgid "Powered"
 msgstr ""
 
-#: public/partials/cc-product-recommendations-screen.php:86
+#: public/partials/caddy-recommendations.php:86
 msgid "We think you might also like..."
 msgstr ""
 
-#: public/partials/cc-sfl-screen.php:63
+#: public/partials/caddy-saves.php:63
 msgid "Save "
 msgstr ""
 
-#: public/partials/cc-sfl-screen.php:72
-#: public/partials/cc-sfl-screen.php:74
+#: public/partials/caddy-saves.php:72
+#: public/partials/caddy-saves.php:74
 msgid "Move to cart"
 msgstr ""
 
-#: public/partials/cc-sfl-screen.php:95
+#: public/partials/caddy-saves.php:95
 msgid "You haven't saved any items yet!"
 msgstr ""
 
-#: public/partials/cc-sfl-screen.php:97
+#: public/partials/caddy-saves.php:97
 msgid "You can save your shopping cart items for later here."
 msgstr ""
 
-#: public/partials/cc-sfl-screen.php:99
+#: public/partials/caddy-saves.php:99
 msgid "You must be logged into an account in order to save items."
 msgstr ""
 
-#: public/partials/cc-sfl-screen.php:101
+#: public/partials/caddy-saves.php:101
 msgid "Login or Register"
 msgstr ""
 
-#: public/partials/cc-window-screen.php:30
+#: public/partials/caddy-window.php:30
 msgid "Your Cart"
 msgstr ""

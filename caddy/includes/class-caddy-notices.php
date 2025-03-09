@@ -13,9 +13,6 @@ class Caddy_Admin_Notices {
 		
 		// Display RetentionKit promo
 		add_action( 'admin_notices', array( $this, 'display_rk_promo_notice' ) );
-
-		// Display Coupon generator promo
-		add_action( 'admin_notices', array( $this, 'display_caddy_promo_2_notice' ) );
 	
 	}
 	
@@ -101,82 +98,6 @@ class Caddy_Admin_Notices {
 				</div>
 			</div>
 		<?php
-		}
-	}
-	
-	/**
-	 * Caddy promo notice
-	 */
-	public function display_caddy_promo_2_notice() {
-		global $caddy_promo_2_notice_called;
-		if (isset($caddy_promo_2_notice_called) && $caddy_promo_2_notice_called) {
-			return; // Don't execute if the notice has already been called
-		}
-		$caddy_promo_2_notice_called = true;
-		
-		// Check if Caddy Premium is active
-		if ( !class_exists( 'Caddy_Premium' ) ) {
-
-			if (!current_user_can('manage_options') || 
-				!PAnD::is_admin_notice_active('caddy-2-promo-forever')) {
-				return;
-			}
-			
-			wp_enqueue_style('kt-admin-notice', plugin_dir_url( __DIR__ ) . 'admin/css/caddy-admin-notices.css');
-		
-			?>
-			<script type="text/javascript">
-				jQuery(document).ready(function($) {
-					$('.dismiss-this').on('click', function(e) {
-						e.preventDefault(); 
-						$('.caddy-2-promo').hide(); 
-					});
-				});
-			</script>
-			<div data-dismissible="caddy-2-promo-forever" class="notice notice-info is-dismissible caddy-notice caddy-2-promo">
-				<div class="kt-left">
-					<a href="<?php echo esc_url( 'https://www.usecaddy.com/pricing/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=notice-promo-20' ); ?>">
-						<img src="<?php echo plugin_dir_url( __DIR__ ) . 'admin/img/caddy-premium-2-screen.png'; ?>" width="145" height="145" alt="Coupon Generator for Klaviyo Promo">
-					</a>
-				</div>
-				<div class="kt-right">
-					<?php
-					$current_user = wp_get_current_user();
-					$first_name   = $current_user->first_name;
-					?>
-					<div class="welcome-heading">
-						<?php 
-							echo esc_html( __( 'Introducing Caddy Premium 2.0: Your Cart Conversion Game-Changer 🎉' ) );
-						?>
-					</div>
-	
-					<p class="rk-message">
-						<?php echo esc_html( __( 'Boost conversions, automate workflows, and create a powerful cart experience with our latest release.' ) ); ?>
-					</p>
-					<ul>
-						<li>Cart & conversion tracking to see what shoppers are adding to their carts</li>
-						<li>A new analytics dashboard for data-driven decisions</li>
-						<li>Workflows to automate product recommendations, popups, and coupon rules</li>
-						<li>Performance enhancements and developer hooks for greater flexibility</li>
-					</ul>
-					<p>
-						<?php 
-						echo wp_kses(
-							__( '<strong>Use promo code "PREMIUM20" to take 20% off today.</strong>' ),
-							array(
-								'strong' => array()
-							)
-						); 
-						?>
-					</p>
-					<p class="caddy-notice-ctas">
-						<a class="button" href="<?php echo esc_url( 'https://www.usecaddy.com/pricing/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=notice-promo-20' ); ?>"><?php echo esc_html( __( 'Get 20% off Caddy Premium 2.0' ) ); ?><img src="<?php echo plugin_dir_url( __DIR__ ) . 'admin/img/rk-arrow-right.svg'; ?>" width="20" height="20"></a>
-						<a href="#" class="dismiss-this">No Thanks</a>
-					</p>
-				</div>
-			</div>
-		<?php
-
 		}
 	}
 

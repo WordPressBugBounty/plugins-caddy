@@ -20,14 +20,15 @@ $caddy_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( $_GET['tab'] ) : 'settings'
 
 $caddy_tabs_name = array(
 	'settings' => array(
-		'tab_name' => __( 'General Settings', 'caddy' ),
-		'tab_icon' => 'dashicons dashicons-admin-generic',
+		'tab_name' => __( 'Settings', 'caddy' ),
+		'tab_icon' => 'dashicons cc-icon-settings',
 	),
 	'styles'   => array(
-		'tab_name' => __( 'Styles', 'caddy' ),
-		'tab_icon' => 'dashicons dashicons-admin-appearance',
-	),
+		'tab_name' => __( 'Styling', 'caddy' ),
+		'tab_icon' => 'dashicons cc-icon-styles',
+	)
 );
+
 /**
  * Filters the caddy tab names.
  *
@@ -38,58 +39,19 @@ $caddy_tabs_name = array(
  */
 $caddy_tabs = apply_filters( 'caddy_tab_names', $caddy_tabs_name );
 
-if ( isset( $_POST['cc_submit_hidden'] ) && $_POST['cc_submit_hidden'] == 'Y' ) {
-	
-	// Check if our nonce is set and is valid
-	if ( ! isset( $_POST['caddy_settings_nonce'] ) || ! wp_verify_nonce( $_POST['caddy_settings_nonce'], 'caddy-settings-save' ) ) {
-		wp_die( __( 'Security check failed.', 'caddy' ) );
-	}
-
-	// UPDATE SETTINGS OPTIONS
-	if ( 'settings' === $caddy_tab ) {
-		$cc_product_recommendation = isset( $_POST['cc_product_recommendation'] ) ? sanitize_text_field( $_POST['cc_product_recommendation'] ) : 'disabled';
-		update_option( 'cc_product_recommendation', $cc_product_recommendation );
-
-		$cc_product_recommendation_type = ! empty( $_POST['cc_product_recommendation_type'] ) ? sanitize_text_field( $_POST['cc_product_recommendation_type'] ) : '';
-		update_option( 'cc_product_recommendation_type', $cc_product_recommendation_type );
-
-		$cc_free_shipping_amount = ! empty( $_POST['cc_free_shipping_amount'] ) ? intval( $_POST['cc_free_shipping_amount'] ) : '';
-		update_option( 'cc_free_shipping_amount', $cc_free_shipping_amount );
-
-		$cc_shipping_country = ! empty( $_POST['cc_shipping_country'] ) ? sanitize_text_field( $_POST['cc_shipping_country'] ) : '';
-		update_option( 'cc_shipping_country', $cc_shipping_country );
-
-		$cc_disable_branding = ! empty( $_POST['cc_disable_branding'] ) ? sanitize_text_field( $_POST['cc_disable_branding'] ) : 'disabled';
-		update_option( 'cc_disable_branding', $cc_disable_branding );
-		
-		$cc_free_shipping_tax = ! empty( $_POST['cc_free_shipping_tax'] ) ? sanitize_text_field( $_POST['cc_free_shipping_tax'] ) : 'disabled';
-		update_option( 'cc_free_shipping_tax', $cc_free_shipping_tax );
-
-		$cc_affiliate_id = ! empty( $_POST['cc_affiliate_id'] ) ? sanitize_text_field( $_POST['cc_affiliate_id'] ) : '';
-		update_option( 'cc_affiliate_id', $cc_affiliate_id );
-		
-		$cc_menu_cart_widget = ! empty( $_POST['cc_menu_cart_widget'] ) ? sanitize_text_field( $_POST['cc_menu_cart_widget'] ) : '';
-		update_option( 'cc_menu_cart_widget', $cc_menu_cart_widget );
-		
-		$cc_menu_saves_widget = ! empty( $_POST['cc_menu_saves_widget'] ) ? sanitize_text_field( $_POST['cc_menu_saves_widget'] ) : '';
-		update_option( 'cc_menu_saves_widget', $cc_menu_saves_widget );
-
-	} elseif ( 'styles' === $caddy_tab ) {
-
-		$cc_custom_css = ! empty( $_POST['cc_custom_css'] ) ? sanitize_textarea_field( $_POST['cc_custom_css'] ) : '';
-		update_option( 'cc_custom_css', $cc_custom_css );
-
-	}
-	?>
-	<div class="updated">
-		<p>
-			<strong><?php echo esc_html( __( 'Settings saved.', 'caddy' ) ); ?></strong> <?php echo esc_html( __( 'If you\'re using any caching plugins please be sure to ', 'caddy' ) ); ?>
-			<strong><?php echo esc_html( __( 'clear your cache. ', 'caddy' ) ); ?></strong></p>
-	</div>
+// Display settings updated message if needed
+if (get_transient('caddy_settings_updated')) {
+    delete_transient('caddy_settings_updated');
+    ?>
+    <div class="updated">
+        <p>
+            <strong><?php echo esc_html( __( 'Settings saved.', 'caddy' ) ); ?></strong> <?php echo esc_html( __( 'If you\'re using any caching plugins please be sure to ', 'caddy' ) ); ?>
+            <strong><?php echo esc_html( __( 'clear your cache. ', 'caddy' ) ); ?></strong></p>
+    </div>
 <?php } ?>
 
 <div class="wrap">
-	
+
 	<?php do_action( 'caddy_admin_header' ); ?>
 
 	<h2 class="nav-tab-wrapper">
@@ -139,8 +101,8 @@ if ( isset( $_POST['cc_submit_hidden'] ) && $_POST['cc_submit_hidden'] == 'Y' ) 
 		<div class="notice cc-optin-notice is-dismissible" data-cc-dismissible-notice="optin">
 			<div class="cc-optin-left"><img src="<?php echo plugin_dir_url( __DIR__ ) . 'img/caddy-trophy.svg'; ?>" width="150" height="150" alt="Join our VIP email list"></div>
 			<div class="cc-optin-right">
-				<h2><?php echo esc_html( __( 'Join our email list and get 40% off a premium license', 'caddy' ) ); ?></h2>
-				<p><?php echo esc_html( __( 'Get the latest tips on how to grow your store\'s sales and save on Caddy Premium. Unsubscribe at anytime. ' ) ); ?></p>
+				<h2><?php echo esc_html( __( 'Join our email list and get 40% off a Pro license', 'caddy' ) ); ?></h2>
+				<p><?php echo esc_html( __( 'Get the latest tips on how to grow your store\'s sales and save on Caddy Pro. Unsubscribe at anytime. ' ) ); ?></p>
 				<form id="caddy-email-signup" class="cc-klaviyo-default-styling" action="//manage.kmail-lists.com/subscriptions/subscribe"
 				      data-ajax-submit="//manage.kmail-lists.com/ajax/subscriptions/subscribe" method="GET" target="_blank" validate="validate">
 					<input type="hidden" name="g" value="YctmsM">
@@ -188,39 +150,12 @@ if ( isset( $_POST['cc_submit_hidden'] ) && $_POST['cc_submit_hidden'] == 'Y' ) 
 			</div>
 		</div>
 	<?php } ?>
-
 	<?php do_action( 'cc_before_setting_options' ); ?>
 	<div class="cc-settings-wrap">
-		<form name="caddy-form" id="caddy-form" method="post" action="">
-			<?php wp_nonce_field('caddy-settings-save', 'caddy_settings_nonce'); ?>
-			<input type="hidden" name="cc_submit_hidden" value="Y">
-			<div class="cc-settings-container">
-				<?php
-				//Include tab screen files
-				do_action( 'caddy_admin_tab_screen' );
-				?>
-			</div>
-			<p class="submit cc-primary-save">
-				<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php esc_attr_e( 'Save Changes' ); ?>" />
-			</p>
-		</form>
+		<?php do_action( 'caddy_admin_tab_screen' ); ?>
 		<div class="cc-notices-container">
 
 			<?php do_action( 'cc_upgrade_to_premium' ); ?>
-			<div class="cc-box cc-box-cta cc-woo-course">
-				<span class="dashicons dashicons-chart-area"></span>
-				<h3><?php echo esc_html( __( 'Ready to scale ', 'caddy' ) ); ?><span
-							class="cc-underline"><?php echo get_bloginfo( 'name' ); ?></span><?php echo esc_html( __( ' conversions to the next level ', 'caddy' ) ); ?><?php echo get_user_meta( get_current_user_id(), 'first_name', true ); ?><?php echo esc_html( __( '?', 'caddy' ) ); ?>
-					<br><span class="cc-sub-heading"><?php echo esc_html( __( 'TAKE THE FREE 7-DAY COURSE', 'caddy' ) ); ?></span></h3>
-				<p><?php echo esc_html( __( 'Learn the latest, strategies, tactics & tools you need to improve conversions and increase revenue for your store.', 'caddy' ) ); ?></p>
-				<?php
-				echo sprintf(
-					'<a href="%1$s" target="_blank" class="button-primary">%2$s <span class="dashicons dashicons-arrow-right-alt"></span></a>',
-					esc_url( 'https://usecaddy.com/woocommerce-bootcamp/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=plugin-links' ),
-					esc_html( __( 'Join Free', 'caddy' ) )
-				);
-				?>
-			</div>
 			<div class="cc-box cc-links">
 				<h3><?php echo esc_html( __( 'More Premium Plugins', 'caddy' ) ); ?></h3>
 				<ul class="cc-product-links">

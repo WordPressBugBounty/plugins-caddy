@@ -46,6 +46,9 @@ class Caddy_Admin {
 	public function __construct( $plugin_name, $version ) {
 		$this->plugin_name = $plugin_name;
 		$this->version     = $version;
+		
+		// Add hook for processing the settings form
+		add_action('admin_init', array($this, 'process_settings_form'));
 	}
 
 	/**
@@ -145,7 +148,7 @@ class Caddy_Admin {
 	 * Display a caddy add-ons submenu page.
 	 */
 	public function caddy_addons_page_callback() {
-		require_once plugin_dir_path( __FILE__ ) . 'partials/caddy-addons-page.php';
+		require_once plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-addons-page.php';
 	}
 
 	/**
@@ -184,9 +187,9 @@ class Caddy_Admin {
 		$caddy_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( $_GET['tab'] ) : 'settings';
 
 		if ( 'settings' === $caddy_tab ) {
-			include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-settings-screen.php';
+			include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-settings-page.php';
 		} elseif ( 'styles' === $caddy_tab ) {
-			include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-style-screen.php';
+			include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-styles-page.php';
 		}
 	}
 
@@ -200,23 +203,25 @@ class Caddy_Admin {
 			?>
 			<div class="cc-box cc-box-cta cc-upgrade">
 				<span class="dashicons dashicons-superhero-alt"></span>
-				<h3><?php echo esc_html( __( 'Upgrade to Premium', 'caddy' ) ); ?></h3>
-				<p><?php echo esc_html( __( 'Unlock powerful new Caddy features:', 'caddy' ) ); ?></p>
+				<h3><?php echo esc_html( __( 'Upgrade to Pro', 'caddy' ) ); ?></h3>
+				<p><?php echo esc_html( __( 'Unlock powerful new features:', 'caddy' ) ); ?></p>
 				<ul>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Analytics dashboard.', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart & conversion tracking.', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Custom recommendation logic.', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Targeted workflows.', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Total design control.', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Bubble positioning options.', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart notices, add-ons & more.', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Analytics dashboard', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart & conversion tracking', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Multi-tier rewards', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart announcement bar', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Custom recommendations', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Automated workflows', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Total design control', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Bubble positioning options', 'caddy' ) ); ?></li>
+					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart notices, add-ons & more', 'caddy' ) ); ?></li>
 				</ul>
-				<p><strong><?php echo esc_html( __( 'Use promo code "PREMIUM20" to get 20% off for a limited time.', 'caddy' ) ); ?></strong></p>
+				<p><strong><?php echo esc_html( __( 'Use promo code "PRO20" to get 20% off for a limited time.', 'caddy' ) ); ?></strong></p>
 				<?php
 				echo sprintf(
 					'<a href="%1$s" target="_blank" class="button-primary">%2$s</a>',
 					esc_url( 'https://usecaddy.com/?utm_source=upgrade-notice&amp;utm_medium=plugin&amp;utm_campaign=plugin-links' ),
-					esc_html( __( 'Get Premium Edition', 'caddy' ) )
+					esc_html( __( 'Get Pro Edition', 'caddy' ) )
 				); ?>
 			</div>
 			<?php
@@ -245,20 +250,20 @@ class Caddy_Admin {
 			$caddy_addons_array = [
 				'caddy-premium'      => [
 					'icon'        => 'dashicons-awards',
-					'title'       => __( 'Caddy Premium Edition', 'caddy' ),
-					'description' => __( 'Premium unlocks powerful customization features for Caddy including an in-cart "offers" tab, exclusion rules for recommendations and free shipping meter, color style management, positioning and more.', 'caddy' ),
-					'btn_title'   => __( 'Get Premium', 'caddy' ),
+					'title'       => __( 'Caddy Pro', 'caddy' ),
+					'description' => __( 'Pro unlocks powerful customization features for Caddy including an in-cart "offers." tab, exclusion rules for recommendations and free shipping meter, color style management, positioning and more.', 'caddy' ),
+					'btn_title'   => __( 'Get Pro', 'caddy' ),
 					'btn_link'    => 'https://www.usecaddy.com/?utm_source=caddy-addons&utm_medium=plugin&utm_campaign=addon-links',
 					'activated'   => in_array( 'caddy-premium/caddy-premium.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ? 'true' : 'false',
 					'license'     => ( 'valid' === $caddy_premium_license_status ) ? 'activated' : 'not_activated',
 				],
-				'caddy-announcement' => [
+				'caddy-klaviyo' => [
 					'icon'        => 'dashicons-megaphone',
-					'title'       => __( 'Caddy Announcement', 'caddy' ),
-					'description' => __( 'Add a customizable annoucement bar within the Caddy cart.', 'caddy' ),
+					'title'       => __( 'Klaviyo Integration', 'caddy' ),
+					'description' => __( 'Capture emails directly in the cart and track cart actions with Klaviyo.', 'caddy' ),
 					'btn_title'   => __( 'Get Add-on', 'caddy' ),
-					'btn_link'    => 'https://www.usecaddy.com/?utm_source=caddy-addons&utm_medium=plugin&utm_campaign=addon-links',
-					'activated'   => in_array( 'caddy-announcements/caddy-announcements.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ? 'true' : 'false',
+					'btn_link'    => 'https://usecaddy.com/products/klaviyo-add-on/?utm_source=caddy-addons&utm_medium=plugin&utm_campaign=addon-links',
+					'activated'   => in_array( 'caddy-klaviyo/caddy-klaviyo.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ? 'true' : 'false',
 					'license'     => ( 'valid' === $caddy_ann_license_status ) ? 'activated' : 'not_activated',
 				]
 			];
@@ -311,7 +316,7 @@ class Caddy_Admin {
 
 			if ( ! isset( $caddy_license_status ) || 'valid' !== $caddy_license_status ) {
 				?>
-				| <a href="https://www.usecaddy.com" target="_blank"><?php echo esc_html( __( 'Upgrade to Premium', 'caddy' ) ); ?></a>
+				| <a href="https://www.usecaddy.com" target="_blank"><?php echo esc_html( __( 'Upgrade to Pro', 'caddy' ) ); ?></a>
 				<?php
 			} ?>
 		</div>
@@ -511,4 +516,202 @@ class Caddy_Admin {
 		$recommendations = isset($_POST['caddy_recommendations']) ? array_map('intval', (array) $_POST['caddy_recommendations']) : array();
 		update_post_meta($post_id, '_caddy_recommendations', $recommendations);
 	}
+
+	/**
+	 * Process settings form submissions
+	 * 
+	 * @since 1.0.0
+	 */
+	public function process_settings_form() {
+		// Only process if this is a form submission
+		if (!isset($_POST['cc_submit_hidden']) || $_POST['cc_submit_hidden'] != 'Y') {
+			return;
+		}
+		
+		// Get the current tab
+		$caddy_tab = (!empty($_GET['tab'])) ? sanitize_text_field($_GET['tab']) : 'settings';
+		
+		// Determine which form was submitted and set the active tab accordingly
+		$active_tab = 'cc-general-settings'; // Default
+		
+		if (isset($_POST['caddy_general_settings_nonce']) && wp_verify_nonce($_POST['caddy_general_settings_nonce'], 'caddy-general-settings-save')) {
+			// General settings form processing
+			$this->process_general_settings();
+			$active_tab = 'cc-general-settings';
+		} elseif (isset($_POST['caddy_shipping_meter_settings_nonce']) && wp_verify_nonce($_POST['caddy_shipping_meter_settings_nonce'], 'caddy-shipping-meter-settings-save')) {
+			// Shipping meter settings form processing
+			$this->process_shipping_meter_settings();
+			$active_tab = 'cc-shipping-meter-settings';
+		} elseif (isset($_POST['caddy_recommendations_settings_nonce']) && wp_verify_nonce($_POST['caddy_recommendations_settings_nonce'], 'caddy-recommendations-settings-save')) {
+			// Recommendations settings form processing
+			$this->process_recommendations_settings();
+			$active_tab = 'cc-recommendations-settings';
+		} elseif (isset($_POST['caddy_display_settings_nonce']) && wp_verify_nonce($_POST['caddy_display_settings_nonce'], 'caddy-display-settings-save')) {
+			// Display settings form processing
+			$this->process_display_settings();
+			$active_tab = 'cc-display-settings';
+		} elseif (isset($_POST['caddy_offers_settings_nonce']) && wp_verify_nonce($_POST['caddy_offers_settings_nonce'], 'caddy-offers-settings-save')) {
+			// Offers settings form processing
+			$this->process_offers_settings();
+			$active_tab = 'cc-offers-settings';
+		} elseif (isset($_POST['caddy_sfl_settings_nonce']) && wp_verify_nonce($_POST['caddy_sfl_settings_nonce'], 'caddy-sfl-settings-save')) {
+			// Save for Later settings form processing
+			$this->process_sfl_settings();
+			$active_tab = 'cc-sfl-settings';
+		} elseif (isset($_POST['caddy_welcome_message_settings_nonce']) && wp_verify_nonce($_POST['caddy_welcome_message_settings_nonce'], 'caddy-welcome-message-settings-save')) {
+			// Welcome message settings form processing
+			$this->process_welcome_message_settings();
+			$active_tab = 'cc-welcome-message-settings';
+		} elseif (isset($_POST['caddy_announcement_bar_settings_nonce']) && wp_verify_nonce($_POST['caddy_announcement_bar_settings_nonce'], 'caddy-announcement-bar-settings-save')) {
+			// Announcement bar settings form processing
+			$this->process_announcement_bar_settings();
+			$active_tab = 'cc-announcement-bar-settings';
+		} elseif (isset($_POST['caddy_rewards_meter_settings_nonce']) && wp_verify_nonce($_POST['caddy_rewards_meter_settings_nonce'], 'caddy-rewards-meter-settings-save')) {
+			// Rewards meter settings form processing
+			$this->process_rewards_meter_settings();
+			$active_tab = 'cc-rewards-meter-settings';
+		} elseif (isset($_POST['caddy_styles_settings_nonce']) && wp_verify_nonce($_POST['caddy_styles_settings_nonce'], 'caddy-styles-settings-save')) {
+			// Styles settings form processing
+			$this->process_styles_settings();
+		} elseif (isset($_POST['caddy_settings_nonce']) && wp_verify_nonce($_POST['caddy_settings_nonce'], 'caddy-settings-save')) {
+			// Legacy settings form processing
+			$this->process_legacy_settings($caddy_tab);
+		}
+		
+		// Set success message
+		set_transient('caddy_settings_updated', true, 30);
+		
+		// Override active tab if explicitly provided in the form
+		if (isset($_POST['active_tab']) && !empty($_POST['active_tab'])) {
+			$active_tab = sanitize_text_field($_POST['active_tab']);
+		}
+		
+		// Get the current tab parameter from the URL
+		$current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'settings';
+		
+		// Redirect back to the settings page with the active tab as a hash
+		wp_safe_redirect(admin_url('admin.php?page=caddy&tab=' . $current_tab));
+		exit;
+	}
+
+	/**
+	 * Process general settings
+	 */
+	private function process_general_settings() {
+		
+		$cc_disable_branding = isset($_POST['cc_disable_branding']) ? sanitize_text_field($_POST['cc_disable_branding']) : 'disabled';
+		update_option('cc_disable_branding', $cc_disable_branding);
+
+		$cc_affiliate_id = !empty($_POST['cc_affiliate_id']) ? sanitize_text_field($_POST['cc_affiliate_id']) : '';
+		update_option('cc_affiliate_id', $cc_affiliate_id);
+		
+		$cc_menu_cart_widget = !empty($_POST['cc_menu_cart_widget']) ? sanitize_text_field($_POST['cc_menu_cart_widget']) : '';
+		update_option('cc_menu_cart_widget', $cc_menu_cart_widget);
+		
+		$cc_menu_saves_widget = !empty($_POST['cc_menu_saves_widget']) ? sanitize_text_field($_POST['cc_menu_saves_widget']) : '';
+		update_option('cc_menu_saves_widget', $cc_menu_saves_widget);
+		
+		// Process any additional general settings fields
+		do_action('caddy_save_general_settings');
+	}
+
+	/**
+	 * Process shipping meter settings
+	 */
+	private function process_shipping_meter_settings() {
+		// Process shipping meter settings form fields
+		$cc_free_shipping_amount = !empty($_POST['cc_free_shipping_amount']) ? intval($_POST['cc_free_shipping_amount']) : '';
+		update_option('cc_free_shipping_amount', $cc_free_shipping_amount);
+
+		$cc_free_shipping_tax = !empty($_POST['cc_free_shipping_tax']) ? sanitize_text_field($_POST['cc_free_shipping_tax']) : 'disabled';
+		update_option('cc_free_shipping_tax', $cc_free_shipping_tax);
+		
+		$cc_shipping_country = !empty($_POST['cc_shipping_country']) ? sanitize_text_field($_POST['cc_shipping_country']) : '';
+		update_option('cc_shipping_country', $cc_shipping_country);
+		
+		// Process any additional shipping meter settings fields
+		do_action('caddy_save_shipping_meter_settings');
+	}
+
+	/**
+	 * Process recommendations settings
+	 */
+	private function process_recommendations_settings() {
+		// Process recommendations settings form fields
+		$cc_product_recommendation = isset($_POST['cc_product_recommendation']) ? sanitize_text_field($_POST['cc_product_recommendation']) : 'disabled';
+		update_option('cc_product_recommendation', $cc_product_recommendation);
+		
+		$cc_product_recommendation_type = !empty($_POST['cc_product_recommendation_type']) ? sanitize_text_field($_POST['cc_product_recommendation_type']) : '';
+		update_option('cc_product_recommendation_type', $cc_product_recommendation_type);
+		
+		// Process any additional recommendations settings fields
+		do_action('caddy_save_recommendations_settings');
+	}
+
+	/**
+	 * Process display settings
+	 */
+	private function process_display_settings() {
+		
+		// Process any additional display settings fields
+		do_action('caddy_save_display_settings');
+	}
+
+	/**
+	 * Process offers settings
+	 */
+	private function process_offers_settings() {
+		
+		// Process any additional offers settings fields
+		do_action('caddy_save_offers_settings');
+	}
+
+	/**
+	 * Process save for later settings
+	 */
+	private function process_sfl_settings() {
+		
+		// Process any additional save for later settings fields
+		do_action('caddy_save_sfl_settings');
+	}
+
+	/**
+	 * Process welcome message settings
+	 */
+	private function process_welcome_message_settings() {
+		
+		// Process any additional welcome message settings fields
+		do_action('caddy_save_welcome_message_settings');
+	}
+
+	/**
+	 * Process announcement bar settings
+	 */
+	private function process_announcement_bar_settings() {
+		
+		// Process any additional announcement bar settings fields
+		do_action('caddy_save_announcement_bar_settings');
+	}
+
+	/**
+	 * Process rewards meter settings
+	 */
+	private function process_rewards_meter_settings() {
+
+		// Process any additional rewards meter settings fields
+		do_action('caddy_save_rewards_meter_settings');
+	}
+
+	/**
+	 * Process styles settings
+	 */
+	private function process_styles_settings() {
+		// Process styles settings form fields
+		$cc_custom_css = !empty($_POST['cc_custom_css']) ? sanitize_textarea_field($_POST['cc_custom_css']) : '';
+		update_option('cc_custom_css', $cc_custom_css);
+		
+		// Process any additional styles settings fields
+		do_action('caddy_save_styles_settings');
+	}
+
 }

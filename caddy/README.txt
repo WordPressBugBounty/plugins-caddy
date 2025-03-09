@@ -2,11 +2,11 @@
 Author: Tribe Interactive
 Author URI: https://www.usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
-Tags: caddy, woocommerce, woo, cart, side cart, sticky cart, cart notices, popup cart, woocommerce cart, shopping cart, mini-cart, floating cart
+Tags: caddy, side cart, cart, woocommerce, sticky cart
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 6.7.2
 Requires PHP: 7.4
-Stable tag: v2.0.6
+Stable tag: 2.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,24 +19,30 @@ A high performance, conversion-boosting side cart for your WooCommerce store tha
 **Increase average order sizes** with Caddy's built-in product recommendations, **reduce cart abandonment** with a free shipping meter, and **encourage repeat shoppers** with a saved product list.
 
 ⚡️ **Optimized for performance**
-📱 **Mobile friendly - Works beautifully across all devices**
+📱 **Mobile friendly responsive design - Works beautifully across all devices**
+🔄 **Real-time (ajax) cart updates**
 🌏 **Translation ready**
 ⚔️ **Cross-browser and cross-OS battle tested**
+🔒 **Secure and reliable**
+💡 **Lightweight and easy to use**
+💰 **Boosts sales and average order value**
+🔄 **Works with most themes and plugins**
+🎁 **Apply cart discounts and promo codes**
 
-**[Try the Demo](https://demo.usecaddy.com/)** | **[Visit usecaddy.com](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** | **[Upgrade to Premium](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)**
+**[Try the Demo](https://demo.usecaddy.com/)** | **[Visit usecaddy.com](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)**
 
-= Features included free: =
+= Caddy Lite features: =
 
 * Add an (ajax powered) sticky side cart across your whole site
+* Show a free shipping meter in the side cart that lets customers know when they qualify for free shipping
+* Show product recommendations when customers add products to their cart
+* Let customers save products for later
+* Add cart and saved list links to your navigation menu (short codes + widgets)
 * Let customers add products & manage their cart items without reloading the page
 * Let customers manage cart quantities in the side cart
 * Let customers remove items from the side cart
 * Show a sticky floating cart button with a cart quantity indicator
 * Let customers add coupons in the side cart
-* Show a free shipping meter in the side cart that lets customers know when they qualify for free shipping
-* Show product recommendations when customers add products to their cart
-* Let customers save products for later
-* Add cart and saved list links to your navigation menu (short codes + widgets)
 * Add save for later buttons on product pages
 * Add custom CSS to set your own styles and match your brand
 * WooCommerce HPOS support
@@ -45,17 +51,21 @@ A high performance, conversion-boosting side cart for your WooCommerce store tha
 
 Caddy is compatible with most themes and plugins. The following themes and plugins have been tested and confirmed working:
 
-* Plugins: WooCommerce Subscriptions, WooCommerce Product Bundles, WooCommerce All Products For Subscriptions, Elementor, Divi
+* Plugins: WooCommerce Subscriptions, WooCommerce Product Bundles, All Products For WooCommerceSubscriptions, Elementor, Divi
 * Themes: GeneratePress, Flatsome, Astra, Hello Elementor, Kadence, OceanWP, Storefront
 
-== Upgrade to Premium ==
+== Upgrade to Pro ==
 
-Upgrade to premium and unlock more powerful add-ons, customization and styling features.
+Upgrade to Pro and unlock powerful customization features, analytics, recommendations, and more.
 
-= Premium features: =
+= Caddy Pro features: =
 
-* 7 different cart icon styles
-* 15+ custom color options
+* 7 different cart icon styles & 30+ custom color options
+* Cart tracking & analytics dashboard
+* Multi-tier reward levels with free shipping, free gifts, and discounts
+* Workflow automation engine
+* In-cart annoucenment bar
+* In-cart product subscription upsells using with the All Products for WooCommerce Subscriptions extension
 * Change the cart bubble position on the screen
 * Display notices when adding to cart or adding/removing saved products
 * Promote custom coupon offers in the cart
@@ -70,10 +80,7 @@ Upgrade to premium and unlock more powerful add-ons, customization and styling f
 * Get priority email support
 * Get early access to new features
 
-**Get premium:** [https://www.usecaddy.com/](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)
-
-= Premium Add-ons: =
-[Announcements Bar Add-On](https://usecaddy.com/products/announcements-bar-add-on/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links) - Display an announcement text bar at the top of the cart.
+**Upgrade to Pro Now:** [https://www.usecaddy.com/](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)
 
 == Installation ==
 
@@ -123,6 +130,15 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.0.7 = 
+* Fix: Nonce issue with recommendations
+* Improvement: Improved refresh of cart contents on drawer open
+* Improvement: Added skeleton loading for cart drawer
+* Improvement: Admin settings pages refactored and redesigned
+* Improvement: Improved coupon savings calculation
+* Improvement: Performance improvements
+* Compatibility: Support for Pro free gifting
 
 = 2.0.6 = 
 * Fix: Mobile styling issues

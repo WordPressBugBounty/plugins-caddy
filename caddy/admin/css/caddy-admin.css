@@ -12,14 +12,13 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 }
 
 .cc-settings-container {
-	margin-top: 1em;
 	position: relative;
 	border-top: 0;
 	background-color: #FFF;
-	padding: 15px 30px;
-	border-radius: 5px;
+	padding: 30px;
 	border: 1px solid #d8d8d8;
 	box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+	min-height: 400px;
 }
 
 .cc-settings-container .button, .cc-settings-container .button-secondary {
@@ -27,15 +26,18 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 }
 
 .cc-settings-container h2 {
-	margin: 1.2em 0 0.8em;
-	text-transform: capitalize;
-	padding-top: 25px;
-	font-weight: 800;
+	margin: 0 0 0.8em;
+    text-transform: capitalize;
+    background-color: #f7f7f7;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
 }
 
 .cc-settings-container h2:first-child {
 	border-top: none;
-	padding-top: 0;
 }
 
 .cc-settings-container p {
@@ -50,18 +52,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 	box-shadow: none;
 }
 
-.cc-settings-container .form-table {
-	margin-bottom: 20px;
-}
-
-.cc-settings-container .form-table tbody {
-	background-color: #f9f9f9;
-	border: 1px solid #e5e5e5;
-	border-radius: 5px;
-	border-collapse: collapse;
-	display: block;
-}
-
 .cc-settings-container .select2-container {
 	width: 375px !important;
 }
@@ -69,7 +59,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 .cc-settings-container .form-table tr {
 	border-bottom: 1px solid #e6e6e6;
 	width: 100%;
-	display: block;
 }
 
 .cc-settings-container .form-table tr:last-child {
@@ -77,24 +66,35 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 }
 
 .cc-settings-container .form-table th {
-	padding: 20px 10px 20px 20px;
+	padding: 20px 10px 20px 0;
 	width: 200px;
 }
 
 .cc-settings-container .form-table td {
-	padding: 20px 10px;
+	padding: 20px 0 20px 10px;
 	vertical-align: top;
 	min-width: 375px;
 }
 
 .cc-settings-container .section-icons {
 	background-color: #000000;
-	border-radius: 3px;
-	padding: 4px 3px 2px;
-	vertical-align: middle;
-	margin-right: 5px;
-	color: #FFF;
-	font-size: 16px;
+    border-radius: 100px;
+    vertical-align: middle;
+    margin-right: 5px;
+    color: #FFF;
+    font-size: 16px;
+    display: inline-flex;
+    width: 25px;
+    height: 25px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.cc-settings-container .section-icons img {
+	width: 15px;
+	height: 15px;
+	filter: invert(1);
 }
 
 .cc-settings-container a {
@@ -136,8 +136,8 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 
 .cc-notices-container {
 	margin-top: 13px;
-	max-width: 300px;
-	margin-left: 35px;
+	max-width: 260px;
+	margin-left: 20px;
 }
 
 .cc-notices-container .button-primary {
@@ -164,20 +164,9 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 	color: #CCC;
 }
 
-.cc-woo-course {
-	background-color: #241542;
-	color: #d7c1ea;
-	border: 0;
-}
-
-.cc-woo-course p {
-    margin-top: 5px;
-    margin-bottom: 20px;
-}
-
 .cc-box-cta ul {
 	text-align: left;
-	width: 90%;
+	width: fit-content;
 	margin: auto auto 20px;
 }
 
@@ -187,11 +176,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 
 .cc-box-cta h3, .cc-box-cta strong {
 	color: #FFF;
-}
-
-.cc-woo-course .button-primary, .cc-woo-course .button-primary:hover {
-	background: linear-gradient(90deg, #bb8fdc 0%, #4c3fbb 100%);
-	color: #fff;
 }
 
 .cc-links {
@@ -328,8 +312,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 }
 
 .cc-toggle label .cc-toggle__label-text {
-	-webkit-box-flex: 1;
-	flex: 1;
 	padding-left: 32px;
 }
 
@@ -388,11 +370,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 
 .cc-toggle input[type="checkbox"]:checked:focus ~ label .cc-toggle__switch:after, .cc-toggle input[type="checkbox"]:checked:hover ~ label .cc-toggle__switch:after {
 	color: #451a80;
-}
-
-.cc-toggle label .cc-toggle__label-text {
-	-webkit-box-flex: 1;
-	flex: 1;
 }
 
 .cc-toggle label .cc-toggle__switch {
@@ -456,6 +433,10 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 
 .cc-toggle label .cc-toggle__switch:hover:after {
 	box-shadow: 0 3px 3px rgba(0, 0, 0, 0.4);
+}
+
+.cc-toggle.cc-toggle--size-small {
+	width: 100%;
 }
 
 .cc-toggle.cc-toggle--size-small input[type="checkbox"]:focus ~ label .cc-toggle__switch:after, .cc-toggle.cc-toggle--size-small input[type="checkbox"]:hover ~ label .cc-toggle__switch:after {
@@ -569,16 +550,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 	justify-content: center;
 	display: flex;
 	flex-direction: column;
-}
-
-.cc-optin-notice button.cc-klaviyo-submit-button {
-	background: linear-gradient(272deg, #6633ea, #e06666) !important;
-	border: none;
-	font-size: 12px;
-	text-transform: uppercase;
-	letter-spacing: 1px;
-	padding: 5px 15px;
-	font-weight: bold;
 }
 
 .cc-klaviyo-messages .success_message {
@@ -759,19 +730,17 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 }
 
 .cc-unlock-msg div {
-	display: inline-block;
+	display: block;
 	margin: auto;
 	padding: 15px;
-	background-color: #FFF;
+	background-color: #fff5f5;
 	position: relative;
+	border-radius: 5px;
 }
 
 .cc-unlock-msg span.dashicons {
 	margin-right: 10px;
-	background-color: #ffe5e5;
 	color: #e06666;
-	padding: 6px 4px 2px 4px;
-	border-radius: 5px;
 	font-size: 20px;
 	line-height: 16px;
 	vertical-align: middle;
@@ -809,13 +778,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 	font-weight: 800;
 }
 
-.cc-woo-course h3 {
-	margin-bottom: 0;
-	font-size: 1.5em;
-	margin-top: 10px !important;
-	text-transform: capitalize;
-}
-
 .cc-upgrade ul .dashicons {
     display: inline;
     font-size: 19px;
@@ -825,16 +787,6 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 
 .cc-upgrade > p {
     margin-top: 5px;
-}
-
-.cc-woo-course h3 span.cc-sub-heading {
-	font-size: 13px;
-	color: #f7a189;
-	letter-spacing: 1.5px;
-}
-
-.cc-woo-course {
-	display: none;
 }
 
 .cc-box-cta .dashicons {
@@ -904,4 +856,140 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 
 .toplevel_page_caddy button.button.copy-shortcode-button span.dashicons {
 	margin-top: 4px;
+}
+
+.cc-settings-tabs {
+	display: flex;
+	margin-top: 13px;
+	flex: 1;
+}
+
+.tabs {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.tab-content {
+	flex: 1;
+}
+
+.tab {
+	display: none;
+}
+
+.tab.active {
+	display: block;
+}
+
+.cc-icon-settings {
+	width: 20px;
+	content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M1 1H23V23H1V1ZM5.5 7.5C5.5 8.52516 6.11705 9.4062 7 9.79198L7 19H9V9.79198C9.88295 9.4062 10.5 8.52516 10.5 7.5C10.5 6.11929 9.38071 5 8 5C6.61929 5 5.5 6.11929 5.5 7.5ZM15 16.292V19H17V16.292C17.883 15.9062 18.5 15.0252 18.5 14C18.5 12.9748 17.883 12.0938 17 11.708V5H15V11.708C14.117 12.0938 13.5 12.9748 13.5 14C13.5 15.0252 14.117 15.9062 15 16.292Z" clip-rule="evenodd"></path></svg>') !important;
+	margin-right: 5px;
+	margin-top: 2px;
+}
+
+.cc-icon-styles {
+	width: 20px;
+	content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12.7682 2.35937L12 1.4375L11.2318 2.35937L5.43347 9.31734C4.18417 10.8165 3.5 12.7062 3.5 14.6577C3.5 19.2648 7.23479 22.9995 11.8419 22.9995H12.1581C16.7652 22.9995 20.5 19.2648 20.5 14.6577C20.5 12.7062 19.8158 10.8165 18.5665 9.31734L12.7682 2.35937ZM6.96991 10.5977L12 4.5616V20.9995H11.8419C8.33935 20.9995 5.5 18.1602 5.5 14.6577C5.5 13.1741 6.02014 11.7374 6.96991 10.5977Z" clip-rule="evenodd"></path></svg>') !important;
+	margin-right: 5px;
+	margin-top: 2px;
+}
+
+.cc-settings-pane {
+	margin-top: 13px;
+	flex: auto;
+}
+
+.cc-settings-pane .iris-picker {
+	position: absolute;
+}
+
+.cc-settings-menu li {
+	margin-bottom: 0;
+}
+
+.cc-settings-menu a {
+	padding: 15px 20px;
+	min-width: 155px;
+	z-index: 999;
+	position: relative;
+	right: -1px;
+	color: #000;
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	font-size: 14px;
+	font-weight: normal;
+	border-left: 1px solid transparent;
+	border-bottom: 1px solid #d8d8d8;
+	font-size: 13px;
+}
+
+.cc-settings-menu a svg,
+.cc-settings-menu a img {
+	width: 20px;
+	height: 20px;
+	flex: none;
+}
+
+.cc-settings-menu li.active a {
+	background-color: #FFF;
+	border-bottom: 1px solid #d8d8d8;
+	border-left: 1px solid #d8d8d8;
+}
+
+.cc-settings-menu a:hover {
+	background-color: #f8f8f8;
+	border-left: 1px solid #d8d8d8;
+}
+
+.cc-settings-menu li.active a:hover {
+	background-color: #fff;
+}
+
+.cc-settings-menu li a:focus {
+	box-shadow: none !important;
+}
+
+.cc-settings-menu li a,
+.cc-settings-menu li.active a {
+	border-top: 1px solid transparent;
+}
+
+.cc-settings-menu li:first-child:hover a,
+.cc-settings-menu li.active:first-child a {
+	border-top: 1px solid #d8d8d8;
+}
+
+.cc-settings-menu a svg {
+	width: 20px;
+	height: 20px;
+	flex: none;
+}
+
+.caddy-pro-label {
+	padding: 0 8px;
+	background-color: #000000;
+	border-radius: 100px;
+	color: #FFFFFF;
+	text-transform: uppercase;
+	font-size: 10px;
+	margin-left: auto;
+}
+
+.cc-upgrade img {
+    width: 35px;
+    height: 35px;
+    filter: invert(1);
+    margin-bottom: 10px;
+}
+
+.tab-content .cc-upgrade {
+	margin-bottom: 0;
+}
+
+.cc-settings-wrap #cc-styles-settings-form{
+	flex: 1;
 }

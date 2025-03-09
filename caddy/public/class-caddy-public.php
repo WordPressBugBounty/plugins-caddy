@@ -168,7 +168,7 @@ class Caddy_Public {
 	 * Cart screen template.
 	 */
 	public function cc_cart_screen() {
-		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-cart.php' );
+		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-public-cart.php' );
 	}
 
 	/**
@@ -184,7 +184,7 @@ class Caddy_Public {
 			return;
 		}
 
-		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-saves.php' );
+		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-public-saves.php' );
 	}
 
 	/**
@@ -395,7 +395,7 @@ class Caddy_Public {
 	 * Window screen template.
 	 */
 	public function cc_window_screen() {
-		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-window.php' );
+		include( plugin_dir_path( __FILE__ ) . 'partials/caddy-public-window.php' );
 	}
 
 	/**
@@ -890,7 +890,7 @@ class Caddy_Public {
 		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 
 		// Check if premium plugin is active or not
-		if ( ! class_exists( 'Caddy_Premium' ) ||
+		if ( ! class_exists( 'Caddy_Premium' ) || 
 			( isset( $caddy_license_status ) && ! empty( $caddy_license_status ) ) ) {
 
 			// Return if the license key is valid
@@ -898,7 +898,7 @@ class Caddy_Public {
 				return;
 			}
 
-			include( plugin_dir_path( __FILE__ ) . 'partials/caddy-recommendations.php' );
+			include( plugin_dir_path( __FILE__ ) . 'partials/caddy-public-recommendations.php' );
 		}
 	}
 
@@ -1055,39 +1055,86 @@ class Caddy_Public {
 									}
 									// Meta data.
 									echo wc_get_formatted_cart_item_data( $cart_item ); // PHPCS: XSS ok.
+
+									// Add Free Gift label
+									if (isset($cart_item['caddy_free_gift']) && $cart_item['caddy_free_gift']) {
+										echo '<div class="cc-free-gift-label">' . esc_html__('Gift Reward', 'caddy') . '</div>';
+									}
 									?>
 									<div class="cc_item_quantity_wrap">
-										<?php if ( $_product->is_sold_individually() ) {
-											echo sprintf( '1 <input type="hidden" name="cart[%s][qty]" value="1" />', $cart_item_key );
-										} else { ?>
+										<?php 
+										// Check if quantity should be locked via filter
+										$quantity_html = apply_filters('woocommerce_cart_item_quantity', 
+											'<input type="text" readonly class="cc_item_quantity" data-product_id="' . esc_attr($product_id) . '" data-key="' . esc_attr($cart_item_key) . '" value="' . $cart_item['quantity'] . '">', 
+											$cart_item_key,
+											$cart_item
+										);
+										
+										if (!$_product->is_sold_individually() && !is_numeric($quantity_html) && strpos($quantity_html, 'type="hidden"') === false) {
+											?>
 											<div class="cc_item_quantity_update cc_item_quantity_minus" data-type="minus">−</div>
-											<input type="text" readonly class="cc_item_quantity" data-product_id="<?php echo esc_attr( $product_id ); ?>"
-												   data-key="<?php echo esc_attr( $cart_item_key ); ?>" value="<?php echo $cart_item['quantity']; ?>">
-											<div class="cc_item_quantity_update cc_item_quantity_plus<?php echo esc_attr( $plus_disable ); ?>" data-type="plus">+</div>
-										<?php } ?>
+											<input type="text" readonly class="cc_item_quantity" data-product_id="<?php echo esc_attr($product_id); ?>"
+												   data-key="<?php echo esc_attr($cart_item_key); ?>" value="<?php echo $cart_item['quantity']; ?>">
+											<div class="cc_item_quantity_update cc_item_quantity_plus<?php echo esc_attr($plus_disable); ?>" data-type="plus">+</div>
+											<?php add_action('caddy_after_quantity_input', $product_id); ?>
+											<?php
+										}
+										?>
 									</div>
 								</div>
 								<div class="cc_item_total_price">
 									<div class="price">
-										<?php if ( $_product->is_on_sale() ) : 
-											$regular_price = $_product->get_regular_price() * $cart_item['quantity'];
-											?>
-											<del><?php echo wc_price($regular_price); ?></del>
-										<?php endif; ?>
-										<?php
-										echo apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $_product, $cart_item['quantity'] ), $cart_item, $cart_item_key );
+										<?php 
+										// Get the product subtotal HTML first
+										$product_subtotal = apply_filters('woocommerce_cart_item_subtotal', 
+											WC()->cart->get_product_subtotal($_product, $cart_item['quantity']), 
+											$cart_item, 
+											$cart_item_key
+										);
+										
+										// If it's a free gift, always show "Free" instead of $0
+										if (isset($cart_item['caddy_free_gift']) && $cart_item['caddy_free_gift']) {
+											echo '<span class="cc-free-price">' . esc_html__('Free', 'caddy') . '</span>';
+										} else {
+											// Check if the product is on sale and the subtotal doesn't already include a strikethrough price
+											if ($_product->is_on_sale() && strpos($product_subtotal, '<del>') === false) {
+												$regular_price = $_product->get_regular_price() * $cart_item['quantity'];
+												echo '<del>' . wc_price($regular_price) . '</del> ';
+											}
+											
+											// Output the product subtotal
+											echo $product_subtotal;
+										}
 										?>
 									</div>
-									<?php if ( $_product->get_regular_price() > $_product->get_price() ) { 
-										$percentage = (($_product->get_regular_price() - $_product->get_price()) / $_product->get_regular_price()) * 100;
-									?>
-										<div class="cc_saved_amount">
-											<?php 
-											/* translators: %d: percentage discount */
-											echo sprintf( esc_html__('(Save %d%%)', 'caddy'), round($percentage) ); 
+									<?php 
+									// Only show coupon savings
+									if (!isset($cart_item['caddy_free_gift'])) {
+										$coupon_savings = 0;
+										if (wc_coupons_enabled()) {
+											$applied_coupons = WC()->cart->get_applied_coupons();
+											if (!empty($applied_coupons)) {
+												foreach ($applied_coupons as $coupon_code) {
+													$coupon = new WC_Coupon($coupon_code);
+													// Get discount amount for this specific cart item
+													$discount_amount = WC()->cart->get_coupon_discount_amount($coupon->get_code(), true) * $cart_item['quantity'];
+													$coupon_savings += $discount_amount;
+												}
+											}
+										}
+										
+										if ($coupon_savings > 0) {
 											?>
-										</div>
-									<?php } ?>
+											<div class="cc_saved_amount">
+												<?php 
+												/* translators: %s: discount amount (formatted price) */
+												echo sprintf(esc_html__('(Save %s)', 'caddy'), wc_price($coupon_savings)); 
+												?>
+											</div>
+											<?php
+										}
+									}
+									?>
 								</div>
 							</div>
 							<div class="cc-item-content-bottom">
@@ -1095,14 +1142,18 @@ class Caddy_Public {
 	
 									<?php
 									if ( is_user_logged_in() ) {
-										$caddy_sfl_button              = true;
-										$caddy                         = new Caddy();
+										$caddy_sfl_button = true;
+										$caddy = new Caddy();
 										$cc_premium_license_activation = $caddy->cc_check_premium_license_activation();
 										if ( $cc_premium_license_activation ) {
 											$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options' );
 											if ( 'disabled' === $cc_enable_sfl_options ) {
 												$caddy_sfl_button = false;
 											}
+										}
+										// Don't show save for later button for free gifts
+										if ( isset($cart_item['caddy_free_gift']) && $cart_item['caddy_free_gift'] ) {
+											$caddy_sfl_button = false;
 										}
 										if ( $caddy_sfl_button ) {
 											?>
@@ -1125,14 +1176,17 @@ class Caddy_Public {
 									?>
 								</div>
 								<?php
-								echo sprintf(
-									'<a href="%s" class="remove remove_from_cart_button" aria-label="%s" data-product_id="%s" data-cart_item_key="%s" data-product_name="%s"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke="currentColor" d="M1 6H23"></path><path stroke="currentColor" d="M4 6H20V22H4V6Z"></path><path stroke="currentColor" d="M9 10V18"></path><path stroke="currentColor" d="M15 10V18"></path><path stroke="currentColor" d="M8 6V6C8 3.79086 9.79086 2 12 2V2C14.2091 2 16 3.79086 16 6V6"></path></svg></a>',
-									'javascript:void(0);',
-									esc_attr__( 'Remove this item', 'caddy' ),
-									esc_attr( $product_id ),
-									esc_attr( $cart_item_key ),
-									esc_attr( $product_name )
-								);
+								// Only show remove button if not a free gift
+								if (!isset($cart_item['caddy_free_gift']) || !$cart_item['caddy_free_gift']) {
+									echo sprintf(
+										'<a href="%s" class="remove remove_from_cart_button" aria-label="%s" data-product_id="%s" data-cart_item_key="%s" data-product_name="%s"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke="currentColor" d="M1 6H23"></path><path stroke="currentColor" d="M4 6H20V22H4V6Z"></path><path stroke="currentColor" d="M9 10V18"></path><path stroke="currentColor" d="M15 10V18"></path><path stroke="currentColor" d="M8 6V6C8 3.79086 9.79086 2 12 2V2C14.2091 2 16 3.79086 16 6V6"></path></svg></a>',
+										'javascript:void(0);',
+										esc_attr__( 'Remove this item', 'caddy' ),
+										esc_attr( $product_id ),
+										esc_attr( $cart_item_key ),
+										esc_attr( $product_name )
+									);
+								}
 								?>
 							</div>
 						</div>

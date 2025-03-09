@@ -3,6 +3,26 @@
 
 	var ccWindow = $( '.cc-window' );
 
+	// Add skeleton HTML template function instead of constant
+	function getSkeletonHTML(customCount) {
+		// Get current cart count from the compass counter, or use customCount if provided
+		const cartCount = customCount || parseInt($('.cc-compass-count').text()) || 1;
+		
+		// Basic skeleton item template
+		const skeletonItem = `
+		<div class="cc-skeleton-item">
+			<div class="cc-skeleton cc-skeleton-thumb"></div>
+			<div class="cc-skeleton-content">
+				<div class="cc-skeleton cc-skeleton-line medium"></div>
+				<div class="cc-skeleton cc-skeleton-line short"></div>
+			</div>
+		</div>
+		`;
+		
+		// Repeat the skeleton based on cart count
+		return skeletonItem.repeat(cartCount);
+	}
+
 	jQuery( document ).ready( function( $ ) {
 
 		// Get refreshed fragments onLoad
@@ -45,25 +65,30 @@
 			}
 		} );
 
-		// toggle .cc-window with .cc-compass
-		$( document ).on( 'click', '.cc-compass', function() {
-
-			$( this ).toggleClass( 'cc-compass-open' );
-			$( 'body' ).toggleClass( 'cc-window-open' );
+		// Modify the compass click handler
+		$(document).on('click', '.cc-compass', function() {
+			$(this).toggleClass('cc-compass-open');
+			$('body').toggleClass('cc-window-open');
 
 			// Show or hide cc-window
-			if ( ccWindow.hasClass( 'visible' ) ) {
-				$( '.cc-overlay' ).hide();
-				ccWindow.animate( { 'right': '-1000px' }, 'slow' ).removeClass( 'visible' );
+			if (ccWindow.hasClass('visible')) {
+				$('.cc-overlay').hide();
+				ccWindow.animate({'right': '-1000px'}, 'slow').removeClass('visible');
 			} else {
-				$( '.cc-overlay' ).show();
+				$('.cc-overlay').show();
 
+				// Show skeleton loader with current cart count
+				$('.cc-cart-items').html(getSkeletonHTML());
+				
 				// Activate tabby cart tab
-				tabs.toggle( '#cc-cart' );
+				tabs.toggle('#cc-cart');
+				
+				ccWindow.animate({'right': '0'}, 'slow').addClass('visible');
 
-				ccWindow.animate( { 'right': '0' }, 'slow' ).addClass( 'visible' );
+				// Refresh cart contents
+				cc_refresh_cart();
 			}
-		} );
+		});
 
 		// .cc-window close button
 		$( document ).on( 'click', '.ccicon-x', function() {
@@ -179,8 +204,6 @@
 
 			productData.push( { name: 'action', value: 'cc_add_to_cart' } );
 
-			$( document.body ).trigger( 'adding_to_cart', [$button, productData] );
-
 			// Get the appropriate AJAX URL with fallback
 			let ajaxUrl;
 			if (cc_ajax_script.wc_ajax_url) {
@@ -190,17 +213,16 @@
 				ajaxUrl = '/?wc-ajax=cc_add_to_cart';
 			}
 
-			// Add nonce to productData if using admin-ajax.php
-			if (!cc_ajax_script.wc_ajax_url) {
-				productData.push({ name: 'security', value: cc_ajax_script.nonce });
-			}
+			// Always include the security nonce
+			productData.push({ name: 'security', value: cc_ajax_script.nonce });
+
+			$( document.body ).trigger( 'adding_to_cart', [$button, productData] );
 
 			$.ajax( {
 				type: 'post',
 				url: ajaxUrl,
 				data: $.param( productData ),
 				beforeSend: function( response ) {
-					$( '#cc-cart' ).css( 'opacity', '0.3' );
 					$( '.cc-compass > .licon, .cc-compass > i' ).hide();
 					$( '.cc-compass > .cc-loader' ).show();
 					$button.removeClass( 'added' ).addClass( 'loading' );
@@ -217,7 +239,6 @@
 					$( '.cc-compass > .cc-loader' ).hide();
 					$( '.cc-compass > .licon, .cc-compass > i' ).show();
 					$button.addClass( 'added' ).removeClass( 'loading' );
-					$( '#cc-cart' ).css( 'opacity', '1' );
 				}
 			} );
 
@@ -364,7 +385,7 @@
 			type: 'post',
 			url: ajaxUrl,
 			beforeSend: function(xhr, settings) {
-				$('#cc-cart').css('opacity', '0.3');
+				$('.cc-cart-items').html(getSkeletonHTML());
 			},
 			error: function(xhr, status, error) {
 				console.error('AJAX Error:', {
@@ -373,9 +394,6 @@
 					responseText: xhr.responseText,
 					headers: xhr.getAllResponseHeaders()
 				});
-			},
-			complete: function(xhr, status) {
-				$('#cc-cart').css('opacity', '1');
 			},
 			success: function(response) {
 				var fragments = response.fragments;
@@ -407,22 +425,22 @@
 	var cc_quanity_update_send = true;
 
 	/* Quantity update in cart screen */
-	function cc_quantity_update_buttons( el ) {
-		if ( cc_quanity_update_send ) {
+	function cc_quantity_update_buttons(el) {
+		if (cc_quanity_update_send) {
 			cc_quanity_update_send = false;
-			$( '.cc-notice' ).hide();
-			var wrap = $( el ).parents( '.cc-cart-product-list' );
-			var input = $( wrap ).find( '.cc_item_quantity' );
-			var key = $( input ).data( 'key' );
-			var productID = $( input ).data( 'product_id' );
-			var number = parseInt( $( input ).val() );
-			var type = $( el ).data( 'type' );
-			if ( 'minus' == type ) {
-				number --;
+			$('.cc-notice').hide();
+			var wrap = $(el).parents('.cc-cart-product-list');
+			var input = $(wrap).find('.cc_item_quantity');
+			var key = $(input).data('key');
+			var productID = $(input).data('product_id');
+			var number = parseInt($(input).val());
+			var type = $(el).data('type');
+			if ('minus' == type) {
+				number--;
 			} else {
-				number ++;
+				number++;
 			}
-			if ( number < 1 ) {
+			if (number < 1) {
 				number = 1;
 			}
 			var data = {
@@ -437,50 +455,50 @@
 			if (cc_ajax_script.wc_ajax_url) {
 				ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_quantity_update');
 			} else {
-				// Fallback to constructing WC AJAX URL
 				ajaxUrl = '/?wc-ajax=cc_quantity_update';
 			}
 
-			$.ajax( {
+			// Store current cart HTML
+			var currentCartHTML = $('.cc-cart-items').html();
+
+			// Show skeleton loader with current cart count
+			$('.cc-cart-items').html(getSkeletonHTML());
+
+			$.ajax({
 				type: 'post',
 				url: ajaxUrl,
 				data: data,
-				beforeSend: function( response ) {
-					$( '#cc-cart' ).css( 'opacity', '0.3' );
-				},
-				complete: function( response ) {
-					$( '#cc-cart' ).css( 'opacity', '1' );
-				},
-				success: function( response ) {
-
+				success: function(response) {
 					var fragments = response.fragments,
 						qty_error_msg = response.qty_error_msg;
 
-					// Replace fragments
-					if ( fragments ) {
-						$.each( fragments, function( key, value ) {
-							$( key ).replaceWith( value );
-						} );
+					if (qty_error_msg) {
+						// If there's an error, restore the original cart HTML
+						$('.cc-cart-items').html(currentCartHTML);
+						$('.cc-notice').addClass('cc-error').show().html(qty_error_msg);
+						setTimeout(function() {
+							$('.cc-notice').removeClass('cc-error').html('').hide();
+						}, 2000);
+					} else if (fragments) {
+						// Replace fragments
+						$.each(fragments, function(key, value) {
+							$(key).replaceWith(value);
+						});
 					}
 
-					if ( qty_error_msg ) {
-						$( '.cc-notice' ).addClass( 'cc-error' ).show().html( qty_error_msg );
-						setTimeout( function() {
-								$( '.cc-notice' ).removeClass( 'cc-error' ).html( '' ).hide();
-							},
-							2000 );
-					}
-
-					$( input ).val( number );
+					$(input).val(number);
 					cc_quanity_update_send = true;
 
 					// Activate tabby cart tab
-					var tabs = new Tabby( '[data-tabs]' );
-					tabs.toggle( '#cc-cart' );
-
+					var tabs = new Tabby('[data-tabs]');
+					tabs.toggle('#cc-cart');
+				},
+				error: function() {
+					// On error, restore the original cart HTML
+					$('.cc-cart-items').html(currentCartHTML);
+					cc_quanity_update_send = true;
 				}
-			} );
-
+			});
 		}
 	}
 
@@ -596,29 +614,31 @@
 		if (cc_ajax_script.wc_ajax_url) {
 			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_remove_item_from_cart');
 		} else {
-			// Fallback to constructing WC AJAX URL
 			ajaxUrl = '/?wc-ajax=cc_remove_item_from_cart';
 		}
 
-		// AJAX Request for remove product from the cart
-		var data = {
-			nonce: cc_ajax_script.nonce,
-			cart_item_key: cartItemKey
-		};
+		// Store current cart HTML
+		var currentCartHTML = $('.cc-cart-items').html();
+
+		// Calculate skeleton count (current count minus 1)
+		const currentCount = parseInt($('.cc-compass-count').text()) || 1;
+		const skeletonCount = Math.max(currentCount - 1, 1); // Ensure at least 1 skeleton item
 
 		$.ajax({
 			type: 'post',
 			url: ajaxUrl,
-			data: data,
+			data: {
+				nonce: cc_ajax_script.nonce,
+				cart_item_key: cartItemKey
+			},
 			beforeSend: function(response) {
-				$('#cc-cart').css('opacity', '0.3');
+				$('.cc-cart-items').html(getSkeletonHTML(skeletonCount));
 				$('.cc-compass .ccicon-cart').hide();
 				$('.cc-compass .cc-loader').show();
 			},
 			complete: function(response) {
 				$('.cc-compass .ccicon-cart').show();
 				$('.cc-compass .cc-loader').hide();
-				$('#cc-cart').css('opacity', '1');
 
 				// Remove "added" class after deleting the item from the cart
 				if (($('.single_add_to_cart_button, .add_to_cart_button').length > 0)) {
@@ -653,6 +673,10 @@
 				// Activate tabby cart tab
 				var tabs = new Tabby('[data-tabs]');
 				tabs.toggle('#cc-cart');
+			},
+			error: function() {
+				// On error, restore the original cart HTML
+				$('.cc-cart-items').html(currentCartHTML);
 			}
 		});
 	}
@@ -843,6 +867,33 @@
 				// Activate tabby cart tab
 				var tabs = new Tabby('[data-tabs]');
 				tabs.toggle('#cc-cart');
+			}
+		});
+	}
+
+	// Add new function to refresh cart
+	function cc_refresh_cart() {
+		// Get the appropriate AJAX URL with fallback
+		let ajaxUrl;
+		if (cc_ajax_script.wc_ajax_url) {
+			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'get_refreshed_fragments');
+		} else {
+			ajaxUrl = '/?wc-ajax=get_refreshed_fragments';
+		}
+
+		$.ajax({
+			type: 'post',
+			url: ajaxUrl,
+			success: function(response) {
+				if (response.fragments) {
+					$.each(response.fragments, function(key, value) {
+						$(key).replaceWith(value);
+					});
+				}
+			},
+			error: function() {
+				// On error, reload the page to ensure fresh cart data
+				window.location.reload();
 			}
 		});
 	}

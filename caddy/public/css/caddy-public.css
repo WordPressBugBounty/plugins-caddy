@@ -2244,3 +2244,18 @@ i.ccicon-left-arrow {
 .cc-window .caddy-add-to-cart.loading {
   padding-right: 35px !important;
 }
+
+.cc-cart-error {
+  padding: 15px;
+  text-align: center;
+  color: #e2401c;
+  background-color: #f8d7da;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.cc-cart-error a {
+  color: #721c24;
+  text-decoration: underline;
+  font-weight: bold;
+}

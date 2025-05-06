@@ -4,9 +4,9 @@ Author URI: https://www.usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
 Tags: caddy, side cart, cart, woocommerce, sticky cart
 Requires at least: 5.0
-Tested up to: 6.7.2
+Tested up to: 6.8.1
 Requires PHP: 7.4
-Stable tag: 2.0.7
+Stable tag: 2.0.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,7 +19,7 @@ A high performance, conversion-boosting side cart for your WooCommerce store tha
 **Increase average order sizes** with Caddy's built-in product recommendations, **reduce cart abandonment** with a free shipping meter, and **encourage repeat shoppers** with a saved product list.
 
 ⚡️ **Optimized for performance**
-📱 **Mobile friendly responsive design - Works beautifully across all devices**
+📱 **Mobile friendly responsive design**
 🔄 **Real-time (ajax) cart updates**
 🌏 **Translation ready**
 ⚔️ **Cross-browser and cross-OS battle tested**
@@ -114,9 +114,18 @@ The "icon" value (yes or no) will display a heart icon for the "Saves" link and 
 
 Yes.
 
-= Can I translate Caddy? =
+= How do I translate Caddy? =
 
-Absolutely! You can find instructions [here](https://usecaddy.com/docs/developers/how-to-translate-caddy-into-different-languages).
+1. Install and activate the free Loco Translate plugin.
+2. Once installed, navigate to the Loco Translate menu option and select “plugins” from the sub menu.
+3. Select the "Caddy" plugin
+4. Click the “New language” link
+5. Select the “WordPress language” option and select a language.
+6. Choose a location for your language file (Custom is recommended), then click the “Start translating” button.
+7. Select each of the source text lines (1), enter the translations (2) and finally save your changes (3).
+8. Now make sure your default WordPress settings are set for the language you’ve configured and you’re done.
+
+You can find full instructions [here](https://usecaddy.com/docs/developers/how-to-translate-caddy-into-different-languages).
 
 = Will Caddy slow down my site? =
 
@@ -130,6 +139,11 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.0.8 =
+* Improvement: Added minimum and maximum quantity validation for add to cart functionality.
+* Improvement: AJAX error handling to provide fallback messages for cart loading issues.
+* Improvement: Misc cleanup and better code organization
 
 = 2.0.7 = 
 * Fix: Nonce issue with recommendations

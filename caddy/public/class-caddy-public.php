@@ -198,7 +198,52 @@ class Caddy_Public {
 		}
 
 		$product_id = apply_filters('woocommerce_add_to_cart_product_id', absint($_POST['add-to-cart']));
-		$quantity = empty($_POST['quantity']) ? 1 : wc_stock_amount( wp_unslash($_POST['quantity']) );
+		$quantity = empty($_POST['quantity']) ? 1 : wc_stock_amount(wp_unslash($_POST['quantity']));
+		
+		// Check if it's a variation
+		$variation_id = empty($_POST['variation_id']) ? 0 : absint($_POST['variation_id']);
+		
+		// For validation purposes, use variation_id if it exists
+		$validation_product_id = $variation_id ? $variation_id : $product_id;
+		
+		// Add quantity validation filter
+		$quantity = apply_filters('woocommerce_stock_amount', $quantity, $validation_product_id);
+		
+		// Add validation for minimum/maximum quantity
+		$_product = wc_get_product($validation_product_id);
+		
+		// If product doesn't exist, return error
+		if (!$_product) {
+			wp_send_json(array(
+				'error' => true,
+				'message' => __('Invalid product', 'caddy')
+			));
+			return;
+		}
+		
+		$quantity_limits = apply_filters('woocommerce_quantity_input_args', array(
+			'min_value' => 1,
+			'max_value' => $_product->get_max_purchase_quantity(),
+		), $_product);
+		
+		// Ensure max_value is valid (not -1 or less than min_value)
+		if ($quantity_limits['max_value'] < 0 || $quantity_limits['max_value'] < $quantity_limits['min_value']) {
+			$quantity_limits['max_value'] = '';  // Empty string means no upper limit
+		}
+		
+		// Check quantity limits
+		if ($quantity < $quantity_limits['min_value'] || 
+			($quantity_limits['max_value'] !== '' && $quantity > $quantity_limits['max_value'])) {
+			wp_send_json(array(
+				'error' => true,
+				'message' => sprintf(__('Quantity must be between %d and %s', 'caddy'), 
+					$quantity_limits['min_value'], 
+					$quantity_limits['max_value'] === '' ? __('unlimited', 'caddy') : $quantity_limits['max_value']
+				)
+			));
+			return;
+		}
+
 		$passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity);
 		$product_status = get_post_status($product_id);
 
@@ -296,18 +341,34 @@ class Caddy_Public {
 	 * Cart item quantity update
 	 */
 	public function caddy_cart_item_quantity_update() {
+		$key = sanitize_text_field($_POST['key']);
+		$product_id = sanitize_text_field($_POST['product_id']);
+		$number = intval(sanitize_text_field($_POST['number']));
 
-		$key        = sanitize_text_field( $_POST['key'] );
-		$product_id = sanitize_text_field( $_POST['product_id'] );
-		$number     = intval( sanitize_text_field( $_POST['number'] ) );
-
-		if ( is_user_logged_in() ) {
-			$condition = ( $key && $number > 0 && wp_verify_nonce( $_POST['security'], 'caddy' ) );
+		if (is_user_logged_in()) {
+			$condition = ($key && $number > 0 && wp_verify_nonce($_POST['security'], 'caddy'));
 		} else {
-			$condition = ( $key && $number > 0 );
+			$condition = ($key && $number > 0);
 		}
 
-		if ( $condition ) {
+		if ($condition) {
+			$_product = wc_get_product($product_id);
+			$product_data = $_product->get_data();
+			$product_name = $product_data['name'];
+			
+			// Add validation filters before setting quantity
+			$passed_validation = apply_filters('woocommerce_update_cart_validation', true, $key, array(
+				'product_id' => $product_id,
+				'quantity' => $number,
+				'old_quantity' => WC()->cart->get_cart_item($key)['quantity']
+			), $number);
+			
+			if (!$passed_validation) {
+				wp_send_json(array(
+					'qty_error_msg' => __('Invalid quantity update', 'caddy')
+				));
+				return;
+			}
 
 			$_product          = wc_get_product( $product_id );
 			$product_data      = $_product->get_data();
@@ -1064,20 +1125,39 @@ class Caddy_Public {
 									<div class="cc_item_quantity_wrap">
 										<?php 
 										// Check if quantity should be locked via filter
-										$quantity_html = apply_filters('woocommerce_cart_item_quantity', 
-											'<input type="text" readonly class="cc_item_quantity" data-product_id="' . esc_attr($product_id) . '" data-key="' . esc_attr($cart_item_key) . '" value="' . $cart_item['quantity'] . '">', 
-											$cart_item_key,
-											$cart_item
-										);
+										$quantity_args = apply_filters('woocommerce_quantity_input_args', array(
+											'input_name'  => "cart[{$cart_item_key}][qty]",
+											'input_value' => $cart_item['quantity'],
+											'max_value'   => $_product->get_max_purchase_quantity(),
+											'min_value'   => '0',
+											'product_name' => $_product->get_name(),
+										), $_product);
 										
-										if (!$_product->is_sold_individually() && !is_numeric($quantity_html) && strpos($quantity_html, 'type="hidden"') === false) {
+										// Then use these args when displaying the quantity input
+										$min = $quantity_args['min_value'];
+										$max = $quantity_args['max_value'];
+										
+										// Check if product is a free gift - don't allow quantity adjustments for free gifts
+										$is_free_gift = isset($cart_item['caddy_free_gift']) && $cart_item['caddy_free_gift'];
+										
+										if (!$_product->is_sold_individually() && strpos($quantity_args['input_value'], 'type="hidden"') === false && !$is_free_gift) {
+											// Only show quantity controls for non-free gift items
 											?>
 											<div class="cc_item_quantity_update cc_item_quantity_minus" data-type="minus">−</div>
-											<input type="text" readonly class="cc_item_quantity" data-product_id="<?php echo esc_attr($product_id); ?>"
-												   data-key="<?php echo esc_attr($cart_item_key); ?>" value="<?php echo $cart_item['quantity']; ?>">
+											<input type="text" 
+												readonly 
+												class="cc_item_quantity" 
+												data-product_id="<?php echo esc_attr($product_id); ?>"
+												data-key="<?php echo esc_attr($cart_item_key); ?>" 
+												value="<?php echo $cart_item['quantity']; ?>"
+												step="<?php echo esc_attr(apply_filters('woocommerce_quantity_input_step', 1, $_product)); ?>"
+												min="<?php echo esc_attr($min); ?>"
+												max="<?php echo esc_attr($max); ?>">
 											<div class="cc_item_quantity_update cc_item_quantity_plus<?php echo esc_attr($plus_disable); ?>" data-type="plus">+</div>
 											<?php add_action('caddy_after_quantity_input', $product_id); ?>
 											<?php
+										} elseif ($is_free_gift) {
+											// For free gifts, we don't show any quantity display at all
 										}
 										?>
 									</div>

@@ -198,7 +198,10 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					if ( ! empty( $applied_coupons ) ) {
 						foreach ( $applied_coupons as $code ) {
 							$coupon = new WC_Coupon( $code );
-							$coupon_discount_amount += WC()->cart->get_coupon_discount_amount( $coupon->get_code(), WC()->cart->display_cart_ex_tax );
+							// Get discount amount respecting tax display setting
+							$tax_display = get_option( 'woocommerce_tax_display_cart' );
+							$inc_tax = ( 'incl' === $tax_display );
+							$coupon_discount_amount = WC()->cart->get_coupon_discount_amount( $coupon->get_code(), !$inc_tax );
 						}
 					}
 				}
@@ -224,34 +227,42 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					</div>
 
 					<?php
+					// Let WooCommerce handle the subtotal calculation with discounts
+					$cart_subtotal = WC()->cart->get_displayed_subtotal();
+					
+					// Get the coupon discount amount
 					$coupon_discount_amount = 0;
-					if ( wc_coupons_enabled() ) {
+					if (wc_coupons_enabled()) {
 						$applied_coupons = WC()->cart->get_applied_coupons();
-						if ( ! empty( $applied_coupons ) ) {
-							foreach ( $applied_coupons as $code ) {
-								$coupon                 = new WC_Coupon( $code );
-								$coupon_discount_amount = WC()->cart->get_coupon_discount_amount( $coupon->get_code(), WC()->cart->display_cart_ex_tax );
+						if (!empty($applied_coupons)) {
+							$tax_display = get_option('woocommerce_tax_display_cart');
+							$inc_tax = ('incl' === $tax_display);
+							
+							foreach ($applied_coupons as $code) {
+								$coupon = new WC_Coupon($code);
+								$coupon_discount_amount += WC()->cart->get_coupon_discount_amount($coupon->get_code(), !$inc_tax);
 							}
 						}
 					}
-					$cc_cart_subtotal    = WC()->cart->get_displayed_subtotal();
-					$caddy_cart_subtotal = (float) ( $cc_cart_subtotal - $coupon_discount_amount );
+					
+					// Calculate the total (subtotal minus coupon discount)
+					$cart_total = $cart_subtotal - $coupon_discount_amount;
+					
+					// Calculate original total (before any discounts) for comparison
+					$original_total = 0;
+					foreach (WC()->cart->get_cart() as $cart_item) {
+						$product = $cart_item['data'];
+						$original_price = $product->get_regular_price();
+						$original_total += floatval($original_price) * $cart_item['quantity'];
+					}
 					?>
 					<div class="cc-total-amount">
 						<?php 
-						// Calculate original total (before any discounts)
-						$original_total = 0;
-						foreach (WC()->cart->get_cart() as $cart_item) {
-							$product = $cart_item['data'];
-							$original_price = $product->get_regular_price();
-							$original_total += floatval($original_price) * $cart_item['quantity'];
-						}
-
-						// Only show original price if there are discounts
-						if ($original_total > $caddy_cart_subtotal) {
+						// Show the original total if it's greater than the cart total
+						if ($original_total > $cart_total) {
 							echo '<span class="cc-original-price"><del>' . wc_price($original_total) . '</del></span> ';
 						}
-						echo wc_price($caddy_cart_subtotal, array('currency' => get_woocommerce_currency()));
+						echo wc_price($cart_total, array('currency' => get_woocommerce_currency()));
 						?>
 					</div>
 				</div>

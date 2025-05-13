@@ -48,12 +48,6 @@
 		});
 	});
 
-
-	// Dismiss the welcome notice
-	$( document ).on( 'click', '.cc-welcome-notice .notice-dismiss', function() {
-		cc_dismiss_welcome_notice();
-	} );
-
 	// Dismiss the opt-in notice
 	$( document ).on( 'click', '.cc-optin-notice .notice-dismiss', function() {
 		cc_dismiss_optin_notice();

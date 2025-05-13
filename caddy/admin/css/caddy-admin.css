@@ -98,7 +98,7 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 }
 
 .cc-settings-container a {
-	color: #e06666;
+	color: #634ef4;
 }
 
 .cc-logo {
@@ -484,79 +484,32 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 	box-shadow: 0 2px 2px rgb(158 81 216 / 40%);
 }
 
-.cc-welcome-notice {
-	padding: 10px 45px 0 10px !important;
-	display: flex;
-	align-items: center;
-	margin-bottom: 8px !important;
-	margin-top: 20px !important;
-	background-color: #defff4;
-	border-radius: 5px;
-	border: 1px solid #83d8aa !important;
-	overflow: hidden;
-}
-
-.cc-notice-heading {
-	margin-bottom: 0;
-	margin-top: 0;
-	font-size: 21px;
-}
-
-.cc-welcome-notice a {
-	color: #e06666;
-}
-
-.cc-celebrate {
-	-webkit-animation: fadeInUp 1s both;
-	animation: fadeInUp 1s both;
-	margin-left: 15px;
-	margin-right: 15px;
-}
-
 .cc-notice-text {
 	margin-left: 5px;
 }
 
-.cc-optin-notice {
-	display: flex !important;
-	padding: 25px 45px 25px 10px !important;
-	border-left: 1px solid #c3c4c7;
+.cc-box-cta .caddy-offer-content {
+    background-color: #231f3d;
 }
 
-.cc-optin-left {
-	display: flex;
-	align-items: end;
+.cc-box-cta .caddy-limited-offer {
+    border-color: #9788ff;
 }
 
-.cc-celebrate,
-.cc-optin-left img {
-	margin-right: 10px;
+.cc-box-cta .caddy-offer-text {
+    color: #fff !important;
 }
 
-.cc-optin-notice h2 {
-	margin-top: 0;
-	margin-bottom: 0;
+.cc-box-cta .caddy-offer-text strong {
+    color: #fff !important;
 }
 
-.cc-optin-notice .cc-klaviyo-field-group {
-	margin-bottom: 10px;
-}
-
-.cc-optin-notice .cc-klaviyo-opt-in {
-	margin-top: 10px;
-}
-
-.cc-optin-notice .cc-optin-right {
-	justify-content: center;
-	display: flex;
-	flex-direction: column;
-}
-
-.cc-klaviyo-messages .success_message {
-	padding: 7px 15px !important;
-	margin-bottom: 12px;
-	background-color: #d6fff3;
-	border: 1px solid #83d8aa !important;
+.cc-box-cta .caddy-offer-text code {
+	background-color: #634ef4 !important;
+	color: #fff;
+	border: none;
+	font-size: 14px;
+	padding: 4px 6px 3px;
 }
 
 @keyframes fadeInUp {
@@ -733,14 +686,15 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 	display: block;
 	margin: auto;
 	padding: 15px;
-	background-color: #fff5f5;
+	background-color: #f2f2ff;
 	position: relative;
 	border-radius: 5px;
+	color: #000;
 }
 
 .cc-unlock-msg span.dashicons {
 	margin-right: 10px;
-	color: #e06666;
+	color: #634ef4;
 	font-size: 20px;
 	line-height: 16px;
 	vertical-align: middle;
@@ -756,7 +710,7 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 }
 
 .cc-unlock-msg a {
-	color: #e06666;
+	color: #634ef4;
 	font-weight: bold;
 }
 

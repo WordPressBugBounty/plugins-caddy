@@ -159,9 +159,6 @@ class Caddy {
 		// Add action to include tab screen files
 		$this->loader->add_action( 'caddy_admin_tab_screen', $caddy_admin_obj, 'cc_include_tab_screen_files' );
 
-		// Add action to load html for upgrade to premium
-		$this->loader->add_action( 'cc_upgrade_to_premium', $caddy_admin_obj, 'cc_upgrade_to_premium_html' );
-
 		// Add action to dismiss the welcome notice
 		$this->loader->add_action( 'wp_ajax_dismiss_welcome_notice', $caddy_admin_obj, 'cc_dismiss_welcome_notice' );
 
@@ -238,9 +235,6 @@ class Caddy {
 
 		// Add action for ajaxify update cc-cart html
 		$this->loader->add_filter( 'woocommerce_add_to_cart_fragments', $caddy_public_obj, 'cc_cart_html_fragments' );
-
-		// Add filter to hide shipping rates when free shipping amount matched
-		$this->loader->add_filter( 'woocommerce_package_rates', $caddy_public_obj, 'cc_shipping_when_free_is_available' );
 
 		// Add a short-code for saved list
 		$this->loader->add_shortcode( 'cc_saved_items', $caddy_public_obj, 'cc_saved_items_shortcode' );

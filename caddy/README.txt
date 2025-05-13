@@ -6,7 +6,7 @@ Tags: caddy, side cart, cart, woocommerce, sticky cart
 Requires at least: 5.0
 Tested up to: 6.8.1
 Requires PHP: 7.4
-Stable tag: 2.0.8
+Stable tag: 2.0.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -139,6 +139,12 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.0.9 =
+* Fix: Refactor cart item savings display to prevent coupon modification
+* Improvement: Enhance coupon discount calculation by respecting WooCommerce tax display settings. 
+* Improvement: Update cart total display logic
+* Improvement: Remove shipping option override when free shipping calculation met
 
 = 2.0.8 =
 * Improvement: Added minimum and maximum quantity validation for add to cart functionality.

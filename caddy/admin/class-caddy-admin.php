@@ -67,6 +67,7 @@ class Caddy_Admin {
 
 			if ( 'caddy' == $page_name || 'caddy-addons' === $page_name ) {
 				wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/caddy-admin.css', array(), $this->version, 'all' );
+				wp_enqueue_style( 'kt-admin-notice', plugin_dir_url( __FILE__ ) . 'css/caddy-admin-notices.css', array(), $this->version, 'all' );
 			}
 		}
 		if ( $pagenow == 'plugins.php' ) {
@@ -190,41 +191,6 @@ class Caddy_Admin {
 			include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-settings-page.php';
 		} elseif ( 'styles' === $caddy_tab ) {
 			include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-styles-page.php';
-		}
-	}
-
-	/**
-	 * Upgrade to premium HTML
-	 */
-	public function cc_upgrade_to_premium_html() {
-		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
-		// Display only if premium plugin is not active
-		if ( 'valid' !== $caddy_license_status ) {
-			?>
-			<div class="cc-box cc-box-cta cc-upgrade">
-				<span class="dashicons dashicons-superhero-alt"></span>
-				<h3><?php echo esc_html( __( 'Upgrade to Pro', 'caddy' ) ); ?></h3>
-				<p><?php echo esc_html( __( 'Unlock powerful new features:', 'caddy' ) ); ?></p>
-				<ul>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Analytics dashboard', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart & conversion tracking', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Multi-tier rewards', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart announcement bar', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Custom recommendations', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Automated workflows', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Total design control', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Bubble positioning options', 'caddy' ) ); ?></li>
-					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart notices, add-ons & more', 'caddy' ) ); ?></li>
-				</ul>
-				<p><strong><?php echo esc_html( __( 'Use promo code "PRO20" to get 20% off for a limited time.', 'caddy' ) ); ?></strong></p>
-				<?php
-				echo sprintf(
-					'<a href="%1$s" target="_blank" class="button-primary">%2$s</a>',
-					esc_url( 'https://usecaddy.com/?utm_source=upgrade-notice&amp;utm_medium=plugin&amp;utm_campaign=plugin-links' ),
-					esc_html( __( 'Get Pro Edition', 'caddy' ) )
-				); ?>
-			</div>
-			<?php
 		}
 	}
 

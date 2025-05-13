@@ -36,7 +36,8 @@
 					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Bubble positioning options.', 'caddy' ) ); ?></li>
 					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart notices, add-ons & more.', 'caddy' ) ); ?></li>
 				</ul>
-				<p><strong><?php echo esc_html( __( 'Use promo code "PREMIUM20" to get 20% off for a limited time.', 'caddy' ) ); ?></strong></p>
+
+				<?php echo caddy_get_limited_time_offer(); ?>
 				<?php
 				echo sprintf(
 					'<a href="%1$s" target="_blank" class="button-primary">%2$s</a>',

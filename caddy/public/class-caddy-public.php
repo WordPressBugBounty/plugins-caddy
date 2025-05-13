@@ -579,8 +579,11 @@ class Caddy_Public {
 			$coupon_discount_amount = 0;
 			$applied_coupons        = WC()->cart->get_applied_coupons();
 			foreach ( $applied_coupons as $code ) {
-				$coupon                 = new WC_Coupon( $code );
-				$coupon_discount_amount = WC()->cart->get_coupon_discount_amount( $coupon->get_code(), WC()->cart->display_cart_ex_tax );
+				$coupon = new WC_Coupon( $code );
+				// Get discount amount respecting tax display setting
+				$tax_display = get_option( 'woocommerce_tax_display_cart' );
+				$inc_tax = ( 'incl' === $tax_display );
+				$coupon_discount_amount = WC()->cart->get_coupon_discount_amount( $coupon->get_code(), !$inc_tax );
 			}
 			$cc_cart_subtotal    = WC()->cart->get_displayed_subtotal();
 			$caddy_cart_subtotal = (float) ( $cc_cart_subtotal - $coupon_discount_amount );
@@ -667,58 +670,6 @@ class Caddy_Public {
 
 		}
 		wp_die();
-	}
-
-	/**
-	 * Hide shipping rates when free shipping amount matched.
-	 * Updated to support WooCommerce 2.6 Shipping Zones.
-	 *
-	 * @param array $rates Array of rates found for the package.
-	 *
-	 * @return array
-	 */
-	public function cc_shipping_when_free_is_available( $rates ) {
-		$shipping_array       = array();
-		$coupon_free_shipping = false;
-
-		$applied_coupons = WC()->cart->get_applied_coupons();
-		if ( ! empty( $applied_coupons ) ) {
-			foreach ( $applied_coupons as $coupon_code ) {
-				$coupon = new WC_Coupon( $coupon_code );
-				if ( $coupon->get_free_shipping() ) {
-					$coupon_free_shipping = true;
-				}
-			}
-		}
-
-		$cart_total              = floatval( preg_replace( '#[^\d.]#', '', WC()->cart->get_cart_contents_total() ) );
-		$subcart_total           = (float) number_format( $cart_total, 2 );
-		$cc_free_shipping_amount = (float) get_option( 'cc_free_shipping_amount' );
-
-		if ( ! empty( $cc_free_shipping_amount ) ) {
-			if ( $cc_free_shipping_amount <= $subcart_total ) {
-				foreach ( $rates as $rate_id => $rate ) {
-					if ( 'free_shipping' === $rate->method_id ) {
-						$shipping_array[ $rate_id ] = $rate;
-						break;
-					}
-				}
-			} else {
-				foreach ( $rates as $rate_id => $rate ) {
-					if ( 'free_shipping' !== $rate->method_id ) {
-						$shipping_array[ $rate_id ] = $rate;
-					}
-				}
-			}
-		}
-
-		if ( ! empty( $shipping_array ) && ! $coupon_free_shipping ) {
-			$return_array = $shipping_array;
-		} else {
-			$return_array = $rates;
-		}
-
-		return $return_array;
 	}
 
 	/**
@@ -1178,38 +1129,77 @@ class Caddy_Public {
 										} else {
 											// Check if the product is on sale and the subtotal doesn't already include a strikethrough price
 											if ($_product->is_on_sale() && strpos($product_subtotal, '<del>') === false) {
-												$regular_price = $_product->get_regular_price() * $cart_item['quantity'];
-												echo '<del>' . wc_price($regular_price) . '</del> ';
+												// Get regular and sale prices respecting WooCommerce tax display setting
+												$tax_display = get_option('woocommerce_tax_display_cart');
+												
+												if ('incl' === $tax_display) {
+													// Get prices including tax
+													$regular_price_with_tax = wc_get_price_including_tax($_product, array(
+														'qty' => $cart_item['quantity'],
+														'price' => $_product->get_regular_price()
+													));
+													$sale_price_with_tax = wc_get_price_including_tax($_product, array(
+														'qty' => $cart_item['quantity'],
+														'price' => $_product->get_sale_price()
+													));
+													
+													// Display original price and sale price on the same line
+													echo '<del>' . wc_price($regular_price_with_tax) . '</del> ' . wc_price($sale_price_with_tax);
+												} else {
+													// Get prices excluding tax
+													$regular_price_without_tax = wc_get_price_excluding_tax($_product, array(
+														'qty' => $cart_item['quantity'],
+														'price' => $_product->get_regular_price()
+													));
+													$sale_price_without_tax = wc_get_price_excluding_tax($_product, array(
+														'qty' => $cart_item['quantity'],
+														'price' => $_product->get_sale_price()
+													));
+													
+													// Display original price and sale price on the same line
+													echo '<del>' . wc_price($regular_price_without_tax) . '</del> ' . wc_price($sale_price_without_tax);
+												}
+											} else {
+												// Output the product subtotal
+												echo $product_subtotal;
 											}
-											
-											// Output the product subtotal
-											echo $product_subtotal;
 										}
 										?>
 									</div>
-									<?php 
-									// Only show coupon savings
-									if (!isset($cart_item['caddy_free_gift'])) {
-										$coupon_savings = 0;
-										if (wc_coupons_enabled()) {
-											$applied_coupons = WC()->cart->get_applied_coupons();
-											if (!empty($applied_coupons)) {
-												foreach ($applied_coupons as $coupon_code) {
-													$coupon = new WC_Coupon($coupon_code);
-													// Get discount amount for this specific cart item
-													$discount_amount = WC()->cart->get_coupon_discount_amount($coupon->get_code(), true) * $cart_item['quantity'];
-													$coupon_savings += $discount_amount;
-												}
-											}
+									<?php
+									// Show savings percentage on a separate line, only for sale products
+									if ($_product->is_on_sale() && !isset($cart_item['caddy_free_gift'])) {
+										// Get regular and sale prices respecting WooCommerce tax display setting
+										$tax_display = get_option('woocommerce_tax_display_cart');
+										
+										if ('incl' === $tax_display) {
+											// Get prices including tax
+											$regular_price_display = wc_get_price_including_tax($_product, array(
+												'qty' => $cart_item['quantity'],
+												'price' => $_product->get_regular_price()
+											));
+											$sale_price_display = wc_get_price_including_tax($_product, array(
+												'qty' => $cart_item['quantity'],
+												'price' => $_product->get_sale_price()
+											));
+										} else {
+											// Get prices excluding tax
+											$regular_price_display = wc_get_price_excluding_tax($_product, array(
+												'qty' => $cart_item['quantity'],
+												'price' => $_product->get_regular_price()
+											));
+											$sale_price_display = wc_get_price_excluding_tax($_product, array(
+												'qty' => $cart_item['quantity'],
+												'price' => $_product->get_sale_price()
+											));
 										}
 										
-										if ($coupon_savings > 0) {
+										$savings = $regular_price_display - $sale_price_display;
+										if ($savings > 0) {
+											$savings_percentage = round(($savings / $regular_price_display) * 100);
 											?>
 											<div class="cc_saved_amount">
-												<?php 
-												/* translators: %s: discount amount (formatted price) */
-												echo sprintf(esc_html__('(Save %s)', 'caddy'), wc_price($coupon_savings)); 
-												?>
+												<?php echo sprintf(esc_html__('(Save %s)', 'caddy'), $savings_percentage . '%'); ?>
 											</div>
 											<?php
 										}

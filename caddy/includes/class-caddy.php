@@ -221,11 +221,26 @@ class Caddy {
 		global $caddy_public_obj;
 		$caddy_public_obj = new Caddy_Public( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $caddy_public_obj, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $caddy_public_obj, 'enqueue_scripts' );
+		// Core WooCommerce integration
+		$this->loader->add_filter('woocommerce_cart_redirect_after_add', $caddy_public_obj, 'prevent_cart_redirect', 10, 1);
+		$this->loader->add_action('woocommerce_add_to_cart', $caddy_public_obj, 'after_add_to_cart', 10, 6);
+		$this->loader->add_filter('woocommerce_add_to_cart_validation', $caddy_public_obj, 'validate_add_to_cart', 10, 1);
 
-		// Add action to load cc widget
-		$this->loader->add_action( 'wp_footer', $caddy_public_obj, 'cc_load_widget' );
+		// Cart fragments
+		$this->loader->add_filter('woocommerce_add_to_cart_fragments', $caddy_public_obj, 'cc_compass_cart_count_fragments');
+		$this->loader->add_filter('woocommerce_add_to_cart_fragments', $caddy_public_obj, 'cc_shortcode_cart_count_fragments');
+		$this->loader->add_filter('woocommerce_add_to_cart_fragments', $caddy_public_obj, 'cc_cart_html_fragments');
+
+		// AJAX handlers
+		$this->loader->add_action('wp_ajax_nopriv_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments');
+		$this->loader->add_action('wp_ajax_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments');
+
+		// Enqueue scripts and styles
+		$this->loader->add_action('wp_enqueue_scripts', $caddy_public_obj, 'enqueue_styles');
+		$this->loader->add_action('wp_enqueue_scripts', $caddy_public_obj, 'enqueue_scripts');
+
+		// Load widget
+		$this->loader->add_action('wp_footer', $caddy_public_obj, 'cc_load_widget');
 
 		// Add action for ajaxify cart count
 		$this->loader->add_filter( 'woocommerce_add_to_cart_fragments', $caddy_public_obj, 'cc_compass_cart_count_fragments' );
@@ -245,15 +260,6 @@ class Caddy {
 		// Add action to display caddy cart bubble icon
 		$this->loader->add_action( 'caddy_cart_bubble_icon', $caddy_public_obj, 'cc_display_cart_bubble_icon' );
 
-		// Add action for adding a product to save for later
-		$this->loader->add_action( 'woocommerce_after_add_to_cart_button', $caddy_public_obj, 'cc_add_product_to_sfl', 20 );
-
-		// Add action to hide "added to your cart" message
-		$this->loader->add_filter( 'wc_add_to_cart_message_html', $caddy_public_obj, 'cc_empty_wc_add_to_cart_message', 10, 2 );
-
-		// Add action to load the custom css into footer
-		$this->loader->add_action( 'wp_footer', $caddy_public_obj, 'cc_load_custom_css', 99 );
-
 		// Add action to display up-sell message in product added screen
 		$this->loader->add_action( 'caddy_free_shipping_title_text', $caddy_public_obj, 'cc_free_shipping_bar_html' );
 
@@ -269,29 +275,8 @@ class Caddy {
 		// Add action to display free shipping Congrats text
 		$this->loader->add_action( 'caddy_fs_spend_text', $caddy_public_obj, 'caddy_display_free_shipping_spend_text', 10, 2 );
 
-		// Add WooCommerce AJAX handlers for fragments
-		$this->loader->add_action( 'wc_ajax_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments' );
-		$this->loader->add_action( 'wc_ajax_nopriv_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments' );
-
-		// Add action for add item to the cart
-		$this->loader->add_action( 'wc_ajax_cc_add_to_cart', $caddy_public_obj, 'caddy_add_to_cart' );
-		$this->loader->add_action( 'wc_ajax_nopriv_cc_add_to_cart', $caddy_public_obj, 'caddy_add_to_cart' );
-
-		// Add action for remove product from the cart
-		$this->loader->add_action( 'wc_ajax_cc_remove_item_from_cart', $caddy_public_obj, 'caddy_remove_item_from_cart' );
-		$this->loader->add_action( 'wc_ajax_nopriv_cc_remove_item_from_cart', $caddy_public_obj, 'caddy_remove_item_from_cart' );
-
-		// Add action for update quantity for cart item
-		$this->loader->add_action( 'wc_ajax_cc_quantity_update', $caddy_public_obj, 'caddy_cart_item_quantity_update' );
-		$this->loader->add_action( 'wc_ajax_nopriv_cc_quantity_update', $caddy_public_obj, 'caddy_cart_item_quantity_update' );
-
 		// Add action to add cart item into wishlist
 		$this->loader->add_action( 'wc_ajax_cc_save_for_later', $caddy_public_obj, 'caddy_save_for_later_item' );
-		$this->loader->add_action( 'wc_ajax_nopriv_cc_save_for_later', $caddy_public_obj, 'caddy_save_for_later_item' );
-
-		// Add action to add item to cart from wishlist
-		$this->loader->add_action( 'wc_ajax_cc_move_to_cart', $caddy_public_obj, 'caddy_move_to_cart_item' );
-		$this->loader->add_action( 'wc_ajax_nopriv_cc_move_to_cart', $caddy_public_obj, 'caddy_move_to_cart_item' );
 
 		// Add action to remove item from wishlist
 		$this->loader->add_action( 'wc_ajax_cc_remove_item_from_sfl', $caddy_public_obj, 'caddy_remove_item_from_sfl' );
@@ -314,6 +299,14 @@ class Caddy {
 		
 		// Add filter to insert saves widget to menu
 		$this->loader->add_filter('wp_nav_menu_items', $caddy_public_obj, 'caddy_add_saves_widget_to_menu', 10, 2);
+
+		// Add action to remove item from cart
+		$this->loader->add_action( 'wc_ajax_cc_remove_item_from_cart', $caddy_public_obj, 'caddy_remove_item_from_cart' );
+		$this->loader->add_action( 'wc_ajax_nopriv_cc_remove_item_from_cart', $caddy_public_obj, 'caddy_remove_item_from_cart' );
+
+		// Add hooks for quantity update
+		$this->loader->add_action( 'wc_ajax_cc_update_item_quantity', $caddy_public_obj, 'cc_update_item_quantity' );
+		$this->loader->add_action( 'wc_ajax_nopriv_cc_update_item_quantity', $caddy_public_obj, 'cc_update_item_quantity' );
 	}
 
 	/**
@@ -354,6 +347,16 @@ class Caddy {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * Always validate add to cart
+	 *
+	 * @since    1.0.0
+	 * @return   bool
+	 */
+	public function validate_add_to_cart() {
+		return true;
 	}
 
 }

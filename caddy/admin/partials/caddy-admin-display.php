@@ -13,10 +13,11 @@
  */
 
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'caddy' ) );
 }
 
-$caddy_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( $_GET['tab'] ) : 'settings';
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine which tab to display
+$caddy_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( sanitize_text_field(wp_unslash($_GET['tab'])) ) : 'settings';
 
 $caddy_tabs_name = array(
 	'settings' => array(
@@ -59,8 +60,7 @@ if (get_transient('caddy_settings_updated')) {
 		foreach ( $caddy_tabs as $key => $value ) {
 			$active_tab_class = ( $key == $caddy_tab ) ? ' nav-tab-active' : '';
 			?>
-			<a class="nav-tab<?php echo $active_tab_class; ?>" href="?page=caddy&amp;tab=<?php echo $key; ?>"><i class="<?php echo $value['tab_icon']; ?>"></i>&nbsp;<?php echo
-				$value['tab_name']; ?></a>
+			<a class="nav-tab<?php echo esc_attr( $active_tab_class ); ?>" href="?page=caddy&amp;tab=<?php echo esc_attr( $key ); ?>"><i class="<?php echo esc_attr( $value['tab_icon'] ); ?>"></i>&nbsp;<?php echo esc_html( $value['tab_name'] ); ?></a>
 		<?php } ?>
 	</h2>
 
@@ -74,7 +74,7 @@ if (get_transient('caddy_settings_updated')) {
 				<h3><?php echo esc_html( __( 'More Premium Plugins', 'caddy' ) ); ?></h3>
 				<ul class="cc-product-links">
 					<li>
-						<img src="<?php echo plugin_dir_url( __DIR__ ) ?>img/klaviyo-logo.jpg" width="40" height="40" />
+						<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'img/klaviyo-logo.jpg' ); ?>" width="40" height="40" />
 						<div>
 							<a href="https://www.madebytribe.com/products/klaviyo-toolkit/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=caddy-links"
 							   target="_blank"><?php echo esc_html( __( 'Klaviyo ToolKit', 'caddy' ) ); ?></a>
@@ -82,7 +82,7 @@ if (get_transient('caddy_settings_updated')) {
 						</div>
 					</li>
 					<li>
-						<img src="<?php echo plugin_dir_url( __DIR__ ) ?>img/rk-logo-avatar.svg" width="40" height="40" />
+						<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'img/rk-logo-avatar.svg' ); ?>" width="40" height="40" />
 						<div>
 							<a href="https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=caddy-links"
 							   target="_blank"><?php echo esc_html( __( 'RetentionKit', 'caddy' ) ); ?></a>

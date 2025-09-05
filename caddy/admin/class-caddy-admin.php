@@ -58,6 +58,7 @@ class Caddy_Admin {
 	 */
 	public function enqueue_styles() {
 		global $pagenow;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine which assets to enqueue
 		if ( isset( $_GET['page'] ) ) {
 			// Get the 'page' parameter from the URL
 			$raw_page_name = filter_input(INPUT_GET, 'page', FILTER_DEFAULT);
@@ -82,6 +83,7 @@ class Caddy_Admin {
 	 */
 	public function enqueue_scripts() {
 		global $pagenow;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine which assets to enqueue
 		if ( isset( $_GET['page'] ) ) {
 			// Get the 'page' parameter from the URL
 			$raw_page_name = filter_input(INPUT_GET, 'page', FILTER_DEFAULT);
@@ -158,7 +160,7 @@ class Caddy_Admin {
 	public function cc_dismiss_welcome_notice() {
 
 		//Check nonce
-		if ( wp_verify_nonce( $_POST['nonce'], 'caddy' ) ) {
+		if ( isset($_POST['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['nonce'])), 'caddy' ) ) {
 			update_option( 'cc_dismiss_welcome_notice', 'yes' );
 		}
 
@@ -172,7 +174,7 @@ class Caddy_Admin {
 
 		$current_user_id = get_current_user_id();
 		//Check nonce
-		if ( wp_verify_nonce( $_POST['nonce'], 'caddy' ) ) {
+		if ( isset($_POST['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['nonce'])), 'caddy' ) ) {
 			update_user_meta( $current_user_id, 'cc_dismiss_user_optin_notice', 'yes' );
 		}
 
@@ -185,7 +187,8 @@ class Caddy_Admin {
 	 * Include tab screen files
 	 */
 	public function cc_include_tab_screen_files() {
-		$caddy_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( $_GET['tab'] ) : 'settings';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine which template to include
+		$caddy_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( sanitize_text_field(wp_unslash($_GET['tab'])) ) : 'settings';
 
 		if ( 'settings' === $caddy_tab ) {
 			include plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-settings-page.php';
@@ -200,10 +203,12 @@ class Caddy_Admin {
 	public function cc_addons_html_display() {
 		$add_on_html_flag = false;
 
-		if ( isset( $_GET['page'] ) && 'caddy-addons' === $_GET['page'] ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
+		if ( isset( $_GET['page'] ) && 'caddy-addons' === sanitize_text_field(wp_unslash($_GET['page'])) ) {
 			$add_on_html_flag = true;
 
-			if ( isset( $_GET['tab'] ) && 'addons' !== $_GET['tab'] ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
+			if ( isset( $_GET['tab'] ) && 'addons' !== sanitize_text_field(wp_unslash($_GET['tab'])) ) {
 				$add_on_html_flag = false;
 			}
 		}
@@ -243,7 +248,7 @@ class Caddy_Admin {
 							<h4 class="addon-title"><?php echo esc_html( $addon['title'] ); ?></h4>
 							<p class="addon-description"><?php echo esc_html( $addon['description'] ); ?></p>
 							<?php if ( 'false' == $addon['activated'] ) { ?>
-								<a class="button addon-button" href="<?php echo $addon['btn_link']; ?>" target="_blank"><?php echo esc_html( $addon['btn_title'] ); ?></a>
+								<a class="button addon-button" href="<?php echo esc_url( $addon['btn_link'] ); ?>" target="_blank"><?php echo esc_html( $addon['btn_title'] ); ?></a>
 							<?php } else { ?>
 								<?php if ( 'activated' === $addon['license'] ) { ?>
 									<span class="active-addon-btn"><?php esc_html_e( 'Activated', 'caddy' ); ?></span>
@@ -365,13 +370,13 @@ class Caddy_Admin {
 						<p><?php
 							printf(
 								'%1$s %2$s %3$s',
-								__( "By submitting this you're allowing Caddy to collect and send some basic site data to troubleshoot problems & make product improvements. Read our ", 'caddy' ),
+								esc_html__( "By submitting this you're allowing Caddy to collect and send some basic site data to troubleshoot problems & make product improvements. Read our ", 'caddy' ),
 								'<a href="https://usecaddy.com/privacy-policy" target="_blank">privacy policy</a>.',
-								__( ' for more info.', 'caddy' )
+								esc_html__( ' for more info.', 'caddy' )
 							);
 							?></p>
 					</div>
-					<input type="hidden" name="current-user-email" value="<?php echo $current_user_email; ?>">
+					<input type="hidden" name="current-user-email" value="<?php echo esc_attr( $current_user_email ); ?>">
 					<input type="hidden" name="current-site-url" value="<?php echo esc_url( get_bloginfo( 'url' ) ); ?>">
 					<input type="hidden" name="caddy-export-class" value="Caddy_Tools_Reset_Stats">
 				</div>
@@ -395,7 +400,7 @@ class Caddy_Admin {
 	 */
 	public function caddy_submit_deactivation_form_data() {
 		//Check nonce
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'cc_admin_nonce' ) ) {
+		if ( !isset($_POST['nonce']) || ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['nonce'])), 'cc_admin_nonce' ) ) {
 			return;
 		}
 
@@ -454,7 +459,7 @@ class Caddy_Admin {
 		?>
 		<div class="options_group">
 			<p class="form-field">
-				<label for="caddy_recommendations"><?php _e('Caddy Recommendations', 'caddy'); ?></label>
+				<label for="caddy_recommendations"><?php esc_html_e('Caddy Recommendations', 'caddy'); ?></label>
 				<select class="wc-product-search" multiple="multiple" style="width: 50%;" id="caddy_recommendations" name="caddy_recommendations[]" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'caddy'); ?>" data-action="woocommerce_json_search_products_and_variations" data-exclude="<?php echo intval($post->ID); ?>">
 					<?php
 					$product_ids = get_post_meta($post->ID, '_caddy_recommendations', true);
@@ -469,7 +474,10 @@ class Caddy_Admin {
 					}
 					?>
 				</select>
-				<?php echo wc_help_tip(__('These products will be shown as recommendations in the Caddy cart for this product.', 'caddy')); ?>
+				<?php 
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_help_tip already escapes output
+			echo wc_help_tip(__('These products will be shown as recommendations in the Caddy cart for this product.', 'caddy')); 
+			?>
 			</p>
 		</div>
 		<?php
@@ -479,7 +487,17 @@ class Caddy_Admin {
 	 * Save Caddy Recommendations data
 	 */
 	public function save_caddy_recommendations_field($post_id) {
-		$recommendations = isset($_POST['caddy_recommendations']) ? array_map('intval', (array) $_POST['caddy_recommendations']) : array();
+		// Check if nonce is valid
+		if ( ! isset($_POST['woocommerce_meta_nonce']) || ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['woocommerce_meta_nonce'])), 'woocommerce_save_data' ) ) {
+			return;
+		}
+		
+		// Check user permissions
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+		
+		$recommendations = isset($_POST['caddy_recommendations']) ? array_map('intval', (array) wp_unslash($_POST['caddy_recommendations'])) : array();
 		update_post_meta($post_id, '_caddy_recommendations', $recommendations);
 	}
 
@@ -495,51 +513,51 @@ class Caddy_Admin {
 		}
 		
 		// Get the current tab
-		$caddy_tab = (!empty($_GET['tab'])) ? sanitize_text_field($_GET['tab']) : 'settings';
+		$caddy_tab = (!empty($_GET['tab'])) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'settings';
 		
 		// Determine which form was submitted and set the active tab accordingly
 		$active_tab = 'cc-general-settings'; // Default
 		
-		if (isset($_POST['caddy_general_settings_nonce']) && wp_verify_nonce($_POST['caddy_general_settings_nonce'], 'caddy-general-settings-save')) {
+		if (isset($_POST['caddy_general_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_general_settings_nonce'])), 'caddy-general-settings-save')) {
 			// General settings form processing
 			$this->process_general_settings();
 			$active_tab = 'cc-general-settings';
-		} elseif (isset($_POST['caddy_shipping_meter_settings_nonce']) && wp_verify_nonce($_POST['caddy_shipping_meter_settings_nonce'], 'caddy-shipping-meter-settings-save')) {
+		} elseif (isset($_POST['caddy_shipping_meter_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_shipping_meter_settings_nonce'])), 'caddy-shipping-meter-settings-save')) {
 			// Shipping meter settings form processing
 			$this->process_shipping_meter_settings();
 			$active_tab = 'cc-shipping-meter-settings';
-		} elseif (isset($_POST['caddy_recommendations_settings_nonce']) && wp_verify_nonce($_POST['caddy_recommendations_settings_nonce'], 'caddy-recommendations-settings-save')) {
+		} elseif (isset($_POST['caddy_recommendations_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_recommendations_settings_nonce'])), 'caddy-recommendations-settings-save')) {
 			// Recommendations settings form processing
 			$this->process_recommendations_settings();
 			$active_tab = 'cc-recommendations-settings';
-		} elseif (isset($_POST['caddy_display_settings_nonce']) && wp_verify_nonce($_POST['caddy_display_settings_nonce'], 'caddy-display-settings-save')) {
+		} elseif (isset($_POST['caddy_display_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_display_settings_nonce'])), 'caddy-display-settings-save')) {
 			// Display settings form processing
 			$this->process_display_settings();
 			$active_tab = 'cc-display-settings';
-		} elseif (isset($_POST['caddy_offers_settings_nonce']) && wp_verify_nonce($_POST['caddy_offers_settings_nonce'], 'caddy-offers-settings-save')) {
+		} elseif (isset($_POST['caddy_offers_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_offers_settings_nonce'])), 'caddy-offers-settings-save')) {
 			// Offers settings form processing
 			$this->process_offers_settings();
 			$active_tab = 'cc-offers-settings';
-		} elseif (isset($_POST['caddy_sfl_settings_nonce']) && wp_verify_nonce($_POST['caddy_sfl_settings_nonce'], 'caddy-sfl-settings-save')) {
+		} elseif (isset($_POST['caddy_sfl_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_sfl_settings_nonce'])), 'caddy-sfl-settings-save')) {
 			// Save for Later settings form processing
 			$this->process_sfl_settings();
 			$active_tab = 'cc-sfl-settings';
-		} elseif (isset($_POST['caddy_welcome_message_settings_nonce']) && wp_verify_nonce($_POST['caddy_welcome_message_settings_nonce'], 'caddy-welcome-message-settings-save')) {
+		} elseif (isset($_POST['caddy_welcome_message_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_welcome_message_settings_nonce'])), 'caddy-welcome-message-settings-save')) {
 			// Welcome message settings form processing
 			$this->process_welcome_message_settings();
 			$active_tab = 'cc-welcome-message-settings';
-		} elseif (isset($_POST['caddy_announcement_bar_settings_nonce']) && wp_verify_nonce($_POST['caddy_announcement_bar_settings_nonce'], 'caddy-announcement-bar-settings-save')) {
+		} elseif (isset($_POST['caddy_announcement_bar_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_announcement_bar_settings_nonce'])), 'caddy-announcement-bar-settings-save')) {
 			// Announcement bar settings form processing
 			$this->process_announcement_bar_settings();
 			$active_tab = 'cc-announcement-bar-settings';
-		} elseif (isset($_POST['caddy_rewards_meter_settings_nonce']) && wp_verify_nonce($_POST['caddy_rewards_meter_settings_nonce'], 'caddy-rewards-meter-settings-save')) {
+		} elseif (isset($_POST['caddy_rewards_meter_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_rewards_meter_settings_nonce'])), 'caddy-rewards-meter-settings-save')) {
 			// Rewards meter settings form processing
 			$this->process_rewards_meter_settings();
 			$active_tab = 'cc-rewards-meter-settings';
-		} elseif (isset($_POST['caddy_styles_settings_nonce']) && wp_verify_nonce($_POST['caddy_styles_settings_nonce'], 'caddy-styles-settings-save')) {
+		} elseif (isset($_POST['caddy_styles_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_styles_settings_nonce'])), 'caddy-styles-settings-save')) {
 			// Styles settings form processing
 			$this->process_styles_settings();
-		} elseif (isset($_POST['caddy_settings_nonce']) && wp_verify_nonce($_POST['caddy_settings_nonce'], 'caddy-settings-save')) {
+		} elseif (isset($_POST['caddy_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_settings_nonce'])), 'caddy-settings-save')) {
 			// Legacy settings form processing
 			$this->process_legacy_settings($caddy_tab);
 		}
@@ -549,11 +567,11 @@ class Caddy_Admin {
 		
 		// Override active tab if explicitly provided in the form
 		if (isset($_POST['active_tab']) && !empty($_POST['active_tab'])) {
-			$active_tab = sanitize_text_field($_POST['active_tab']);
+			$active_tab = sanitize_text_field(wp_unslash($_POST['active_tab']));
 		}
 		
 		// Get the current tab parameter from the URL
-		$current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'settings';
+		$current_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'settings';
 		
 		// Redirect back to the settings page with the active tab as a hash
 		wp_safe_redirect(admin_url('admin.php?page=caddy&tab=' . $current_tab));
@@ -565,16 +583,20 @@ class Caddy_Admin {
 	 */
 	private function process_general_settings() {
 		
-		$cc_disable_branding = isset($_POST['cc_disable_branding']) ? sanitize_text_field($_POST['cc_disable_branding']) : 'disabled';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_disable_branding = isset($_POST['cc_disable_branding']) ? sanitize_text_field(wp_unslash($_POST['cc_disable_branding'])) : 'disabled';
 		update_option('cc_disable_branding', $cc_disable_branding);
 
-		$cc_affiliate_id = !empty($_POST['cc_affiliate_id']) ? sanitize_text_field($_POST['cc_affiliate_id']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_affiliate_id = !empty($_POST['cc_affiliate_id']) ? sanitize_text_field(wp_unslash($_POST['cc_affiliate_id'])) : '';
 		update_option('cc_affiliate_id', $cc_affiliate_id);
 		
-		$cc_menu_cart_widget = !empty($_POST['cc_menu_cart_widget']) ? sanitize_text_field($_POST['cc_menu_cart_widget']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_menu_cart_widget = !empty($_POST['cc_menu_cart_widget']) ? sanitize_text_field(wp_unslash($_POST['cc_menu_cart_widget'])) : '';
 		update_option('cc_menu_cart_widget', $cc_menu_cart_widget);
 		
-		$cc_menu_saves_widget = !empty($_POST['cc_menu_saves_widget']) ? sanitize_text_field($_POST['cc_menu_saves_widget']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_menu_saves_widget = !empty($_POST['cc_menu_saves_widget']) ? sanitize_text_field(wp_unslash($_POST['cc_menu_saves_widget'])) : '';
 		update_option('cc_menu_saves_widget', $cc_menu_saves_widget);
 		
 		// Process any additional general settings fields
@@ -586,13 +608,16 @@ class Caddy_Admin {
 	 */
 	private function process_shipping_meter_settings() {
 		// Process shipping meter settings form fields
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
 		$cc_free_shipping_amount = !empty($_POST['cc_free_shipping_amount']) ? intval($_POST['cc_free_shipping_amount']) : '';
 		update_option('cc_free_shipping_amount', $cc_free_shipping_amount);
 
-		$cc_free_shipping_tax = !empty($_POST['cc_free_shipping_tax']) ? sanitize_text_field($_POST['cc_free_shipping_tax']) : 'disabled';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_free_shipping_tax = !empty($_POST['cc_free_shipping_tax']) ? sanitize_text_field(wp_unslash($_POST['cc_free_shipping_tax'])) : 'disabled';
 		update_option('cc_free_shipping_tax', $cc_free_shipping_tax);
 		
-		$cc_shipping_country = !empty($_POST['cc_shipping_country']) ? sanitize_text_field($_POST['cc_shipping_country']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_shipping_country = !empty($_POST['cc_shipping_country']) ? sanitize_text_field(wp_unslash($_POST['cc_shipping_country'])) : '';
 		update_option('cc_shipping_country', $cc_shipping_country);
 		
 		// Process any additional shipping meter settings fields
@@ -604,10 +629,12 @@ class Caddy_Admin {
 	 */
 	private function process_recommendations_settings() {
 		// Process recommendations settings form fields
-		$cc_product_recommendation = isset($_POST['cc_product_recommendation']) ? sanitize_text_field($_POST['cc_product_recommendation']) : 'disabled';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_product_recommendation = isset($_POST['cc_product_recommendation']) ? sanitize_text_field(wp_unslash($_POST['cc_product_recommendation'])) : 'disabled';
 		update_option('cc_product_recommendation', $cc_product_recommendation);
 		
-		$cc_product_recommendation_type = !empty($_POST['cc_product_recommendation_type']) ? sanitize_text_field($_POST['cc_product_recommendation_type']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_product_recommendation_type = !empty($_POST['cc_product_recommendation_type']) ? sanitize_text_field(wp_unslash($_POST['cc_product_recommendation_type'])) : '';
 		update_option('cc_product_recommendation_type', $cc_product_recommendation_type);
 		
 		// Process any additional recommendations settings fields
@@ -673,7 +700,8 @@ class Caddy_Admin {
 	 */
 	private function process_styles_settings() {
 		// Process styles settings form fields
-		$cc_custom_css = !empty($_POST['cc_custom_css']) ? sanitize_textarea_field($_POST['cc_custom_css']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_custom_css = !empty($_POST['cc_custom_css']) ? sanitize_textarea_field(wp_unslash($_POST['cc_custom_css'])) : '';
 		update_option('cc_custom_css', $cc_custom_css);
 		
 		// Process any additional styles settings fields

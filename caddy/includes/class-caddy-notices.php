@@ -103,14 +103,16 @@ class Caddy_Admin_Notices {
 		$rk_promo_notice_called = true;
 		
 		// Get the current URL
-		$current_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+		$http_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
+		$request_uri = isset($_SERVER['REQUEST_URI']) ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+		$current_url = (is_ssl() ? 'https://' : 'http://') . $http_host . $request_uri;
 		
 		// Check if RK is not active and if we're on the target WooCommerce Subscriptions pages
 		if (!class_exists('rk') && (
 			$this->is_subscriptions_listing_page($current_url) ||
 			$this->is_edit_subscription_page($current_url)
 		)) {
-			wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css');
+			wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
 		
 			if (!PAnD::is_admin_notice_active('notice-rk-promo-forever')) {
 				return;
@@ -143,21 +145,21 @@ class Caddy_Admin_Notices {
 			</script>
 	
 			<div data-dismissible="notice-rk-promo-forever" class="notice is-dismissible caddy-notice rk-promo">
-				<div class="kt-left"><img src="<?php echo plugin_dir_url( __DIR__ ) . 'admin/img/rk-cancel-promo.svg'; ?>" width="145" height="145" alt="kt Promo"></div>
+				<div class="kt-left"><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-cancel-promo.svg' ); ?>" width="145" height="145" alt="kt Promo"></div>
 				<div class="kt-right">
 					<div class="welcome-heading">
-						<span class="dynamic-message"><?php echo esc_html( __( 'You have ' ) ); ?> <span class="cancel-count"></span> <?php echo esc_html( __( 'cancellations and ' ) ); ?> <span class="pending-cancel-count"></span> <?php echo esc_html( __( 'pending-cancels!' ) ); ?></span>
+						<span class="dynamic-message"><?php echo esc_html( __( 'You have ', 'caddy' ) ); ?> <span class="cancel-count"></span> <?php echo esc_html( __( 'cancellations and ', 'caddy' ) ); ?> <span class="pending-cancel-count"></span> <?php echo esc_html( __( 'pending-cancels!', 'caddy' ) ); ?></span>
 					</div>
 	
 					<p class="rk-message">
-						<?php echo esc_html( __( 'That\'s potential revenue slipping away. Let ' ) ); ?>
-						<a href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'RetentionKit' ) ); ?></a>
-						<?php echo esc_html( __( ' step in! We\'ll not only reveal why they\'re stepping back but also weave in offers that can transform those exits into profit boosts. In the subscription game, every comeback is a win for your bottom line. 💰' ) ); ?>
+						<?php echo esc_html( __( 'That\'s potential revenue slipping away. Let ', 'caddy' ) ); ?>
+						<a href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'RetentionKit', 'caddy' ) ); ?></a>
+						<?php echo esc_html( __( ' step in! We\'ll not only reveal why they\'re stepping back but also weave in offers that can transform those exits into profit boosts. In the subscription game, every comeback is a win for your bottom line. 💰', 'caddy' ) ); ?>
 					</p>
 					<p>
 						<?php 
 						echo wp_kses(
-							__( 'Use code <strong>RKSAVE15</strong> to take <strong>15% off</strong> RetentionKit today and start saving your subscription revenue.' ),
+							__( 'Use code <strong>RKSAVE15</strong> to take <strong>15% off</strong> RetentionKit today and start saving your subscription revenue.', 'caddy' ),
 							array(
 								'strong' => array()
 							)
@@ -165,7 +167,7 @@ class Caddy_Admin_Notices {
 						?>
 					</p>
 					<p class="caddy-notice-ctas">
-						<a class="button" href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'Enable Cancellation Protection' ) ); ?><img src="<?php echo plugin_dir_url( __DIR__ ) . 'admin/img/rk-arrow-right.svg'; ?>" width="20" height="20"></a>
+						<a class="button" href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'Enable Cancellation Protection', 'caddy' ) ); ?><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-arrow-right.svg' ); ?>" width="20" height="20"></a>
 					</p>
 				</div>
 			</div>
@@ -184,9 +186,11 @@ class Caddy_Admin_Notices {
 	}
 	
 	private function is_subscription_cancel_or_pending_cancel() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter for display logic, not processing form data
 		if (!isset($_GET['id'])) return false;
 	
-		$post_id = intval($_GET['id']);
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter for display logic, not processing form data
+		$post_id = intval(sanitize_text_field(wp_unslash($_GET['id'])));
 		$subscription = wcs_get_subscription($post_id);
 	
 		if (!$subscription) return false;
@@ -211,12 +215,13 @@ class Caddy_Admin_Notices {
 		}
 		
 		// Skip on specific admin pages
-		$page_name = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
+		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
 		if ('caddy' == $page_name || 'caddy-addons' === $page_name) {
 			return;
 		}
 
-		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css');
+		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
 
 		// Get user info
 		$current_user = wp_get_current_user();
@@ -245,6 +250,7 @@ class Caddy_Admin_Notices {
 					<?php 
 					$display_name = !empty($first_name) ? $first_name : $username;
 					printf(
+						/* translators: %s: User's first name or username */
 						esc_html__('A quick favor, %s?', 'caddy'),
 						esc_html($display_name)
 					);
@@ -295,7 +301,7 @@ class Caddy_Admin_Notices {
 		$storage_key = 'caddy_global_promo_end_time';
 		
 		// Ensure the CSS is loaded
-		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css');
+		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
 		
 		ob_start();
 		?>
@@ -313,7 +319,7 @@ class Caddy_Admin_Notices {
 						</div>
 					</div>
 					<?php echo esc_html__( 'to take ', 'caddy' ); ?>
-					<strong><?php echo esc_html__( $discount_text, 'caddy' ); ?></strong>
+					<strong><?php echo esc_html( $discount_text ); ?></strong>
 				</div>
 			</div>
 		</div>
@@ -410,7 +416,14 @@ class Caddy_Admin_Notices {
 			return;
 		}
 
-		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css');
+		// Only show on Caddy settings and add-ons pages
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
+		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+		if ('caddy' !== $page_name && 'caddy-addons' !== $page_name) {
+			return;
+		}
+
+		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
 
 		// Get user info
 		$current_user = wp_get_current_user();
@@ -435,13 +448,14 @@ class Caddy_Admin_Notices {
 		
 		<div data-dismissible="notice-caddy-upgrade-forever" class="notice is-dismissible caddy-notice upgrade-notice">
 			<div class="kt-left">
-				<img src="<?php echo plugin_dir_url(__DIR__) . 'admin/img/caddy-mascot.svg'; ?>" width="145" height="145" alt="Caddy Mascot">
+				<img src="<?php echo esc_url( plugin_dir_url(__DIR__) . 'admin/img/caddy-mascot.svg' ); ?>" width="145" height="145" alt="Caddy Mascot">
 			</div>
 			<div class="kt-right">
 				<div class="welcome-heading">
 					<?php 
 					$display_name = !empty($first_name) ? $first_name : $username;
 					printf(
+						/* translators: %s: User's first name or username */
 						esc_html__('You\'re one step away from unlocking higher cart conversions, %s!', 'caddy'),
 						esc_html($display_name)
 					);
@@ -457,7 +471,10 @@ class Caddy_Admin_Notices {
 					<li>💎 <?php echo esc_html__('Full design control & much more', 'caddy'); ?></li>
 				</ul>
 				
-				<?php echo $this->get_limited_time_offer(); ?>
+				<?php 
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Method returns already escaped HTML
+			echo $this->get_limited_time_offer(); 
+			?>
 
 				<p class="caddy-notice-ctas">
 					<a class="button caddy-upgrade-button" href="<?php echo esc_url('https://usecaddy.com/pricing/?utm_source=caddy-plugin&utm_medium=plugin&utm_campaign=upgrade-notice'); ?>" target="_blank">
@@ -496,12 +513,13 @@ class Caddy_Admin_Notices {
 		
 		// Only show on specific admin pages
 		$screen = get_current_screen();
-		$page_name = isset($_GET['page']) ? sanitize_text_field($_GET['page']) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
+		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
 		if ( 'caddy' != $page_name && 'caddy-addons' !== $page_name ) {
 			return;
 		}
 
-		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css');
+		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
 
 		// Get user info
 		$current_user = wp_get_current_user();
@@ -511,14 +529,14 @@ class Caddy_Admin_Notices {
 		?>
 		<div data-dismissible="notice-caddy-optin-forever" class="notice is-dismissible caddy-notice caddy-optin-notice">
 			<div class="kt-left">
-				<img src="<?php echo plugin_dir_url(__DIR__) . 'admin/img/airplane.svg'; ?>" width="145" height="145" alt="Join our VIP email list">
+				<img src="<?php echo esc_url( plugin_dir_url(__DIR__) . 'admin/img/airplane.svg' ); ?>" width="145" height="145" alt="Join our VIP email list">
 			</div>
 			<div class="kt-right">
 				<div class="welcome-heading">
 					<?php echo esc_html( __( 'Join the Caddy VIP list and get a special offer', 'caddy' ) ); ?>
 				</div>
 				<p>
-					<?php echo esc_html( __( 'Join our list for exclusive offers, proven ways to increase cart conversions, and practical tactics to grow your store\'s sales. No fluff. Just actionable insights — and you can unsubscribe anytime.' ) ); ?>
+					<?php echo esc_html( __( 'Join our list for exclusive offers, proven ways to increase cart conversions, and practical tactics to grow your store\'s sales. No fluff. Just actionable insights — and you can unsubscribe anytime.', 'caddy' ) ); ?>
 				</p>
 				<form id="caddy-email-signup" class="cc-klaviyo-default-styling" action="//manage.kmail-lists.com/subscriptions/subscribe"
 				      data-ajax-submit="//manage.kmail-lists.com/ajax/subscriptions/subscribe" method="GET" target="_blank" validate="validate">
@@ -553,21 +571,28 @@ class Caddy_Admin_Notices {
 						<button type="submit" class="cc-klaviyo-submit-button button button-primary"><?php echo esc_html( __( 'Claim my special offer', 'caddy' ) ); ?></button>
 					</div>
 				</form>
-				<script type="text/javascript" src="//www.klaviyo.com/media/js/public/klaviyo_subscribe.js"></script>
-				<script type="text/javascript">
+				<?php
+				// Enqueue Klaviyo script properly
+				wp_enqueue_script('klaviyo-subscribe', '//www.klaviyo.com/media/js/public/klaviyo_subscribe.js', array(), CADDY_VERSION, true);
+				
+				// Add inline script for Klaviyo initialization
+				$klaviyo_init_script = "
 					KlaviyoSubscribe.attachToForms( '#caddy-email-signup', {
 						hide_form_on_success: true,
-						success_message: "Thank you for signing up! Your special offer is on its way!",
+						success_message: 'Thank you for signing up! Your special offer is on its way!',
 						extra_properties: {
-							$source: 'CaddyPluginSignup',
-							Website: '<?php echo get_site_url();?>',
+							\$source: 'CaddyPluginSignup',
+							Website: '" . esc_url( get_site_url() ) . "',
 						}
 					} );
-				</script>
+				";
+				wp_add_inline_script('klaviyo-subscribe', $klaviyo_init_script);
+				?>
 			</div>
 		</div>
 		<?php
 	}
+
 }
 
 /**

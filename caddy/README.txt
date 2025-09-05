@@ -4,17 +4,17 @@ Author URI: https://www.usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
 Tags: caddy, side cart, cart, woocommerce, sticky cart
 Requires at least: 5.0
-Tested up to: 6.8.1
+Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.0.9
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A high performance, conversion-boosting side cart for your WooCommerce store that improves your store’s shopping experience & helps grow your sales.
+A high performance, conversion-boosting side cart for your WooCommerce store that improves your store's shopping experience & helps grow your sales.
 
 == Description ==
 
-**[Caddy](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** is a **high performance, conversion-boosting side cart for your WooCommerce store** that improves your store’s shopping experience & helps grow your sales. 
+**[Caddy](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** is a **high performance, conversion-boosting side cart for your WooCommerce store** that improves your store's shopping experience & helps grow your sales. 
 
 **Increase average order sizes** with Caddy's built-in product recommendations, **reduce cart abandonment** with a free shipping meter, and **encourage repeat shoppers** with a saved product list.
 
@@ -117,19 +117,19 @@ Yes.
 = How do I translate Caddy? =
 
 1. Install and activate the free Loco Translate plugin.
-2. Once installed, navigate to the Loco Translate menu option and select “plugins” from the sub menu.
+2. Once installed, navigate to the Loco Translate menu option and select "plugins" from the sub menu.
 3. Select the "Caddy" plugin
-4. Click the “New language” link
-5. Select the “WordPress language” option and select a language.
-6. Choose a location for your language file (Custom is recommended), then click the “Start translating” button.
+4. Click the "New language" link
+5. Select the "WordPress language" option and select a language.
+6. Choose a location for your language file (Custom is recommended), then click the "Start translating" button.
 7. Select each of the source text lines (1), enter the translations (2) and finally save your changes (3).
-8. Now make sure your default WordPress settings are set for the language you’ve configured and you’re done.
+8. Now make sure your default WordPress settings are set for the language you've configured and you're done.
 
 You can find full instructions [here](https://usecaddy.com/docs/developers/how-to-translate-caddy-into-different-languages).
 
 = Will Caddy slow down my site? =
 
-No. We’ve built Caddy with performance in mind and have fine tuned it for speed.
+No. We've built Caddy with performance in mind and have fine tuned it for speed.
 
 == Screenshots ==
 
@@ -139,6 +139,18 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.1.0 =
+* Improvement: Enhanced error handling and user feedback for cart operations with proper notice display
+* Improvement: Added validation for cart items and products with graceful degradation
+* Improvement: Optimized cart update process to prevent duplicate function execution
+* Improvement: Product removal notifications now display properly in the dedicated notice area with proper timing
+* Improvement: Security improvements
+* Fix: Updated deprecated WooCommerce function wc_add_to_cart_message to wc_add_to_cart_message_html for better compatibility with newer WooCommerce versions
+* Fix: Added comprehensive validation to prevent errors when updating cart quantities for invalid or deleted products
+* Fix: Implemented proper handling of trashed/unavailable products with automatic removal and user notification
+* Fix: Resolved "Cart item not found" error when using minus button to remove items from cart
+* Fix: Product recommendation image dimensions
 
 = 2.0.9 =
 * Fix: Refactor cart item savings display to prevent coupon modification
@@ -353,7 +365,7 @@ No. We’ve built Caddy with performance in mind and have fine tuned it for spee
 * Caddy Announcement add-on section added to the add-ons page
 * Prevent out of stock products from being added to cart
 * Free shipping meter condition updated when a coupon code is removed
-* Added support for the “WooCommerce Blocks” plugin
+* Added support for the "WooCommerce Blocks" plugin
 
 = 1.5 =
 * Bug fixes

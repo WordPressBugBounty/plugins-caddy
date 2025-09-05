@@ -27,7 +27,7 @@ $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 	<?php wp_nonce_field('caddy-general-settings-save', 'caddy_general_settings_nonce'); ?>
 	<input type="hidden" name="cc_submit_hidden" value="Y">
 	<div class="cc-settings-container">
-		<h2><span class="section-icons"><img src="<?php echo plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-general.svg'; ?>" /></span>&nbsp;<?php echo esc_html( __( 'General', 'caddy' ) ); ?></h2>
+		<h2><span class="section-icons"><img src="<?php echo esc_url( plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-general.svg' ); ?>" /></span>&nbsp;<?php echo esc_html( __( 'General', 'caddy' ) ); ?></h2>
 		<table class="form-table">
 			<tbody>
 			<?php do_action( 'caddy_general_settings_start' ); ?>
@@ -37,7 +37,7 @@ $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 				</th>
 				<td>
 					<div class="cc-toggle cc-toggle--size-small">
-						<input type="checkbox" name="cc_disable_branding" id="cc_disable_branding" value="enabled" <?php echo $cc_disable_branding; ?>>
+						<input type="checkbox" name="cc_disable_branding" id="cc_disable_branding" value="enabled" <?php echo esc_attr( $cc_disable_branding ); ?>>
 						<label for="cc_disable_branding">
 							<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
 							<div class="cc-toggle__label-text"><?php echo esc_html( __( 'We appreciate the ', 'caddy' ) ); ?>
@@ -53,7 +53,7 @@ $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 					<label for="cc_affiliate_id"><?php echo esc_html( __( 'Caddy Affiliate ID', 'caddy' ) ); ?></label>
 				</th>
 				<td>
-					<input type="text" name="cc_affiliate_id" id="cc_affiliate_id" value="<?php echo $cc_affiliate_id; ?>">
+					<input type="text" name="cc_affiliate_id" id="cc_affiliate_id" value="<?php echo esc_attr( $cc_affiliate_id ); ?>">
 					<p class="description"><?php echo esc_html( __( 'Enter money from our Caddy branding link!', 'caddy' ) ); ?> <a href="<?php echo esc_url( 'https://usecaddy.com/become-an-affiliate' ); ?>" target="_blank"><?php echo esc_html__( 'Click here', 'caddy' ); ?></a> <?php echo esc_html( __( 'to sign up', 'caddy' ) ); ?></p>
 				</td>
 			</tr>
@@ -71,7 +71,7 @@ $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 					</th>
 					<td>
 						<?php
-							$menus = get_terms('nav_menu', array('hide_empty' => true));
+							$menus = get_terms(array('taxonomy' => 'nav_menu', 'hide_empty' => true));
 							
 							echo '<select name="cc_menu_cart_widget">';
 							echo '<option value="">Select a Menu</option>';
@@ -134,7 +134,7 @@ $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 		<?php do_action( 'caddy_general_settings_end' ); ?>
 	</div>
 	<p class="submit cc-primary-save">
-		<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php echo esc_attr__( 'Save Changes' ); ?>" />
+		<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php echo esc_attr__( 'Save Changes', 'caddy' ); ?>" />
 	</p>
 </form>
 	

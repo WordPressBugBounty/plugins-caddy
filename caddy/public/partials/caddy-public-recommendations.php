@@ -98,11 +98,15 @@ if (empty($final_recommended_products)) {
 					?>
 					<div class="slide">
 						<div class="up-sells-product">
-							<div class="cc-up-sells-image"><a href="<?php echo esc_url( $product_link ); ?>"><?php echo $product_image; ?></a></div>
+							<div class="cc-up-sells-image"><a href="<?php echo esc_url( $product_link ); ?>"><?php 
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce function returns escaped HTML
+							echo $product_image; ?></a></div>
 							<div class="cc-up-sells-details">
 								<a href="<?php echo esc_url( $product_link ); ?>" class="title"><?php echo esc_html( $product_name ); ?></a>
 								<div class="cc_item_total_price">
-									<span class="price"><?php echo $product_price; ?></span>
+									<span class="price"><?php 
+									// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce function returns escaped HTML
+									echo $product_price; ?></span>
 								</div>
 								<?php
 								// Set up the product for the loop
@@ -120,11 +124,13 @@ if (empty($final_recommended_products)) {
 					<?php } ?>
 				</div>
 				<div class="caddy-prev">
+					<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML ?>
 					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" version="1.1" id="Tailless-Line-Arrow-Left-1--Streamline-Core">
 						<path d="M13.75 0.68682C13.706 0.70136 13.638499999999999 0.72918 13.6 0.74862C13.49172 0.80328 5.237419999999999 9.06048 5.1315800000000005 9.22C4.8194 9.69054 4.8194 10.30936 5.1315599999999995 10.78C5.19276 10.872280000000002 6.42668 12.1177 9.3839 15.072000000000001C14.07654 19.76 13.61372 19.32936 13.96 19.32978C14.12646 19.329980000000003 14.16488 19.32306 14.27 19.274C14.41248 19.20752 14.56516 19.06538 14.6301 18.93874C14.690840000000001 18.82024 14.726379999999999 18.62038 14.70954 18.491880000000002C14.702200000000001 18.435840000000002 14.673060000000001 18.336 14.6448 18.27C14.5967 18.15768 14.33296 17.88932 10.52196 14.075000000000001L6.45052 10 10.52196 5.925C14.33296 2.1106800000000003 14.5967 1.84232 14.6448 1.73C14.71158 1.5741 14.72838 1.43654 14.69988 1.27938C14.669760000000002 1.11322 14.605440000000002 0.99154 14.48664 0.876C14.347480000000001 0.74062 14.18934 0.67386 13.99 0.66636C13.894459999999999 0.66278 13.79776 0.6709999999999999 13.75 0.68682" stroke="none" fill="currentColor" fill-rule="evenodd"></path>
 					</svg>
 				</div>
             	<div class="caddy-next">
+            		<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML ?>
                 	<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" version="1.1" id="Tailless-Line-Arrow-Right-1--Streamline-Core">
                     	<path d="M5.83 0.68688C5.61066 0.7596200000000001 5.43864 0.91026 5.3468 1.11C5.29948 1.21294 5.29164 1.2556 5.291799999999999 1.41C5.29196 1.5643 5.30016 1.60856 5.34928 1.72C5.404160000000001 1.8445 5.57904 2.0225999999999997 9.47804 5.925L13.54948 10 9.47804 14.075000000000001C5.57904 17.9774 5.404160000000001 18.1555 5.34928 18.28C5.30008 18.39162 5.29198 18.435460000000003 5.29198 18.59C5.29198 18.744 5.299980000000001 18.78764 5.34742 18.8921C5.41748 19.04638 5.5714 19.20006 5.73 19.27404C5.8351 19.32306 5.87358 19.329980000000003 6.04 19.32978C6.38628 19.32936 5.92346 19.76 10.6161 15.072000000000001C13.57332 12.1177 14.80724 10.872280000000002 14.868440000000001 10.78C15.025640000000001 10.54298 15.1 10.292539999999999 15.1 10C15.1 9.70746 15.025640000000001 9.45702 14.868440000000001 9.22C14.80724 9.12772 13.57332 7.882300000000001 10.6161 4.928C6.84122 1.15686 6.43968 0.76166 6.34 0.7196800000000001C6.205940000000001 0.66322 5.95082 0.6468 5.83 0.68688" stroke="none" fill="currentColor" fill-rule="evenodd"></path>
 					</svg>

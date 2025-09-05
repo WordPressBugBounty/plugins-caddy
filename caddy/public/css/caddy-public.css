@@ -51,6 +51,9 @@
   --cc-cart-count-bg-color: #12b97c;
   --cc-cart-count-text-color: #fff;
   --cc-button-border-radius: 8px;
+  --cc-announcement-bar-bg-color: #272727;
+	--cc-announcement-bar-text-color: #fff;
+	--cc-announcement-bar-link-color: #fff
 }
 
 .cc-window,
@@ -958,7 +961,6 @@ body.cc-window-open {
   float: left;
   clear: both;
   margin-right: 0.25em;
-  display: inline-block;
   list-style: none outside;
 }
 
@@ -1008,7 +1010,7 @@ body.cc-window-open {
 
 .cc-pl-upsells .cc-pl-upsells-slider .slide img {
   width: var(--cc-thumb-width-d);
-  height: var(--cc-thumb-width-d);
+  height: auto;
   border-radius: var(--cc-border-radius);
 }
 
@@ -1220,6 +1222,7 @@ a.button.cc-button-sm.cc_cart_from_sfl:hover {
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1495,7 +1498,6 @@ i.ccicon-check {
   line-height: 0;
   color: #000;
   transition: 0.3s;
-  right: 0;
 }
 
 .woocommerce ul.products li.product .cc-heart-icon:hover {
@@ -1566,7 +1568,7 @@ i.ccicon-left-arrow {
 }
 
 .single-product.woocommerce .summary a.remove_from_sfl_button {
-  display: flex;
+  display: inline-flex;
   align-content: center;
   align-items: center;
   margin-left: 20px;
@@ -1585,13 +1587,69 @@ i.ccicon-left-arrow {
   right: 0;
   left: 0;
   z-index: 9999;
-  background-color: #fff;
-  padding: 1em 1em 1em 3.5em;
+  background-color: #d6f9ea;
+  margin: 25px;
+  border: 1px solid #23c489;
+  padding: 16px 20px 16px 53px;
   font-size: 14px;
-  border-radius: 3px;
+  border-radius: var(--cc-button-border-radius);
   transition: all 0.3s ease;
   animation: fadeIn 0.5s;
-  box-shadow: 0 0 20px #e4e1e1;
+}
+
+.cc-cart .cc-notice:before,
+.cc-saves .cc-sfl-notice:before {
+	content: "\e908";
+  font-family: 'caddy-public-icons' !important;
+  font-size: 15px;
+  color: #ffffff;
+  top: 15px;
+  background-color: #12b99a;
+  border-radius: 100px;
+  padding: 3px;
+  height: 18px;
+  width: 18px;
+  position: absolute;
+  left: 20px;
+  text-align: center;
+  line-height: 20px;
+  box-sizing: content-box;
+}
+
+.cc-cart .cc-notice.cc-error {
+  border-top: 3px solid #b81c23;
+  background-color: #fde8e8;
+  border-color: #b81c23;
+}
+
+.cc-cart .cc-notice.cc-error::before {
+  content: "\e016";
+  font-family: WooCommerce;
+  font-size: 15px;
+  color: #ffffff;
+  background-color: #b81c23;
+  border-radius: 100px;
+  padding: 3px;
+  height: 18px;
+  width: 18px;
+  position: absolute;
+  left: 20px;
+  top: 15px;
+  text-align: center;
+  line-height: 20px;
+  box-sizing: content-box;
+}
+
+.cc-cart .cc-notice.cc-info {
+  border-top: 3px solid #2ea2cc;
+}
+
+.cc-cart .cc-notice.cc-info::before {
+  content: "\e028";
+  color: #2ea2cc;
+  font-family: WooCommerce;
+  position: absolute;
+  left: 15px;
 }
 
 .cc-saves .cc-body .cc-sfl-notice {
@@ -1623,6 +1681,7 @@ i.ccicon-left-arrow {
 .slick-slide .button,
 .cc-coupon-btn {
   min-width: 100px;
+  text-align: center;
 }
 
 .remove_from_cart_button svg, .remove_from_sfl_button svg {
@@ -2258,4 +2317,62 @@ i.ccicon-left-arrow {
   color: #721c24;
   text-decoration: underline;
   font-weight: bold;
+}
+
+.cc-product-upsells-wrapper {
+  min-height: 100px;
+}
+
+/* Bundle Sells Styling */
+.bundle_sells {
+    margin: 1em 0;
+    padding: 1em;
+    border: 1px solid var(--cc-window-border-color);
+    border-radius: 4px;
+}
+
+.bundle_sells label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5em;
+    cursor: pointer;
+}
+
+.bundle_sells input[type="checkbox"] {
+    margin-right: 0.5em;
+}
+
+.bundle_sells .bundle_sell_title {
+    font-weight: normal;
+    margin-right: 0.5em;
+}
+
+.bundle_sells .bundle_sell_price {
+    color: var(--cc-window-muted-text-color);
+}
+
+.bundle_sells .bundle_sell_price del {
+    margin-right: 0.5em;
+}
+
+.bundle_sells .bundle_sell_price ins {
+    text-decoration: none;
+    color: var(--cc-mint-color);
+    font-weight: bold;
+}
+
+/* Bundle Products in Cart */
+.cc-cart-product-list.bundle_sell {
+    padding-left: 1em;
+    border-left: 2px solid var(--cc-window-border-color);
+    margin: 0.5em 0;
+}
+
+.cc-cart-product-list.bundle_sell .cc_item_title {
+    font-size: 0.9em;
+}
+
+.cc-cart-product-list.bundle_sell .cc-product-thumb img {
+    max-width: 50px;
+    height: auto;
 }

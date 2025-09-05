@@ -34,7 +34,7 @@ $cc_custom_css = ! empty( $cc_custom_css ) ? esc_html( stripslashes( $cc_custom_
 						<label for="cc_custom_css"><?php echo esc_html( __( 'Custom CSS', 'caddy' ) ); ?></label>
 					</th>
 					<td class="color-picker">
-						<label><textarea name="cc_custom_css" id="cc_custom_css" rows="10" cols="50"><?php echo $cc_custom_css; ?></textarea></label>
+						<label><textarea name="cc_custom_css" id="cc_custom_css" rows="10" cols="50"><?php echo esc_textarea( $cc_custom_css ); ?></textarea></label>
 					</td>
 				</tr>
 				</tbody>
@@ -53,7 +53,7 @@ $cc_custom_css = ! empty( $cc_custom_css ) ? esc_html( stripslashes( $cc_custom_
 			
 		</div>
 		<p class="submit cc-primary-save">
-			<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php esc_attr_e( 'Save Changes' ); ?>" />
+			<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php esc_attr_e( 'Save Changes', 'caddy' ); ?>" />
 		</p>
 	</div>
 </form>

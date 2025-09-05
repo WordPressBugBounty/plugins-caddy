@@ -13,10 +13,11 @@
  */
 
 if ( ! current_user_can( 'manage_options' ) ) {
-	wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'caddy' ) );
 }
 
-$addon_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( $_GET['tab'] ) : 'addons';
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine which tab to display
+$addon_tab = ( ! empty( $_GET['tab'] ) ) ? esc_attr( sanitize_text_field(wp_unslash($_GET['tab'])) ) : 'addons';
 
 $addon_tabs = array(
 	'addons' => array(
@@ -48,8 +49,7 @@ $caddy_addon_sections = apply_filters( 'caddy_get_addons_sections', $addon_secti
 		foreach ( $addon_tab_name as $key => $value ) {
 			$active_tab_class = ( $key == $addon_tab ) ? ' nav-tab-active' : '';
 			?>
-			<a class="nav-tab<?php echo $active_tab_class; ?>" href="?page=caddy-addons&amp;tab=<?php echo $key; ?>"><i class="<?php echo $value['tab_icon']; ?>"></i>&nbsp;<?php
-				echo $value['tab_name']; ?></a>
+			<a class="nav-tab<?php echo esc_attr( $active_tab_class ); ?>" href="?page=caddy-addons&amp;tab=<?php echo esc_attr( $key ); ?>"><i class="<?php echo esc_attr( $value['tab_icon'] ); ?>"></i>&nbsp;<?php echo esc_html( $value['tab_name'] ); ?></a>
 		<?php } ?>
 	</h2>
 	<?php do_action( 'cc_addons_html' ); // Display add-ons html ?>

@@ -29,9 +29,11 @@ class caddy_cart_widget extends WP_Widget {
 		$cart_text = isset( $instance['cart_text'] ) ? $instance['cart_text'] : '';
 
 		// before and after widget arguments are defined by themes
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Widget wrapper args are safe HTML from theme
 		echo $args['before_widget'];
 		if ( ! empty( $cart_widget_title ) ) {
-			echo $args['before_title'] . $cart_widget_title . $args['after_title'];
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Widget wrapper args are safe HTML from theme
+			echo $args['before_title'] . esc_html( $cart_widget_title ) . $args['after_title'];
 		}
 
 		$cart_count    = 0;
@@ -50,8 +52,10 @@ class caddy_cart_widget extends WP_Widget {
 			$cc_cart_class,
 			esc_html( $cart_count )
 		);
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in sprintf above
 		echo $cart_items_link;
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Widget wrapper args are safe HTML from theme
 		echo $args['after_widget'];
 	}
 
@@ -68,19 +72,19 @@ class caddy_cart_widget extends WP_Widget {
 		$cc_cart_icon      = ( isset( $instance['cc_cart_icon'] ) && 'on' == $instance['cc_cart_icon'] ) ? ' checked="checked"' : '';
 		?>
 		<p>
-			<label for="<?php echo $this->get_field_id( 'cart_widget_title' ); ?>"><?php _e( 'Widget Title:' ); ?></label>
-			<input class="widefat" id="<?php echo $this->get_field_id( 'cart_widget_title' ); ?>" name="<?php echo $this->get_field_name( 'cart_widget_title' ); ?>"
+			<label for="<?php echo esc_attr( $this->get_field_id( 'cart_widget_title' ) ); ?>"><?php esc_html_e( 'Widget Title:', 'caddy' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'cart_widget_title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'cart_widget_title' ) ); ?>"
 			       type="text" value="<?php echo esc_attr( $cart_widget_title ); ?>" />
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id( 'cart_text' ); ?>"><?php _e( 'Cart Text:' ); ?></label>
-			<input class="widefat" id="<?php echo $this->get_field_id( 'cart_text' ); ?>" name="<?php echo $this->get_field_name( 'cart_text' ); ?>" type="text"
+			<label for="<?php echo esc_attr( $this->get_field_id( 'cart_text' ) ); ?>"><?php esc_html_e( 'Cart Text:', 'caddy' ); ?></label>
+			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'cart_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'cart_text' ) ); ?>" type="text"
 			       value="<?php echo esc_attr( $cart_text ); ?>" />
 		</p>
 		<p>
-			<input class="checkbox" type="checkbox" <?php echo $cc_cart_icon; ?> id="<?php echo $this->get_field_id( 'cc_cart_icon' ); ?>"
-			       name="<?php echo $this->get_field_name( 'cc_cart_icon' ); ?>" />
-			<label for="<?php echo $this->get_field_id( 'cc_cart_icon' ); ?>"><?php _e( 'Disable cart icon' ); ?></label>
+			<input class="checkbox" type="checkbox" <?php echo esc_attr( $cc_cart_icon ); ?> id="<?php echo esc_attr( $this->get_field_id( 'cc_cart_icon' ) ); ?>"
+			       name="<?php echo esc_attr( $this->get_field_name( 'cc_cart_icon' ) ); ?>" />
+			<label for="<?php echo esc_attr( $this->get_field_id( 'cc_cart_icon' ) ); ?>"><?php esc_html_e( 'Disable cart icon', 'caddy' ); ?></label>
 		</p>
 		<?php
 	}
@@ -95,8 +99,8 @@ class caddy_cart_widget extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance                      = array();
-		$instance['cart_widget_title'] = ( ! empty( $new_instance['cart_widget_title'] ) ) ? strip_tags( $new_instance['cart_widget_title'] ) : '';
-		$instance['cart_text']         = ( ! empty( $new_instance['cart_text'] ) ) ? strip_tags( $new_instance['cart_text'] ) : '';
+		$instance['cart_widget_title'] = ( ! empty( $new_instance['cart_widget_title'] ) ) ? wp_strip_all_tags( $new_instance['cart_widget_title'] ) : '';
+		$instance['cart_text']         = ( ! empty( $new_instance['cart_text'] ) ) ? wp_strip_all_tags( $new_instance['cart_text'] ) : '';
 		$instance['cc_cart_icon']      = $new_instance['cc_cart_icon'];
 
 		return $instance;

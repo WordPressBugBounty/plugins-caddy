@@ -22,7 +22,7 @@ $cc_product_recommendation_type = get_option( 'cc_product_recommendation_type' )
 	<input type="hidden" name="cc_submit_hidden" value="Y">
 	<div class="cc-settings-container">
 		<?php do_action( 'caddy_before_product_recommendations_section' ); ?>
-		<h2><span class="section-icons"><img src="<?php echo plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-recs.svg'; ?>" /></span>&nbsp;<?php echo esc_html( __( 'Product Recommendations', 'caddy' ) ); ?></h2>
+		<h2><span class="section-icons"><img src="<?php echo esc_url( plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-recs.svg' ); ?>" /></span>&nbsp;<?php echo esc_html( __( 'Product Recommendations', 'caddy' ) ); ?></h2>
 		<p><?php echo esc_html( __( 'Display targeted product recommendations every time a product is added to the cart.', 'caddy' ) ); ?></p>
 		<table class="form-table">
 			<tbody>
@@ -33,7 +33,7 @@ $cc_product_recommendation_type = get_option( 'cc_product_recommendation_type' )
 				</th>
 				<td>
 					<div class="cc-toggle cc-toggle--size-small">
-						<input type="checkbox" name="cc_product_recommendation" id="cc_product_recommendation" value="enabled" <?php echo $cc_product_recommendation; ?>>
+						<input type="checkbox" name="cc_product_recommendation" id="cc_product_recommendation" value="enabled" <?php echo esc_attr( $cc_product_recommendation ); ?>>
 						<label for="cc_product_recommendation">
 							<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
 						</label>
@@ -52,7 +52,7 @@ $cc_product_recommendation_type = get_option( 'cc_product_recommendation_type' )
 						<option value="upsells" <?php echo $cc_product_recommendation_type === 'upsells' ? 'selected' : ''; ?>><?php esc_html_e( 'Product Upsells', 'caddy' ); ?></option>
 					</select>
 					<p class="description">
-						<?php echo esc_html( __( 'Configure which products are displayed within your product\'s "Linked Products" tab', 'caddy-premium' ) ); ?>
+						<?php echo esc_html( __( 'Configure which products are displayed within your product\'s "Linked Products" tab', 'caddy' ) ); ?>
 					</p>
 				</td>
 			</tr>
@@ -67,6 +67,6 @@ $cc_product_recommendation_type = get_option( 'cc_product_recommendation_type' )
 		}?>
 	</div>
 	<p class="submit cc-primary-save">
-		<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php echo esc_attr__( 'Save Changes' ); ?>" />
+		<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php echo esc_attr__( 'Save Changes', 'caddy' ); ?>" />
 	</p>
 </form>

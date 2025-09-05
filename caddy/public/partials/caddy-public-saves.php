@@ -49,7 +49,9 @@ $cc_empty_class = ( empty( $cc_sfl_items ) ) ? ' cc-empty' : '';
 						<div class="cc-cart-product-list">
 							<div class="cc-cart-product">
 								<a href="<?php echo esc_url( $product_permalink ); ?>" class="cc-product-link cc-product-thumb" data-title="<?php echo esc_attr( $product_name ); ?>">
-									<?php echo $product_image; ?>
+									<?php 
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce function returns escaped HTML
+						echo $product_image; ?>
 								</a>
 								<div class="cc_item_content">
 									<div class="cc_item_title">
@@ -58,9 +60,11 @@ $cc_empty_class = ( empty( $cc_sfl_items ) ) ? ' cc-empty' : '';
 									</div>
 									<?php if ( ! empty( $product_price ) ) { ?>
 										<div class="cc_item_total_price">
-											<div class="price"><?php echo $product_price; ?></div>
+											<div class="price"><?php 
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WooCommerce function returns escaped HTML
+							echo $product_price; ?></div>
 											<?php if ( $product->is_on_sale() ) { ?>
-												<div class="cc_saved_amount"><?php echo esc_html__( 'Save ', 'caddy' ) . round( $percentage ) . '%'; ?></div>
+												<div class="cc_saved_amount"><?php echo esc_html__( 'Save ', 'caddy' ) . esc_html( round( $percentage ) ) . '%'; ?></div>
 											<?php } ?>
 										</div>
 									<?php } ?>
@@ -91,7 +95,7 @@ $cc_empty_class = ( empty( $cc_sfl_items ) ) ? ' cc-empty' : '';
 				</div>
 			<?php } else { ?>
 				<div class="cc-empty-msg cc-text-center">
-					<img class="cc-empty-saves-img" src="<?php echo plugin_dir_url( __DIR__ ) ?>img/saves-empty.svg" alt="Empty Saves">
+					<img class="cc-empty-saves-img" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/saves-empty.svg" alt="Empty Saves">
 					<span class="cc-title"><?php esc_html_e( 'You haven\'t saved any items yet!', 'caddy' ); ?></span>
 					<?php if ( is_user_logged_in() ) { ?>
 						<p><?php esc_html_e( 'You can save your shopping cart items for later here.', 'caddy' ); ?></p>
@@ -118,6 +122,7 @@ $cc_empty_class = ( empty( $cc_sfl_items ) ) ? ' cc-empty' : '';
 			
 			echo sprintf(
 				'%1$s %2$s %3$s <a href="%4$s" rel="noopener noreferrer" target="_blank">%5$s</a>',
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
 				$powered_svg,
 				esc_html__( 'Powered', 'caddy' ),
 				esc_html__( 'by', 'caddy' ),

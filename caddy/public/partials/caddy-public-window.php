@@ -8,19 +8,10 @@ $current_user          = wp_get_current_user();
 $display_name          = ! empty( $current_user->first_name ) ? $current_user->first_name : $current_user->display_name;
 $cart_contents_count   = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
 $shop_page_url         = get_permalink( wc_get_page_id( 'shop' ) );
-$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options' );
 
-$cc_sfl_tab_flag = true;
-
-// Return if the premium license is valid and sfl option is not enabled
-$caddy                         = new Caddy();
-$cc_premium_license_activation = $caddy->cc_check_premium_license_activation();
-if ( $cc_premium_license_activation ) {
-	$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options' );
-	if ( 'disabled' === $cc_enable_sfl_options ) {
-		$cc_sfl_tab_flag = false;
-	}
-}
+// Save for Later is enabled by default, only disable if premium plugin explicitly disables it
+$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options', 'enabled' ); // Default to 'enabled'
+$cc_sfl_tab_flag       = ( 'enabled' === $cc_enable_sfl_options );
 ?>
 <div class="cc-header cc-text-left">
 	<i class="ccicon-x"></i>

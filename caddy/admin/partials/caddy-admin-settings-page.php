@@ -23,7 +23,7 @@ function caddy_display_pro_label() {
     $caddy_license_status = get_option('caddy_premium_edd_license_status');
     
     if (!isset($caddy_license_status) || $caddy_license_status != 'valid') {
-        return '<span class="caddy-pro-label">' . esc_html__('Pro', 'caddy-premium') . '</span>';
+        return '<span class="caddy-pro-label">' . esc_html__('Pro', 'caddy') . '</span>';
     }
     
     return '';
@@ -35,64 +35,82 @@ function caddy_display_pro_label() {
         <ul class="cc-settings-menu tabs">
             <li class="<?php echo $active_tab === 'cc-general-settings' ? 'active' : ''; ?>">
                 <a href="#cc-general-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-general.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-general.svg' ); ?>" />
                     <?php echo esc_html( __( 'General', 'caddy' ) ); ?>
                 </a>
             </li>
             <?php if ( !isset($caddy_license_status) || $caddy_license_status != 'valid' ) { ?>		
             <li class="<?php echo $active_tab === 'cc-shipping-meter-settings' ? 'active' : ''; ?>">
                 <a href="#cc-shipping-meter-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-free-shipping.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-free-shipping.svg'; ?>" />
                     <?php echo esc_html( __( 'Free Shipping Meter', 'caddy' ) ); ?>
                 </a>
             </li>
             <?php } ?>
             <li class="<?php echo $active_tab === 'cc-recommendations-settings' ? 'active' : ''; ?>">
                 <a href="#cc-recommendations-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-recs.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-recs.svg'; ?>" />
                     <?php echo esc_html( __( 'Recommendations', 'caddy' ) ); ?>
                 </a>
             </li>
             <li class="<?php echo $active_tab === 'cc-display-settings' ? 'active' : ''; ?>">
                 <a href="#cc-display-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-display.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-display.svg'; ?>" />
                     <?php echo esc_html( __( 'Display', 'caddy' ) ); ?> 
-                    <?php echo caddy_display_pro_label(); ?>
+                    <?php 
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
+echo caddy_display_pro_label(); 
+?>
                 </a>
             </li>
             <li>
                 <a href="#cc-offers-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-offers.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-offers.svg'; ?>" />
                     <?php echo esc_html( __( 'Offers', 'caddy' ) ); ?> 
-                    <?php echo caddy_display_pro_label(); ?>
+                    <?php 
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
+echo caddy_display_pro_label(); 
+?>
                 </a>
             </li>
             <li>
                 <a href="#cc-sfl-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-sfl.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-sfl.svg'; ?>" />
                     <?php echo esc_html( __( 'Save for Later', 'caddy' ) ); ?> 
-                    <?php echo caddy_display_pro_label(); ?>
+                    <?php 
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
+echo caddy_display_pro_label(); 
+?>
                 </a>
             </li>
             <li>
                 <a href="#cc-welcome-message-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-welcome.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-welcome.svg'; ?>" />
                     <?php echo esc_html( __( 'Welcome Message', 'caddy' ) ); ?> 
-                    <?php echo caddy_display_pro_label(); ?>
+                    <?php 
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
+echo caddy_display_pro_label(); 
+?>
                 </a>
             </li>
             <li>
                 <a href="#cc-announcement-bar-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-announcement.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-announcement.svg'; ?>" />
                     <?php echo esc_html( __( 'Announcement Bar', 'caddy' ) ); ?> 
-                    <?php echo caddy_display_pro_label(); ?>
+                    <?php 
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
+echo caddy_display_pro_label(); 
+?>
                 </a>
             </li>
             <li>
                 <a href="#cc-rewards-meter-settings">
-                    <img src="<?php echo plugin_dir_url( dirname( __FILE__ ) ) . 'img/icon-reward-meter.svg'; ?>" />
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-reward-meter.svg'; ?>" />
                     <?php echo esc_html( __( 'Rewards Meter', 'caddy' ) ); ?> 
-                    <?php echo caddy_display_pro_label(); ?>
+                    <?php 
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
+echo caddy_display_pro_label(); 
+?>
                 </a>
             </li>
         </ul>

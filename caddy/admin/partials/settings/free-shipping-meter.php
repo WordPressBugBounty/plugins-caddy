@@ -23,9 +23,9 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 	<?php wp_nonce_field('caddy-shipping-meter-settings-save', 'caddy_shipping_meter_settings_nonce'); ?>
 	<input type="hidden" name="cc_submit_hidden" value="Y">
 	<div class="cc-settings-container">
-		<h2><span class="section-icons"><img src="<?php echo plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-free-shipping.svg'; ?>" /></span>&nbsp;<?php echo esc_html( __( 'Free Shipping Meter', 'caddy' ) ); ?></h2>
+		<h2><span class="section-icons"><img src="<?php echo esc_url( plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-free-shipping.svg' ); ?>" /></span>&nbsp;<?php echo esc_html( __( 'Free Shipping Meter', 'caddy' ) ); ?></h2>
 		<p><?php echo esc_html( __( 'Displays a meter in Caddy that shows the total amount required for free shipping.', 'caddy' ) ); ?>
-			<strong><?php echo esc_html( __( 'This requires a free shipping method configured within your WooCommerce', 'caddy' ) ); ?> <a href="<?php echo get_site_url(); ?>/wp-admin/admin.php?page=wc-settings&tab=shipping"><?php echo esc_html( __( 'shipping settings', 'caddy' ) ); ?></a></strong>.
+			<strong><?php echo esc_html( __( 'This requires a free shipping method configured within your WooCommerce', 'caddy' ) ); ?> <a href="<?php echo esc_url( get_site_url() ); ?>/wp-admin/admin.php?page=wc-settings&tab=shipping"><?php echo esc_html( __( 'shipping settings', 'caddy' ) ); ?></a></strong>.
 		</p>
 		<table class="form-table">
 			<tbody>
@@ -35,10 +35,10 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 					<label for="cc_free_shipping_amount"><?php echo esc_html( __( 'Trigger amount', 'caddy' ) ); ?></label>
 				</th>
 				<td>
-					<input type="number" name="cc_free_shipping_amount" id="cc_free_shipping_amount" value="<?php echo $cc_free_shipping_amount; ?>" />
+					<input type="number" name="cc_free_shipping_amount" id="cc_free_shipping_amount" value="<?php echo esc_attr( $cc_free_shipping_amount ); ?>" />
 					<p class="description"><?php echo esc_html( __( 'Set an amount to enable the free shipping meter.', 'caddy' ) ); ?>
 						<strong><?php echo esc_html( __( 'This amount must match the "Minimum order amount" configured within your WooCommerce', 'caddy' ) ); ?>
-							<a href="<?php echo get_site_url(); ?>/wp-admin/admin.php?page=wc-settings&tab=shipping"><?php echo esc_html( __( 'shipping settings.', 'caddy' ) ); ?></a>
+							<a href="<?php echo esc_url( get_site_url() ); ?>/wp-admin/admin.php?page=wc-settings&tab=shipping"><?php echo esc_html( __( 'shipping settings.', 'caddy' ) ); ?></a>
 							<?php echo esc_html( __( 'Leave blank to disable.', 'caddy' ) ); ?>
 						</strong>
 					</p>
@@ -50,7 +50,7 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 				</th>
 				<td>
 					<div class="cc-toggle cc-toggle--size-small">
-						<input type="checkbox" name="cc_free_shipping_tax" id="cc_free_shipping_tax" value="enabled" <?php echo $cc_free_shipping_tax; ?>>
+						<input type="checkbox" name="cc_free_shipping_tax" id="cc_free_shipping_tax" value="enabled" <?php echo esc_attr( $cc_free_shipping_tax ); ?>>
 						<label for="cc_free_shipping_tax">
 							<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
 						</label>
@@ -72,7 +72,7 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 						$selected_country = ! empty( $cc_shipping_country ) ? $cc_shipping_country : $wc_base_country; ?>
 						<select name="cc_shipping_country" id="cc_shipping_country">
 							<?php foreach ( $wc_countries_list as $key => $value ) { ?>
-								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $selected_country, $key ); ?>><?php echo $value; ?></option>
+								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $selected_country, $key ); ?>><?php echo esc_html( $value ); ?></option>
 							<?php } ?>
 						</select>
 					<?php } ?>
@@ -92,6 +92,6 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 		}?>
 	</div>
 	<p class="submit cc-primary-save">
-		<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php echo esc_attr__( 'Save Changes' ); ?>" />
+		<input type="submit" name="Submit" class="button-primary cc-primary-save-btn" value="<?php echo esc_attr__( 'Save Changes', 'caddy' ); ?>" />
 	</p>
 </form>

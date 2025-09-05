@@ -31,14 +31,13 @@ class Caddy_i18n {
 	 * Load the plugin text domain for translation.
 	 *
 	 * @since    1.0.0
+	 * @deprecated As of WordPress 4.6, translations are automatically loaded by WordPress.
 	 */
 	public function load_plugin_textdomain() {
 
-		load_plugin_textdomain(
-			'caddy',
-			false,
-			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
-		);
+		// As of WordPress 4.6, translations are automatically loaded by WordPress.
+		// This function is kept for backward compatibility but no longer needed.
+		// load_plugin_textdomain() call removed per WordPress coding standards.
 
 	}
 

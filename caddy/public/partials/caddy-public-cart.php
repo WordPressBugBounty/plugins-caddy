@@ -123,7 +123,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 				
 			<?php } else { ?>
 				<div class="cc-empty-msg">
-					<img class="cc-empty-cart-img" src="<?php echo plugin_dir_url( __DIR__ ) ?>img/cart-empty.svg" alt="Empty Cart">
+					<img class="cc-empty-cart-img" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/cart-empty.svg" alt="Empty Cart">
 					<span class="cc-title"><?php esc_html_e( 'Your Cart is Empty!', 'caddy' ); ?></span>
 	
 					<?php if ( ! empty( $cc_sfl_items ) ) { ?>
@@ -182,7 +182,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 						$coupon_detail = new WC_Coupon( $code );
 						?>
 						<div class="cc-applied-coupon">
-							<img src="<?php echo plugin_dir_url( __DIR__ ) ?>img/tag-icon.svg" alt="Discount Code">
+							<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/tag-icon.svg" alt="Discount Code">
 							<span class="cc_applied_code"><?php echo esc_html( $code ); ?></span>
 							<a href="javascript:void(0);" class="cc-remove-coupon"><i class="ccicon-close"></i></a>
 						</div>
@@ -210,6 +210,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 				if ($coupon_discount_amount > 0) {
 					echo '<div class="cc-savings">' . 
 						esc_html__('-', 'caddy') . 
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
 						wc_price($coupon_discount_amount) . 
 						'</div>';
 				}
@@ -260,8 +261,10 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 						<?php 
 						// Show the original total if it's greater than the cart total
 						if ($original_total > $cart_total) {
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
 							echo '<span class="cc-original-price"><del>' . wc_price($original_total) . '</del></span> ';
 						}
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
 						echo wc_price($cart_total, array('currency' => get_woocommerce_currency()));
 						?>
 					</div>
@@ -273,7 +276,11 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 				$checkout_lock_svg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="cc-icon-lock"><path fill="currentColor" fill-rule="evenodd" d="M8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10H8V7ZM6 10V7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7V10H21V23H3V10H6ZM11 18.5V14.5H13V18.5H11Z" clip-rule="evenodd"></path></svg>';
 				$checkout_arrow_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5px" class="cc-icon-arrow-right"><line x1="0.875" y1="12" x2="23.125" y2="12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></line><polyline points="16.375 5.5 23.125 12 16.375 18.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>';
 			?>
-			<a href="<?php echo esc_url( wc_get_checkout_url() ); ?>" class="cc-button cc-button-primary"><?php echo $checkout_lock_svg; ?> <?php esc_html_e( 'Checkout Now', 'caddy' ); ?><?php echo $checkout_arrow_svg; ?></a>
+			<a href="<?php echo esc_url( wc_get_checkout_url() ); ?>" class="cc-button cc-button-primary"><?php 
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
+			echo $checkout_lock_svg; ?> <?php esc_html_e( 'Checkout Now', 'caddy' ); ?><?php 
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
+			echo $checkout_arrow_svg; ?></a>
 
 			<?php do_action( 'caddy_after_cart_screen_checkout_button' ); ?>
 
@@ -282,15 +289,9 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 	<input type="hidden" name="cc-compass-count-after-remove" class="cc-cart-count-after-product-remove" value="<?php echo esc_attr( $total_cart_item_count ); ?>">
 
 	<?php
-	$cc_compass_desk_notice = '';
-	$cc_compass_mob_notice  = 'mob_disable_notices';
-	$cc_is_mobile           = '';
-	$caddy_license_status   = get_option( 'caddy_premium_edd_license_status' );
-	if ( isset( $caddy_license_status ) && 'valid' === $caddy_license_status ) {
-		$cc_compass_desk_notice = get_option( 'cp_desktop_notices' );
-		$cc_compass_mob_notice  = get_option( 'cp_mobile_notices' );
-		$cc_compass_mob_notice  = ( wp_is_mobile() ) ? $cc_compass_mob_notice : '';
-	}
+	$cc_compass_desk_notice = get_option( 'cp_desktop_notices', '' );
+	$cc_compass_mob_notice  = get_option( 'cp_mobile_notices', 'mob_disable_notices' );
+	$cc_compass_mob_notice  = ( wp_is_mobile() ) ? $cc_compass_mob_notice : '';
 	$cc_is_mobile = ( wp_is_mobile() ) ? 'yes' : 'no';
 	?>
 	<input type="hidden" name="cc-compass-desk-notice" class="cc-compass-desk-notice" value="<?php echo esc_attr( $cc_compass_desk_notice ); ?>">
@@ -310,6 +311,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 			
 			echo sprintf(
 				'%1$s %2$s %3$s <a href="%4$s" rel="noopener noreferrer" target="_blank">%5$s</a>',
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
 				$powered_svg,
 				esc_html__( 'Powered', 'caddy' ),
 				esc_html__( 'by', 'caddy' ),

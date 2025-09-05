@@ -32,6 +32,33 @@
 		
 		return skeletonItem.repeat(cartCount);
 	}
+
+	/**
+	 * Get WooCommerce AJAX URL for an endpoint
+	 * 
+	 * @param {string} endpoint - The endpoint to get URL for
+	 * @return {string} The complete AJAX URL
+	 */
+	function getWcAjaxUrl(endpoint) {
+		if (cc_ajax_script.wc_ajax_url) {
+			return cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', endpoint);
+		}
+		return '/?wc-ajax=' + endpoint;
+	}
+
+	/**
+	 * Handle common AJAX response for cart operations
+	 * 
+	 * @param {Object} response - The AJAX response
+	 */
+	function handleCartResponse(response) {
+		if (response && response.fragments) {
+			$.each(response.fragments, function(key, value) {
+				$(key).replaceWith(value);
+			});
+			$(document.body).trigger('wc_fragments_refreshed');
+		}
+	}
 	
 	//=============================================================================
 	// CART MANAGEMENT FUNCTIONS
@@ -43,52 +70,64 @@
 	 * @param {string} productAdded - Optional parameter indicating if a product was added ('yes' or 'move_to_cart')
 	 */
 	function cc_cart_screen(productAdded = '') {
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'get_refreshed_fragments');
-		} else {
-			ajaxUrl = '/?wc-ajax=get_refreshed_fragments';
-		}
-
 		if (window.cc_cart_ajax && window.cc_cart_ajax.readyState !== 4) {
 			window.cc_cart_ajax.abort();
 		}
 
 		window.cc_cart_ajax = $.ajax({
-			type: 'post',
-			url: ajaxUrl,
-			beforeSend: function(xhr, settings) {
+			type: 'POST',
+			url: getWcAjaxUrl('get_refreshed_fragments'),
+			data: {
+				nonce: cc_ajax_script.nonce
+			},
+			beforeSend: function() {
 				$('.cc-cart-items').html(getSkeletonHTML());
 			},
 			error: function(xhr, status, error) {
 				if (status !== 'abort') {
-					if (status !== 'abort') {
-						$('.cc-cart-items').html('<div class="cc-cart-error">Unable to load cart. <a href="' + cc_ajax_script.cart_url + '">View cart page</a>.</div>');
-					}
+					$('.cc-cart-items').html('<div class="cc-cart-error">Unable to load cart. <a href="' + cc_ajax_script.cart_url + '">View cart page</a>.</div>');
 				}
 			},
 			success: function(response) {
-				var fragments = response.fragments;
-				if (fragments) {
-					$.each(fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
-					$(document.body).trigger('wc_fragments_refreshed');
-				}
+				handleCartResponse(response);
 
 				var tabs = new Tabby('[data-tabs]');
 				tabs.toggle('#cc-cart');
 
 				if ('yes' == productAdded) {
-					$('.cc-window-wrapper').hide();
-				}
-
-				if ('move_to_cart' === productAdded) {
+					$('.cc-window-wrapper').show();
+				} else if ('move_to_cart' === productAdded) {
 					$('.cc_cart_from_sfl').removeClass('cc_hide_btn');
 					$('.cc_cart_from_sfl').parent().find('.cc-loader').hide();
 					$('.cc-coupon .woocommerce-notices-wrapper').remove();
 					$('.cc-cart').removeAttr('hidden');
 				}
+			}
+		});
+	}
+
+	/**
+	 * Update cart item quantity
+	 * @param {string} cartKey - The cart item key
+	 * @param {number} newQty - The new quantity
+	 */
+	function cc_update_cart_quantity(cartKey, newQty) {
+		$('.cc-cart-items').html(getSkeletonHTML());
+
+		$.ajax({
+			type: 'POST',
+			url: getWcAjaxUrl('cc_update_item_quantity'),
+			data: {
+				cart_key: cartKey,
+				qty: newQty,
+				nonce: cc_ajax_script.nonce
+			},
+			success: handleCartResponse,
+			error: function() {
+				cc_refresh_cart();
+			},
+			complete: function() {
+				$('.cc-window-wrapper').show();
 			}
 		});
 	}
@@ -100,75 +139,26 @@
 	 * @param {Object} el - The button element that was clicked
 	 */
 	function cc_quantity_update_buttons(el) {
-		if (cc_quanity_update_send) {
-			cc_quanity_update_send = false;
-			$('.cc-notice').hide();
-			var wrap = $(el).parents('.cc-cart-product-list');
-			var input = $(wrap).find('.cc_item_quantity');
-			var key = $(input).data('key');
-			var productID = $(input).data('product_id');
-			var number = parseInt($(input).val());
-			var type = $(el).data('type');
-			if ('minus' == type) {
-				number--;
-			} else {
-				number++;
-			}
-			if (number < 1) {
-				number = 1;
-			}
-			var data = {
-				key: key,
-				number: number,
-				product_id: productID,
-				security: cc_ajax_script.nonce
-			};
-
-			let ajaxUrl;
-			if (cc_ajax_script.wc_ajax_url) {
-				ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_quantity_update');
-			} else {
-				ajaxUrl = '/?wc-ajax=cc_quantity_update';
-			}
-
-			var currentCartHTML = $('.cc-cart-items').html();
-
-			$('.cc-cart-items').html(getSkeletonHTML());
-
-			$.ajax({
-				type: 'post',
-				url: ajaxUrl,
-				data: data,
-				success: function(response) {
-					var fragments = response.fragments,
-						qty_error_msg = response.qty_error_msg;
-
-					if (qty_error_msg) {
-						$('.cc-cart-items').html(currentCartHTML);
-						$('.cc-notice').addClass('cc-error').show().html(qty_error_msg);
-						setTimeout(function() {
-							$('.cc-notice').removeClass('cc-error').html('').hide();
-						}, 2000);
-					} else if (fragments) {
-						$.each(fragments, function(key, value) {
-							$(key).replaceWith(value);
-						});
-
-						$(document.body).trigger('wc_fragments_refreshed');
-					}
-
-					$(input).val(number);
-					cc_quanity_update_send = true;
-
-					var tabs = new Tabby('[data-tabs]');
-					tabs.toggle('#cc-cart');
-				},
-				error: function() {
-					$('.cc-cart-items').html(currentCartHTML);
-					cc_quanity_update_send = true;
-				}
-			});
+		var wrap = $(el).parents('.cc-cart-product-list');
+		var input = $(wrap).find('.cc_item_quantity');
+		var key = $(input).data('key');
+		var number = parseInt($(input).val());
+		var type = $(el).data('type');
+		
+		if ('minus' == type) {
+			number--;
+		} else {
+			number++;
 		}
+		
+		if (number < 1) {
+			// If quantity would be less than 1, trigger remove item instead
+			var removeButton = $(el).closest('.cc-cart-product').find('a.remove_from_cart_button');
+			removeButton.trigger('click');
+			return;
+		}
+
+		cc_update_cart_quantity(key, number);
 	}
 
 	/**
@@ -177,73 +167,27 @@
 	 * @param {Object} button - The remove button that was clicked
 	 */
 	function cc_remove_item_from_cart(button) {
-		var cartItemKey = button.data('cart_item_key'),
-			productName = button.data('product_name'),
-			product_id = button.data('product_id');
+		var cartItemKey = button.data('cart_item_key');
 
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_remove_item_from_cart');
-		} else {
-			ajaxUrl = '/?wc-ajax=cc_remove_item_from_cart';
-		}
-
-		var currentCartHTML = $('.cc-cart-items').html();
-
-		const currentCount = parseInt($('.cc-compass-count').text()) || 1;
-		const skeletonCount = Math.max(currentCount - 1, 1);
+		$('.cc-cart-items').html(getSkeletonHTML());
+		$('.cc-compass .ccicon-cart').hide();
+		$('.cc-compass .cc-loader').show();
 
 		$.ajax({
-			type: 'post',
-			url: ajaxUrl,
+			type: 'POST',
+			url: getWcAjaxUrl('cc_remove_item_from_cart'),
 			data: {
-				nonce: cc_ajax_script.nonce,
-				cart_item_key: cartItemKey
+				cart_item_key: cartItemKey,
+				nonce: cc_ajax_script.nonce
 			},
-			beforeSend: function(response) {
-				$('.cc-cart-items').html(getSkeletonHTML(skeletonCount));
-				$('.cc-compass .ccicon-cart').hide();
-				$('.cc-compass .cc-loader').show();
+			success: handleCartResponse,
+			error: function() {
+				cc_refresh_cart();
 			},
-			complete: function(response) {
+			complete: function() {
 				$('.cc-compass .ccicon-cart').show();
 				$('.cc-compass .cc-loader').hide();
-
-				if (($('.single_add_to_cart_button, .add_to_cart_button').length > 0)) {
-					$('.single_add_to_cart_button.added, .add_to_cart_button.added').each(function() {
-						if ($('form.cart').length > 0 && !$(this).hasClass('add_to_cart_button')) {
-							var $form = $(this).closest('form.cart'),
-								atc_product_id = $form.find('input[name=add-to-cart]').val() || $(this).val(),
-								atc_variation_id = $form.find('input[name=variation_id]').val() || 0;
-							if (atc_variation_id !== 0) {
-								atc_product_id = atc_variation_id;
-							}
-						} else {
-							var atc_product_id = $(this).data('product_id');
-						}
-						if (atc_product_id == product_id) {
-							if ($(this).hasClass('added')) {
-								$(this).removeClass('added');
-							}
-						}
-					});
-				}
-			},
-			success: function(response) {
-				var fragments = response.fragments;
-				if (fragments) {
-					$.each(fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
-
-					$(document.body).trigger('wc_fragments_refreshed');
-				}
-
-				var tabs = new Tabby('[data-tabs]');
-				tabs.toggle('#cc-cart');
-			},
-			error: function() {
-				$('.cc-cart-items').html(currentCartHTML);
+				$('.cc-window-wrapper').show();
 			}
 		});
 	}
@@ -262,29 +206,17 @@
 	 * Gets updated fragments and refreshes the cart display
 	 */
 	function cc_refresh_cart() {
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'get_refreshed_fragments');
-		} else {
-			ajaxUrl = '/?wc-ajax=get_refreshed_fragments';
-		}
-
 		if (window.cc_refresh_ajax && window.cc_refresh_ajax.readyState !== 4) {
 			window.cc_refresh_ajax.abort();
 		}
 
 		window.cc_refresh_ajax = $.ajax({
-			type: 'post',
-			url: ajaxUrl,
-			success: function(response) {
-				if (response.fragments) {
-					$.each(response.fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
-
-					$(document.body).trigger('wc_fragments_refreshed');
-				}
+			type: 'POST',
+			url: getWcAjaxUrl('get_refreshed_fragments'),
+			data: {
+				nonce: cc_ajax_script.nonce
 			},
+			success: handleCartResponse,
 			error: function(xhr, status, error) {
 				if (status !== 'abort') {
 					$('.cc-cart-items').html('<div class="cc-cart-error">Unable to refresh cart. <a href="javascript:void(0)" onclick="cc_refresh_cart()">Try again</a>.</div>');
@@ -303,42 +235,18 @@
 	function cc_coupon_code_applied_from_cart_screen() {
 		var coupon_code = $('.cc-coupon-form #cc_coupon_code').val();
 
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_apply_coupon_to_cart');
-		} else {
-			ajaxUrl = '/?wc-ajax=cc_apply_coupon_to_cart';
-		}
-
-		var data = {
-			nonce: cc_ajax_script.nonce,
-			coupon_code: coupon_code
-		};
+		$('#cc-cart').css('opacity', '0.3');
 
 		$.ajax({
-			type: 'post',
-			url: ajaxUrl,
-			data: data,
-			beforeSend: function(response) {
-				$('#cc-cart').css('opacity', '0.3');
+			type: 'POST',
+			url: getWcAjaxUrl('cc_apply_coupon_to_cart'),
+			data: {
+				nonce: cc_ajax_script.nonce,
+				coupon_code: coupon_code
 			},
-			complete: function(response) {
+			success: handleCartResponse,
+			complete: function() {
 				$('#cc-cart').css('opacity', '1');
-			},
-			success: function(response) {
-				var fragments = response.fragments,
-					caddy_cart_subtotal = response.caddy_cart_subtotal;
-
-				if (fragments) {
-					$.each(fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
-
-					$(document.body).trigger('wc_fragments_refreshed');
-				}
-
-				$('.cc-total-amount').html(caddy_cart_subtotal);
-
 				var tabs = new Tabby('[data-tabs]');
 				tabs.toggle('#cc-cart');
 			}
@@ -353,46 +261,18 @@
 	function cc_coupon_code_removed_from_cart_screen($remove_code) {
 		var coupon_code_to_remove = $remove_code.parent('.cc-applied-coupon').find('.cc_applied_code').text();
 
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_remove_coupon_code');
-		} else {
-			ajaxUrl = '/?wc-ajax=cc_remove_coupon_code';
-		}
-
-		var data = {
-			nonce: cc_ajax_script.nonce,
-			coupon_code_to_remove: coupon_code_to_remove
-		};
+		$('#cc-cart').css('opacity', '0.3');
 
 		$.ajax({
-			type: 'post',
-			url: ajaxUrl,
-			data: data,
-			beforeSend: function(response) {
-				$('#cc-cart').css('opacity', '0.3');
+			type: 'POST',
+			url: getWcAjaxUrl('cc_remove_coupon_code'),
+			data: {
+				nonce: cc_ajax_script.nonce,
+				coupon_code_to_remove: coupon_code_to_remove
 			},
-			complete: function(response) {
+			success: handleCartResponse,
+			complete: function() {
 				$('#cc-cart').css('opacity', '1');
-			},
-			success: function(response) {
-				var fragments = response.fragments,
-					fs_title = response.free_shipping_title,
-					fs_meter = response.free_shipping_meter,
-					final_cart_subtotal = response.final_cart_subtotal;
-
-				if (fragments) {
-					$.each(fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
-
-					$(document.body).trigger('wc_fragments_refreshed');
-				}
-
-				$('.cc-fs-title').html(fs_title);
-				$('.cc-fs-meter').html(fs_meter);
-				$('.cc-total-amount').html(final_cart_subtotal);
-
 				var tabs = new Tabby('[data-tabs]');
 				tabs.toggle('#cc-cart');
 			}
@@ -413,46 +293,27 @@
 		var product_id = $button.data('product_id');
 		var cart_item_key = $button.data('cart_item_key');
 
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_save_for_later');
-		} else {
-			ajaxUrl = '/?wc-ajax=cc_save_for_later';
-		}
-
-		var data = {
-			security: cc_ajax_script.nonce,
-			product_id: product_id,
-			cart_item_key: cart_item_key
-		};
+		$('#cc-cart').css('opacity', '0.3');
+		$button.addClass('cc_hide_btn');
+		$button.parent().find('.cc-loader').show();
 
 		$.ajax({
-			type: 'post',
-			dataType: 'json',
-			url: ajaxUrl,
-			data: data,
-			beforeSend: function(response) {
-				$('#cc-cart').css('opacity', '0.3');
-				$button.addClass('cc_hide_btn');
-				$button.parent().find('.cc-loader').show();
+			type: 'POST',
+			url: getWcAjaxUrl('cc_save_for_later'),
+			data: {
+				nonce: cc_ajax_script.nonce,
+				product_id: product_id,
+				cart_item_key: cart_item_key
 			},
-			complete: function(response) {
+			success: function(response) {
+				handleCartResponse(response);
+				var tabs = new Tabby('[data-tabs]');
+				tabs.toggle('#cc-saves');
+			},
+			complete: function() {
 				$button.removeClass('cc_hide_btn');
 				$button.parent().find('.cc-loader').hide();
 				$('#cc-cart').css('opacity', '1');
-			},
-			success: function(response) {
-				var fragments = response.fragments;
-				if (fragments) {
-					$.each(fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
-
-					$(document.body).trigger('wc_fragments_refreshed');
-				}
-
-				var tabs = new Tabby('[data-tabs]');
-				tabs.toggle('#cc-saves');
 			}
 		});
 	}
@@ -465,43 +326,44 @@
 	function cc_move_to_cart($button) {
 		var product_id = $button.data('product_id');
 
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_move_to_cart');
-		} else {
-			ajaxUrl = '/?wc-ajax=cc_move_to_cart';
-		}
+		$button.addClass('cc_hide_btn');
+		$button.parent().find('.cc-loader').show();
 
-		var data = {
-			security: cc_ajax_script.nonce,
-			product_id: product_id,
-		};
-
+		// First, add to cart using WooCommerce's standard method
 		$.ajax({
-			type: 'post',
-			dataType: 'json',
-			url: ajaxUrl,
-			data: data,
-			beforeSend: function(response) {
-				$button.addClass('cc_hide_btn');
-				$button.parent().find('.cc-loader').show();
+			type: 'POST',
+			url: getWcAjaxUrl('add_to_cart'),
+			data: {
+				product_id: product_id,
+				quantity: 1
 			},
 			success: function(response) {
 				if (response.error) {
 					$button.removeClass('cc_hide_btn');
 					$button.parent().find('.cc-loader').hide();
-
-					var tabs = new Tabby('[data-tabs]');
-					tabs.toggle('#cc-saves');
-
-					$('.cc-sfl-notice').show().html(response.error_message);
-					setTimeout(function() {
-							$('.cc-sfl-notice').html('').hide();
-						},
-						2000);
+					// Handle error - don't remove from SFL
 				} else {
-					cc_cart_screen('move_to_cart');
+					// Cart addition successful, now remove from SFL using existing method
+					$.ajax({
+						type: 'POST',
+						url: getWcAjaxUrl('cc_remove_item_from_sfl'),
+						data: {
+							nonce: cc_ajax_script.nonce,
+							product_id: product_id
+						},
+						success: function(sfl_response) {
+							cc_cart_screen('move_to_cart');
+						},
+						error: function() {
+							cc_cart_screen('move_to_cart');
+						}
+					});
 				}
+			},
+			error: function() {
+				$button.removeClass('cc_hide_btn');
+				$button.parent().find('.cc-loader').hide();
+				cc_refresh_cart();
 			}
 		});
 	}
@@ -514,50 +376,22 @@
 	function cc_remove_item_from_save_for_later(button) {
 		var productID = button.data('product_id');
 
-		let ajaxUrl;
-		if (cc_ajax_script.wc_ajax_url) {
-			ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_remove_item_from_sfl');
-		} else {
-			ajaxUrl = '/?wc-ajax=cc_remove_item_from_sfl';
-		}
-
-		var data = {
-			nonce: cc_ajax_script.nonce,
-			product_id: productID
-		};
+		$('#cc-saves').css('opacity', '0.3');
 
 		$.ajax({
-			type: 'post',
-			url: ajaxUrl,
-			data: data,
-			beforeSend: function(response) {
-				$('#cc-saves').css('opacity', '0.3');
-			},
-			complete: function(response) {
-				$('#cc-saves').css('opacity', '1');
+			type: 'POST',
+			url: getWcAjaxUrl('cc_remove_item_from_sfl'),
+			data: {
+				nonce: cc_ajax_script.nonce,
+				product_id: productID
 			},
 			success: function(response) {
-				var fragments = response.fragments;
-				if (fragments) {
-					$.each(fragments, function(key, value) {
-						$(key).replaceWith(value);
-					});
-
-					$(document.body).trigger('wc_fragments_refreshed');
-				}
-
-				var sfl_btn = $('a.cc-sfl-btn.remove_from_sfl_button');
-				if (sfl_btn.has('i.ccicon-heart-filled')) {
-					sfl_btn.find('i').removeClass('ccicon-heart-filled').addClass('ccicon-heart-empty');
-					var sfl_btn_text = sfl_btn.find('span').text();
-					if (sfl_btn_text.length > 0) {
-						sfl_btn.find('span').text('Save for later');
-					}
-					sfl_btn.removeClass('remove_from_sfl_button').addClass('cc_add_product_to_sfl');
-				}
-
+				handleCartResponse(response);
 				var tabs = new Tabby('[data-tabs]');
 				tabs.toggle('#cc-saves');
+			},
+			complete: function() {
+				$('#cc-saves').css('opacity', '1');
 			}
 		});
 	}
@@ -654,9 +488,11 @@
 
 			if (ccWindow.hasClass('visible')) {
 				$('.cc-overlay').hide();
+				$('.cc-window-wrapper').hide();
 				ccWindow.animate({'right': '-1000px'}, 'slow').removeClass('visible');
 			} else {
 				$('.cc-overlay').show();
+				$('.cc-window-wrapper').show();
 
 				$('.cc-cart-items').html(getSkeletonHTML());
 				
@@ -693,8 +529,10 @@
 			var currentQuantity = parseInt(quantityInput.val(), 10);
 			
 			if ($this.hasClass('cc_item_quantity_minus') && currentQuantity === 1) {
+				// When quantity is 1 and user clicks minus, remove the item instead
 				var removeButton = $this.closest('.cc-cart-product').find('a.remove_from_cart_button');
 				removeButton.trigger('click');
+				return false; // Prevent any further processing
 			} else {
 				cc_quantity_update_buttons($this);
 			}
@@ -865,114 +703,80 @@
 			}
 		});
 
-		/**
-		 * Custom Add to Cart implementation
-		 * 
-		 * Overrides WooCommerce default add-to-cart behavior to provide enhanced functionality:
-		 * - Handles both simple and variable products
-		 * - Supports product recommendations
-		 * - Handles different product types appropriately
-		 * - Provides visual feedback during the AJAX request
-		 */
-		$( document ).on( 'click', '.single_add_to_cart_button', function( e ) {
+		// Listen for add to cart form submissions
+		$(document.body).on('submit', 'form.cart', function(e) {
 			e.preventDefault();
 
-			if ( $( this ).hasClass( 'disabled' ) ) {
-				return;
-			}
+			var $form = $(this);
+			var $button = e.originalEvent && e.originalEvent.submitter 
+				? $(e.originalEvent.submitter) 
+				: $form.find('button[type="submit"]');
 
-			var $button = $( this );
+			// Create FormData object
+			var formData = new FormData($form[0]);
 			
-			if ($button.hasClass('product_type_subscription') && !$button.hasClass('product_type_variable-subscription')) {
-				return true;
+			// If product ID isn't in form, try to get it from URL
+			if(!formData.has('add-to-cart') && $form.attr('action')){
+				var matches = $form.attr('action').match(/add-to-cart=([0-9]+)/);
+				if(matches){
+					formData.append('add-to-cart', matches[1]);
+				}
 			}
 
-			if ( $( this ).hasClass( 'product_type_variable' ) || $( this ).hasClass( 'product_type_bundle' ) ||
-				$( this ).hasClass( 'product_type_external' ) ) {
-				window.location = $( this ).attr( 'href' );
-				return;
+			// Add button data if it has name/value
+			if($button.attr('name') && $button.attr('value')){
+				formData.append($button.attr('name'), $button.attr('value'));
 			}
 
-			var $form = $button.closest( 'form.cart' );
-			var productData = $form.serializeArray();
-			var hasProductId = false;
-			var hasVariationId = false;
+			// Add caddy_ajax parameter
+			formData.append('caddy_ajax', true);
 
-			$.each( productData, function( key, form_item ) {
-				if ( form_item.name === 'productID' || form_item.name === 'add-to-cart' ) {
-					if ( form_item.value ) {
-						hasProductId = true;
+			// Show loading state
+			$button.addClass('loading');
+			
+			// Add to cart via Ajax
+			$.ajax({
+				type: 'POST',
+				url: wc_add_to_cart_params.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart'),
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function(response) {
+					if (response.error) {
+						// Let WooCommerce handle the error display
+						return true;
 					}
-				}
-				if ( form_item.name === 'variation_id' ) {
-					if ( form_item.value && form_item.value !== '0' ) {
-						hasVariationId = true;
-					}
-				}
-			} );
-
-			if ( !hasProductId ) {
-				var productID = $button.data( 'product_id' );
-			}
-
-			if ( $button.attr( 'name' ) && $button.attr( 'name' ) == 'add-to-cart' && $button.attr( 'value' ) ) {
-				var productID = $button.attr( 'value' );
-			}
-
-			if ( productID ) {
-				productData.push( { name: 'add-to-cart', value: productID } );
-			}
-
-			if (!hasVariationId && $button.closest('.cc-pl-recommendations').length > 0) {
-				var variationId = $button.data('variation_id');
-				if (variationId) {
-					productData.push({ name: 'variation_id', value: variationId });
-				}
-			}
-
-			productData.push( { name: 'action', value: 'cc_add_to_cart' } );
-			
-			let ajaxUrl;
-			if (cc_ajax_script.wc_ajax_url) {
-				ajaxUrl = cc_ajax_script.wc_ajax_url.replace('%%endpoint%%', 'cc_add_to_cart');
-			} else {
-				ajaxUrl = '/?wc-ajax=cc_add_to_cart';
-			}
-
-			productData.push({ name: 'security', value: cc_ajax_script.nonce });
-
-			$( document.body ).trigger( 'adding_to_cart', [$button, productData] );
-			
-			$.ajax( {
-				type: 'post',
-				url: ajaxUrl,
-				data: $.param( productData ),
-				beforeSend: function( response ) {
-					$( '.cc-compass > .licon, .cc-compass > i' ).hide();
-					$( '.cc-compass > .cc-loader' ).show();
-					$button.removeClass( 'added' ).addClass( 'loading' );
-				},
-				success: function( response ) {
-					if ( response.error && response.product_url ) {
-						window.location.reload();
+					
+					// Update fragments
+					if (response.fragments) {
+						$.each(response.fragments, function(key, value) {
+							$(key).replaceWith(value);
+						});
 						$(document.body).trigger('wc_fragments_refreshed');
-					} else if ( response.error && response.message ) {
-						alert(response.message);
-						$button.removeClass('loading');
-					} else {
-						$(document.body).trigger('wc_fragments_refreshed');
-						$(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
 					}
-				},
-				complete: function( response ) {
-					$( '.cc-compass > .cc-loader' ).hide();
-					$( '.cc-compass > .licon, .cc-compass > i' ).show();
-					$button.addClass( 'added' ).removeClass( 'loading' );
-				}
-			} );
 
-			return false;
-		} );
+					// Open the cart drawer
+					$('.cc-compass').addClass('cc-compass-open');
+					$('body').addClass('cc-window-open');
+					$('.cc-overlay').show();
+					$('.cc-window-wrapper').show();
+					$('.cc-cart-items').html(getSkeletonHTML());
+					ccWindow.animate({'right': '0'}, 'slow').addClass('visible');
+					
+					// Load cart screen with productAdded flag
+					cc_cart_screen('yes');
+
+					// Ensure wrapper stays visible after fragments refresh
+					$(document.body).one('wc_fragments_refreshed', function() {
+						$('.cc-window-wrapper').show();
+					});
+				},
+				complete: function() {
+					$button.removeClass('loading');
+				}
+			});
+		});
+		
 	});
 
 })( jQuery );

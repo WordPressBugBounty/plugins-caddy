@@ -42,7 +42,7 @@ class caddy_cart_widget extends WP_Widget {
 			$cart_count    = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
 			$cc_cart_class = ( $cart_count == 0 ) ? 'cc_cart_count cc_cart_zero' : 'cc_cart_count';
 		}
-		$cart_icon_class = apply_filters( 'caddy_cart_bubble_icon', 'cp_icon_cart' );
+		$cart_icon_class = apply_filters( 'caddy_cart_bubble_icon', '<i class="ccicon-cart"></i>' );
 		$cart_items_link = sprintf(
 			'<a href="%1$s" class="cc_cart_items_list" aria-label="%2$s">%3$s %4$s <span class="%5$s">%6$s</span></a>',
 			'javascript:void(0);',

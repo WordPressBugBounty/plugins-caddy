@@ -6,7 +6,7 @@ Tags: caddy, side cart, cart, woocommerce, sticky cart
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -139,6 +139,9 @@ No. We've built Caddy with performance in mind and have fine tuned it for speed.
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.1.1 =
+* Fix: missing menu cart icon
 
 = 2.1.0 =
 * Improvement: Enhanced error handling and user feedback for cart operations with proper notice display

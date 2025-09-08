@@ -416,7 +416,7 @@ class Caddy_Public {
 
 		$cart_count      = '';
 		$cc_cart_class   = '';
-		$cart_icon_class = apply_filters( 'caddy_cart_bubble_icon', 'cp_icon_cart' );
+		$cart_icon_class = apply_filters( 'caddy_cart_bubble_icon', '<i class="ccicon-cart"></i>' );
 
 		if ( ! is_admin() ) {
 			$cart_count    = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;

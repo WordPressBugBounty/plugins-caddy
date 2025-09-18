@@ -6,6 +6,8 @@
 	//=============================================================================
 	var ccWindow = $( '.cc-window' );
 	var cc_quanity_update_send = true;
+	var expectingCartUpdate = false;
+
 
 	//=============================================================================
 	// UTILITY FUNCTIONS
@@ -66,7 +68,7 @@
 	
 	/**
 	 * Load and display the cart screen with updated fragments
-	 * 
+	 *
 	 * @param {string} productAdded - Optional parameter indicating if a product was added ('yes' or 'move_to_cart')
 	 */
 	function cc_cart_screen(productAdded = '') {
@@ -76,10 +78,12 @@
 
 		window.cc_cart_ajax = $.ajax({
 			type: 'POST',
-			url: getWcAjaxUrl('get_refreshed_fragments'),
+			url: cc_ajax_script.ajaxurl,
 			data: {
-				nonce: cc_ajax_script.nonce
+				action: 'caddy_get_cart_fragments',
+				_: new Date().getTime()
 			},
+			cache: false,
 			beforeSend: function() {
 				$('.cc-cart-items').html(getSkeletonHTML());
 			},
@@ -212,10 +216,12 @@
 
 		window.cc_refresh_ajax = $.ajax({
 			type: 'POST',
-			url: getWcAjaxUrl('get_refreshed_fragments'),
+			url: cc_ajax_script.ajaxurl,
 			data: {
-				nonce: cc_ajax_script.nonce
+				action: 'caddy_get_cart_fragments',
+				_: new Date().getTime()
 			},
+			cache: false,
 			success: handleCartResponse,
 			error: function(xhr, status, error) {
 				if (status !== 'abort') {
@@ -654,6 +660,22 @@
 		// Add a flag to prevent double handling
 		var handlingCartUpdate = false;
 
+		// Handle add to cart button clicks for guest users
+		$(document).on('click', '.add_to_cart_button, .single_add_to_cart_button', function() {
+			expectingCartUpdate = true;
+		});
+
+		// Handle WooCommerce cart updates for guest users
+		$('body').on('added_to_cart wc_fragments_refreshed', function(event) {
+			// If this is a fragments refresh after add-to-cart, open cart
+			if (event.type === 'wc_fragments_refreshed' && expectingCartUpdate) {
+				expectingCartUpdate = false;
+				if (!ccWindow.hasClass('visible')) {
+					$('.cc-compass').trigger('click');
+				}
+			}
+		});
+
 		/**
 		 * Handle WooCommerce 'added_to_cart' event
 		 * 
@@ -675,16 +697,16 @@
 			if (handlingCartUpdate) {
 				return;
 			}
-			
+
 			handlingCartUpdate = true;
-			
+
 			var cpDeskNotice = $('.cc-compass-desk-notice').val(),
 				cpMobNotice = $('.cc-compass-mobile-notice').val();
 
 			var isRecommendationButton = $(this_button).closest('.cc-pl-recommendations').length > 0;
 
 			if (isRecommendationButton) {
-				cc_cart_screen();
+				cc_cart_screen('', {fragments: fragments, cart_hash: cart_hash});
 			}
 
 			if (cc_ajax_script.is_mobile && !ccWindow.hasClass('visible') && 'mob_disable_notices' === cpMobNotice) {

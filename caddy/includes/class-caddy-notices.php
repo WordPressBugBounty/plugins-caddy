@@ -213,7 +213,12 @@ class Caddy_Admin_Notices {
 		if ($this->is_recent_install(14)) {
 			return;
 		}
-		
+
+		// Don't show if upgrade notice is still active (prioritize upgrade first)
+		if (!class_exists('Caddy_Premium') && PAnD::is_admin_notice_active('notice-caddy-upgrade-forever') && PAnD::is_admin_notice_active('notice-caddy-upgrade-30')) {
+			return;
+		}
+
 		// Skip on specific admin pages
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
 		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
@@ -285,6 +290,11 @@ class Caddy_Admin_Notices {
 	 * @return string HTML content for the limited-time offer
 	 */
 	public function get_limited_time_offer($coupon_code = '1E479230A6', $discount_text = '25% off Caddy Pro', $container_class = '', $unique_id = '') {
+		// Don't show countdown offers for recent installs (less than 14 days old)
+		if ($this->is_recent_install(14)) {
+			return '';
+		}
+
 		// Generate a unique ID if not provided
 		if (empty($unique_id)) {
 			$unique_id = 'caddy-' . wp_rand(1000, 9999);
@@ -411,8 +421,18 @@ class Caddy_Admin_Notices {
 			return;
 		}
 
+		// Don't show for recent installs (less than 14 days old)
+		if ($this->is_recent_install(14)) {
+			return;
+		}
+
 		// Check if Caddy Premium is not active
 		if (class_exists('Caddy_Premium')) {
+			return;
+		}
+
+		// Only show after newsletter opt-in is dismissed (newsletter has priority)
+		if (PAnD::is_admin_notice_active('notice-caddy-optin-forever') && PAnD::is_admin_notice_active('notice-caddy-optin-30')) {
 			return;
 		}
 
@@ -501,15 +521,13 @@ class Caddy_Admin_Notices {
 			return;
 		}
 
-		// Don't show for recent installs (less than 14 days old)
-		if ($this->is_recent_install(14)) {
-			return;
-		}
+		// Show immediately for all installs (no delay)
 
 		// Check if Caddy Premium is not active
 		if (class_exists('Caddy_Premium')) {
 			return;
 		}
+
 		
 		// Only show on specific admin pages
 		$screen = get_current_screen();

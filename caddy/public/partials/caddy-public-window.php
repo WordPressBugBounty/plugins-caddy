@@ -9,7 +9,7 @@ $display_name          = ! empty( $current_user->first_name ) ? $current_user->f
 $cart_contents_count   = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
 $shop_page_url         = get_permalink( wc_get_page_id( 'shop' ) );
 
-// Save for Later is enabled by default, only disable if premium plugin explicitly disables it
+// Save for Later setting - enabled by default
 $cc_enable_sfl_options = get_option( 'cc_enable_sfl_options', 'enabled' ); // Default to 'enabled'
 $cc_sfl_tab_flag       = ( 'enabled' === $cc_enable_sfl_options );
 ?>

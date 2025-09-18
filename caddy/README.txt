@@ -6,7 +6,7 @@ Tags: caddy, side cart, cart, woocommerce, sticky cart
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -43,7 +43,6 @@ A high performance, conversion-boosting side cart for your WooCommerce store tha
 * Let customers remove items from the side cart
 * Show a sticky floating cart button with a cart quantity indicator
 * Let customers add coupons in the side cart
-* Add save for later buttons on product pages
 * Add custom CSS to set your own styles and match your brand
 * WooCommerce HPOS support
 
@@ -72,7 +71,7 @@ Upgrade to Pro and unlock powerful customization features, analytics, recommenda
 * Set free shipping meter exclusions
 * Set product recommendation exclusions
 * Set product recommendation fall-back rules
-* Show save for later buttons on shop archives
+* Show save for later buttons on product pages and shop archives
 * Manage placement of save for later buttons on shop archives
 * Customize a welcome message to new users
 * Hide Caddy on specific pages
@@ -139,6 +138,13 @@ No. We've built Caddy with performance in mind and have fine tuned it for speed.
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 2.1.2 =
+* Improvement: Add cache-friendly cart fragments handler
+* Improvement: Enhance get_refreshed_fragments method for better session handling
+* Fix: Missing custom styles output on front-end
+* Fix: Remove nonce verification for read-only cart data
+* Feature: Added the option to disable 'save for later'
 
 = 2.1.1 =
 * Fix: missing menu cart icon

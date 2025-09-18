@@ -43,6 +43,21 @@ class Caddy_Public {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+		// Prevent WooCommerce mini cart block from registering
+		add_action('init', array($this, 'prevent_mini_cart_block_registration'), 20);
+
+	}
+
+	/**
+	 * Prevent WooCommerce mini cart block from registering
+	 *
+	 * @since 2.1.4
+	 */
+	public function prevent_mini_cart_block_registration() {
+		// Unregister the mini-cart block to prevent it from rendering
+		if (WP_Block_Type_Registry::get_instance()->is_registered('woocommerce/mini-cart')) {
+			unregister_block_type('woocommerce/mini-cart');
+		}
 	}
 
 	/**
@@ -122,12 +137,20 @@ class Caddy_Public {
 	 * Get refreshed cart fragments
 	 */
 	public function get_refreshed_fragments() {
-		check_ajax_referer('caddy', 'nonce');
 
-		// Make sure cart is loaded
-		if (function_exists('WC') && WC()->cart) {
-			WC()->cart->calculate_totals();
+		// Ensure WooCommerce is loaded and cart is available
+		if (!function_exists('WC') || !WC()->cart) {
+			wp_send_json_error('WooCommerce not available');
+			return;
 		}
+
+		// For guest users, ensure session is started
+		if (!is_user_logged_in()) {
+			WC()->session->set_customer_session_cookie(true);
+		}
+
+		// Make sure cart is loaded and calculated
+		WC()->cart->calculate_totals();
 
 		// Get fragments
 		$fragments = apply_filters('woocommerce_add_to_cart_fragments', array());
@@ -138,7 +161,8 @@ class Caddy_Public {
 		$fragments = $this->cc_cart_html_fragments($fragments);
 
 		wp_send_json(array(
-			'fragments' => $fragments
+			'fragments' => $fragments,
+			'cart_hash' => WC()->cart->get_cart_hash()
 		));
 	}
 
@@ -377,6 +401,12 @@ class Caddy_Public {
 	 */
 	public function cc_saved_items_shortcode( $atts ) {
 
+		// Check if save for later is enabled
+		$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options', 'enabled' );
+		if ( 'disabled' === $cc_enable_sfl_options ) {
+			return '';
+		}
+
 		$default = array(
 			'text' => '',
 			'icon' => '',
@@ -392,7 +422,7 @@ class Caddy_Public {
 			( 'yes' === $attributes['icon'] ) ? '<i class="ccicon-heart-empty"></i>' : '',
 			esc_html( $attributes['text'] )
 		);
-		
+
 		return $saved_items_link;
 	}
 
@@ -893,15 +923,9 @@ class Caddy_Public {
 	
 									<?php
 									if ( is_user_logged_in() ) {
-										$caddy_sfl_button = true;
-										$caddy = new Caddy();
-										$cc_premium_license_activation = $caddy->cc_check_premium_license_activation();
-										if ( $cc_premium_license_activation ) {
-											$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options' );
-											if ( 'disabled' === $cc_enable_sfl_options ) {
-												$caddy_sfl_button = false;
-											}
-										}
+										// Check save for later setting (works for both free and premium)
+										$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options', 'enabled' );
+										$caddy_sfl_button = ( 'enabled' === $cc_enable_sfl_options );
 										// Don't show save for later button for free gifts
 										if ( isset($cart_item['caddy_free_gift']) && $cart_item['caddy_free_gift'] ) {
 											$caddy_sfl_button = false;
@@ -995,6 +1019,12 @@ class Caddy_Public {
 			return $items;
 		}
 
+		// Check if save for later is enabled
+		$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options', 'enabled' );
+		if ( 'disabled' === $cc_enable_sfl_options ) {
+			return $items;
+		}
+
 		$menu_slug = '';
 		
 		// Handle cases where menu is passed as object or string
@@ -1073,6 +1103,34 @@ class Caddy_Public {
 	 */
 	public function validate_add_to_cart() {
 		return true;
+	}
+
+	/**
+	 * Exclude cart-related AJAX endpoints from caching
+	 *
+	 * @param array $uri Array of URIs to exclude from caching
+	 * @return array Modified array of URIs
+	 */
+	public function exclude_cart_endpoints_from_cache($uri) {
+		$cart_endpoints = array(
+			'/\?wc-ajax=add_to_cart',
+			'/\?wc-ajax=remove_from_cart',
+			'/\?wc-ajax=cc_remove_item_from_cart',
+			'/admin-ajax\.php\?action=cc_remove_item_from_cart',
+			'/admin-ajax\.php\?action=caddy_get_cart_fragments'
+		);
+
+		return array_merge($uri, $cart_endpoints);
+	}
+
+	/**
+	 * Cache-friendly cart fragments handler
+	 * Uses admin-ajax.php instead of wc-ajax for better cache compatibility
+	 */
+	public function caddy_get_cart_fragments() {
+		// No nonce verification needed for read-only cart data
+		// This improves caching compatibility
+		$this->get_refreshed_fragments();
 	}
 
 }

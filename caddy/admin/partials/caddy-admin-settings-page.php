@@ -53,33 +53,29 @@ function caddy_display_pro_label() {
                     <?php echo esc_html( __( 'Recommendations', 'caddy' ) ); ?>
                 </a>
             </li>
+            <li class="<?php echo $active_tab === 'cc-sfl-settings' ? 'active' : ''; ?>">
+                <a href="#cc-sfl-settings">
+                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-sfl.svg'; ?>" />
+                    <?php echo esc_html( __( 'Save for Later', 'caddy' ) ); ?>
+                </a>
+            </li>
             <li class="<?php echo $active_tab === 'cc-display-settings' ? 'active' : ''; ?>">
                 <a href="#cc-display-settings">
                     <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-display.svg'; ?>" />
-                    <?php echo esc_html( __( 'Display', 'caddy' ) ); ?> 
-                    <?php 
+                    <?php echo esc_html( __( 'Display', 'caddy' ) ); ?>
+                    <?php
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
-echo caddy_display_pro_label(); 
+echo caddy_display_pro_label();
 ?>
                 </a>
             </li>
             <li>
                 <a href="#cc-offers-settings">
                     <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-offers.svg'; ?>" />
-                    <?php echo esc_html( __( 'Offers', 'caddy' ) ); ?> 
-                    <?php 
+                    <?php echo esc_html( __( 'Offers', 'caddy' ) ); ?>
+                    <?php
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
-echo caddy_display_pro_label(); 
-?>
-                </a>
-            </li>
-            <li>
-                <a href="#cc-sfl-settings">
-                    <img src="<?php echo esc_url( plugin_dir_url( dirname( __FILE__ ) ) ) . 'img/icon-sfl.svg'; ?>" />
-                    <?php echo esc_html( __( 'Save for Later', 'caddy' ) ); ?> 
-                    <?php 
-// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Function returns escaped HTML
-echo caddy_display_pro_label(); 
+echo caddy_display_pro_label();
 ?>
                 </a>
             </li>
@@ -126,14 +122,14 @@ echo caddy_display_pro_label();
             <div id="cc-recommendations-settings" class="tab <?php echo $active_tab === 'cc-recommendations-settings' ? 'active' : ''; ?>">
 				<?php include plugin_dir_path( __FILE__ ) . 'settings/recommendations.php'; ?>
             </div>
+            <div id="cc-sfl-settings" class="tab <?php echo $active_tab === 'cc-sfl-settings' ? 'active' : ''; ?>">
+				<?php include plugin_dir_path( __FILE__ ) . 'settings/save-for-later.php'; ?>
+            </div>
             <div id="cc-display-settings" class="tab <?php echo $active_tab === 'cc-display-settings' ? 'active' : ''; ?>">
 				<?php include plugin_dir_path( __FILE__ ) . 'settings/display.php'; ?>
             </div>
             <div id="cc-offers-settings" class="tab <?php echo $active_tab === 'cc-offers-settings' ? 'active' : ''; ?>">
 				<?php include plugin_dir_path( __FILE__ ) . 'settings/offers.php'; ?>
-            </div>
-            <div id="cc-sfl-settings" class="tab <?php echo $active_tab === 'cc-sfl-settings' ? 'active' : ''; ?>">
-				<?php include plugin_dir_path( __FILE__ ) . 'settings/save-for-later.php'; ?>
             </div>
             <div id="cc-welcome-message-settings" class="tab <?php echo $active_tab === 'cc-welcome-message-settings' ? 'active' : ''; ?>">
 				<?php include plugin_dir_path( __FILE__ ) . 'settings/welcome.php'; ?>

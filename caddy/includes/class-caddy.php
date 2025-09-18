@@ -235,12 +235,22 @@ class Caddy {
 		$this->loader->add_action('wp_ajax_nopriv_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments');
 		$this->loader->add_action('wp_ajax_get_refreshed_fragments', $caddy_public_obj, 'get_refreshed_fragments');
 
+		// Cache-friendly cart fragments handler
+		$this->loader->add_action('wp_ajax_nopriv_caddy_get_cart_fragments', $caddy_public_obj, 'caddy_get_cart_fragments');
+		$this->loader->add_action('wp_ajax_caddy_get_cart_fragments', $caddy_public_obj, 'caddy_get_cart_fragments');
+
 		// Enqueue scripts and styles
 		$this->loader->add_action('wp_enqueue_scripts', $caddy_public_obj, 'enqueue_styles');
 		$this->loader->add_action('wp_enqueue_scripts', $caddy_public_obj, 'enqueue_scripts');
 
 		// Load widget
 		$this->loader->add_action('wp_footer', $caddy_public_obj, 'cc_load_widget');
+
+		// Load custom CSS
+		$this->loader->add_action('wp_head', $caddy_public_obj, 'cc_load_custom_css');
+
+		// Exclude cart AJAX endpoints from caching
+		$this->loader->add_filter('rocket_cache_reject_uri', $caddy_public_obj, 'exclude_cart_endpoints_from_cache');
 
 		// Add action for ajaxify cart count
 		$this->loader->add_filter( 'woocommerce_add_to_cart_fragments', $caddy_public_obj, 'cc_compass_cart_count_fragments' );
@@ -334,19 +344,18 @@ class Caddy {
 	 * @return bool
 	 */
 	public function cc_check_premium_license_activation() {
-		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
-		// Check if premium plugin is active or not
-		if ( ! class_exists( 'Caddy_Premium' ) ||
-		     ( isset( $caddy_license_status ) && ! empty( $caddy_license_status ) ) ) {
-			// Return if the license key is valid
-			if ( 'valid' === $caddy_license_status ) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
+		// First check if premium plugin class exists
+		if ( ! class_exists( 'Caddy_Premium' ) ) {
 			return false;
 		}
+
+		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
+		// Return if the license key is valid
+		if ( 'valid' === $caddy_license_status ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

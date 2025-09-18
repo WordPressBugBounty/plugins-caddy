@@ -101,7 +101,7 @@ class caddy_cart_widget extends WP_Widget {
 		$instance                      = array();
 		$instance['cart_widget_title'] = ( ! empty( $new_instance['cart_widget_title'] ) ) ? wp_strip_all_tags( $new_instance['cart_widget_title'] ) : '';
 		$instance['cart_text']         = ( ! empty( $new_instance['cart_text'] ) ) ? wp_strip_all_tags( $new_instance['cart_text'] ) : '';
-		$instance['cc_cart_icon']      = $new_instance['cc_cart_icon'];
+		$instance['cc_cart_icon']      = isset( $new_instance['cc_cart_icon'] ) ? $new_instance['cc_cart_icon'] : '';
 
 		return $instance;
 	}

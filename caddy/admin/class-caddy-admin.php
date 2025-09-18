@@ -138,6 +138,7 @@ class Caddy_Admin {
 			'caddy-addons',
 			[ $this, 'caddy_addons_page_callback' ]
 		);
+
 	}
 
 	/**
@@ -153,6 +154,15 @@ class Caddy_Admin {
 	public function caddy_addons_page_callback() {
 		require_once plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-addons-page.php';
 	}
+
+	/**
+	 * Check if Caddy Pro is active and licensed.
+	 */
+	private function is_pro_active() {
+		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
+		return class_exists( 'Caddy_Premium' ) && 'valid' === $caddy_license_status;
+	}
+
 
 	/**
 	 * Dismiss the welcome notice.
@@ -663,7 +673,18 @@ class Caddy_Admin {
 	 * Process save for later settings
 	 */
 	private function process_sfl_settings() {
-		
+
+		// Only save the enable/disable setting if Pro is not active
+		$caddy_license_status = get_option('caddy_premium_edd_license_status');
+		if (!isset($caddy_license_status) || $caddy_license_status !== 'valid') {
+			// Save the enable/disable save for later setting
+			if (isset($_POST['cc_enable_sfl_options'])) {
+				update_option('cc_enable_sfl_options', 'enabled');
+			} else {
+				update_option('cc_enable_sfl_options', 'disabled');
+			}
+		}
+
 		// Process any additional save for later settings fields
 		do_action('caddy_save_sfl_settings');
 	}

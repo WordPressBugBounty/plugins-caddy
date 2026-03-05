@@ -3,16 +3,18 @@
  * Plugin Name:       Caddy - Smart Side Cart for WooCommerce
  * Plugin URI:        https://usecaddy.com
  * Description:       A high performance, conversion-boosting side cart for your WooCommerce store that improves the shopping experience & helps grow your sales.
- * Version:           2.1.2
+ * Version:           3.0.0
  * Author:            Tribe Interactive
  * Author URI:        https://usecaddy.com
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       caddy
  * Domain Path:       /languages
+ * Requires at least: 6.5
+ * Requires PHP:      7.4
  *
  * WC requires at least: 7.0
- * WC tested up to: 9.8.2
+ * WC tested up to: 10.2.4
  */
 
 // If this file is called directly, abort.
@@ -24,7 +26,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Define all constants for the plugin
  */
 if ( ! defined( 'CADDY_VERSION' ) ) {
-    define( 'CADDY_VERSION', '2.1.2' );
+    define( 'CADDY_VERSION', '3.0.0' );
 }
 if ( ! defined( 'CADDY_PLUGIN_FILE' ) ) {
     define( 'CADDY_PLUGIN_FILE', __FILE__ );
@@ -33,28 +35,33 @@ if ( ! defined( 'CADDY_DIR_URL' ) ) {
     define( 'CADDY_DIR_URL', untrailingslashit( plugins_url( '/', CADDY_PLUGIN_FILE ) ) );
 }
 
-$wc_plugin_flag = false;
+// If Caddy Premium is active in this request, bail out silently.
+// Premium replaces all free functionality. This prevents fatal errors
+// from duplicate block/store/script module registration.
+if ( defined( 'CADDY_PREMIUM_VERSION' ) || defined( 'CADDY_PREMIUM_PLUGIN_FILE' ) ) {
+    return;
+}
+
 if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
     require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 }
 
+$caddy_wc_missing = false;
 if ( is_multisite() ) {
-    // this plugin is network activated - WC must be network activated
     if ( is_plugin_active_for_network( plugin_basename( __FILE__ ) ) ) {
-        $wc_plugin_flag = is_plugin_active_for_network( 'woocommerce/woocommerce.php' ) ? false : true;
-        // this plugin is locally activated - WC can be network or locally activated
+        $caddy_wc_missing = ! is_plugin_active_for_network( 'woocommerce/woocommerce.php' );
     } else {
-        $wc_plugin_flag = is_plugin_active( 'woocommerce/woocommerce.php' ) ? false : true;
+        $caddy_wc_missing = ! is_plugin_active( 'woocommerce/woocommerce.php' );
     }
-} else { // this plugin runs on a single site
-    $wc_plugin_flag = is_plugin_active( 'woocommerce/woocommerce.php' ) ? false : true;
+} else {
+    $caddy_wc_missing = ! is_plugin_active( 'woocommerce/woocommerce.php' );
 }
 
-if ( $wc_plugin_flag === true ) {
+if ( $caddy_wc_missing ) {
     add_action( 'admin_notices', 'caddy_wc_requirements_error' );
-
     return;
 }
+unset( $caddy_wc_missing );
 
 /**
  * If WC requirements are not match
@@ -143,7 +150,7 @@ run_caddy();
  */
 function caddy_add_settings_link( $caddy_links ) {
 
-    $caddy_links = array_merge( array( '<a href="' . esc_url( admin_url( '/admin.php?page=caddy&amp;tab=settings' ) ) . '">' . __( 'Settings', 'caddy' ) . '</a>' ), $caddy_links );
+    $caddy_links = array_merge( array( '<a href="' . esc_url( admin_url( '/admin.php?page=caddy&amp;tab=settings' ) ) . '">' . esc_html__( 'Settings', 'caddy' ) . '</a>' ), $caddy_links );
 
     return $caddy_links;
 }

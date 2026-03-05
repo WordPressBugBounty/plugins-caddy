@@ -7,7 +7,8 @@
  * @package    Caddy
  * @subpackage Caddy/includes
  */
-class caddy_cart_widget extends WP_Widget {
+if ( ! class_exists( 'caddy_cart_widget' ) ) {
+	class caddy_cart_widget extends WP_Widget {
 
 	function __construct() {
 		parent::__construct(
@@ -42,7 +43,17 @@ class caddy_cart_widget extends WP_Widget {
 			$cart_count    = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
 			$cc_cart_class = ( $cart_count == 0 ) ? 'cc_cart_count cc_cart_zero' : 'cc_cart_count';
 		}
-		$cart_icon_class = apply_filters( 'caddy_cart_bubble_icon', '<i class="ccicon-cart"></i>' );
+		$allowed_svg = array(
+			'svg'  => array( 'xmlns' => true, 'viewbox' => true, 'width' => true, 'height' => true, 'fill' => true, 'stroke' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'style' => true, 'class' => true, 'aria-hidden' => true ),
+			'path' => array( 'd' => true, 'stroke-width' => true, 'fill' => true, 'stroke' => true ),
+			'circle' => array( 'cx' => true, 'cy' => true, 'r' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true ),
+			'rect' => array( 'x' => true, 'y' => true, 'width' => true, 'height' => true, 'rx' => true, 'ry' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true ),
+			'line' => array( 'x1' => true, 'y1' => true, 'x2' => true, 'y2' => true, 'stroke' => true, 'stroke-width' => true ),
+			'polyline' => array( 'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true ),
+			'polygon' => array( 'points' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true ),
+			'g' => array( 'fill' => true, 'stroke' => true, 'transform' => true ),
+		);
+		$cart_icon_class = wp_kses( apply_filters( 'caddy_cart_bubble_icon', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M5.75 1.9166666666666667 2.875 5.75v13.416666666666668a1.9166666666666667 1.9166666666666667 0 0 0 1.9166666666666667 1.9166666666666667h13.416666666666668a1.9166666666666667 1.9166666666666667 0 0 0 1.9166666666666667 -1.9166666666666667V5.75l-2.875 -3.8333333333333335z" stroke-width="1.2"></path><path d="m2.875 5.75 17.25 0" stroke-width="1.2"></path><path d="M15.333333333333334 9.583333333333334a3.8333333333333335 3.8333333333333335 0 0 1 -7.666666666666667 0" stroke-width="1.2"></path></svg>' ), $allowed_svg );
 		$cart_items_link = sprintf(
 			'<a href="%1$s" class="cc_cart_items_list" aria-label="%2$s">%3$s %4$s <span class="%5$s">%6$s</span></a>',
 			'javascript:void(0);',
@@ -106,6 +117,7 @@ class caddy_cart_widget extends WP_Widget {
 		return $instance;
 	}
 
+	}
 }
 
 /**

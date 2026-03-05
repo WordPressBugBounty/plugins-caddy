@@ -20,6 +20,8 @@ $cc_affiliate_id = get_option( 'cc_affiliate_id' );
 $cc_cart_selected_menu = get_option('cc_menu_cart_widget');
 $cc_saves_selected_menu = get_option('cc_menu_saves_widget');
 
+$cc_browse_products_url = get_option('cc_browse_products_url', '');
+
 $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 
 ?>
@@ -55,6 +57,15 @@ $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 				<td>
 					<input type="text" name="cc_affiliate_id" id="cc_affiliate_id" value="<?php echo esc_attr( $cc_affiliate_id ); ?>">
 					<p class="description"><?php echo esc_html( __( 'Enter money from our Caddy branding link!', 'caddy' ) ); ?> <a href="<?php echo esc_url( 'https://usecaddy.com/become-an-affiliate' ); ?>" target="_blank"><?php echo esc_html__( 'Click here', 'caddy' ); ?></a> <?php echo esc_html( __( 'to sign up', 'caddy' ) ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
+					<label for="cc_browse_products_url"><?php echo esc_html( __( 'Browse Products URL', 'caddy' ) ); ?></label>
+				</th>
+				<td>
+					<input type="url" name="cc_browse_products_url" id="cc_browse_products_url" value="<?php echo esc_attr( $cc_browse_products_url ); ?>" placeholder="<?php echo esc_attr( get_permalink( wc_get_page_id( 'shop' ) ) ); ?>">
+					<p class="description"><?php echo esc_html( __( 'Customize where the "Browse Products" button links to on empty cart screens. Leave blank to use the default shop page.', 'caddy' ) ); ?></p>
 				</td>
 			</tr>
 			<?php do_action( 'caddy_after_caddy_branding_row' ); ?>

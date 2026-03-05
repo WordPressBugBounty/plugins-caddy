@@ -71,6 +71,9 @@ class Caddy_Admin_Notices {
 		// Display opt-in notice
 		add_action( 'admin_notices', array( $this, 'display_optin_notice' ) );
 		
+		// ConvertKit email subscribe AJAX handler
+		add_action( 'wp_ajax_caddy_subscribe_email', array( $this, 'handle_email_subscribe' ) );
+		
 		// Update version on plugin updates
 		add_action( 'upgrader_process_complete', array( $this, 'update_version_on_upgrade' ), 10, 2 );
 	}
@@ -551,26 +554,22 @@ class Caddy_Admin_Notices {
 			</div>
 			<div class="kt-right">
 				<div class="welcome-heading">
-					<?php echo esc_html( __( 'Join the Caddy VIP list and get a special offer', 'caddy' ) ); ?>
+					<?php echo esc_html( __( 'Get WooCommerce cart tips that actually increase revenue', 'caddy' ) ); ?>
 				</div>
 				<p>
-					<?php echo esc_html( __( 'Join our list for exclusive offers, proven ways to increase cart conversions, and practical tactics to grow your store\'s sales. No fluff. Just actionable insights — and you can unsubscribe anytime.', 'caddy' ) ); ?>
+					<?php echo esc_html( __( 'Short, actionable emails on cart optimization, conversion tactics, and WooCommerce growth. No fluff. Unsubscribe anytime.', 'caddy' ) ); ?>
 				</p>
-				<form id="caddy-email-signup" class="cc-klaviyo-default-styling" action="//manage.kmail-lists.com/subscriptions/subscribe"
-				      data-ajax-submit="//manage.kmail-lists.com/ajax/subscriptions/subscribe" method="GET" target="_blank" validate="validate">
-					<input type="hidden" name="g" value="YctmsM">
-					<input type="hidden" name="$fields" value="$consent">
-					<input type="hidden" name="$list_fields" value="$consent">
+				<form id="caddy-email-signup" class="cc-klaviyo-default-styling" method="post">
 					<div class="cc-klaviyo-field-group">
-						<input class="" type="text" value="" name="first_name" id="k_id_first_name" placeholder="Your First Name">
-						<input class="" type="email" value="" name="email" id="k_id_email" placeholder="Your email" required>
+						<input type="text" value="" name="first_name" id="ck_first_name" placeholder="<?php echo esc_attr__( 'Your First Name', 'caddy' ); ?>">
+						<input type="email" value="" name="email_address" id="ck_email" placeholder="<?php echo esc_attr__( 'Your email', 'caddy' ); ?>" required>
 						<div class="cc-klaviyo-field-group cc-klaviyo-form-actions cc-klaviyo-opt-in">
-							<input type="checkbox" name="$consent" id="cc-consent-email" value="email" required>
+							<input type="checkbox" name="consent" id="cc-consent-email" required>
 							<label for="cc-consent-email">
 								<?php
 								echo sprintf(
 									'%1$s <a href="%2$s" target="_blank">%3$s</a> %4$s <a href="%5$s" target="_blank">%6$s</a>.',
-									esc_html__( 'By joining our VIP email list, you agree to receive marketing communications from us and agree to our ', 'caddy' ),
+									esc_html__( 'By signing up, you agree to receive marketing emails and agree to our ', 'caddy' ),
 									esc_url( 'https://www.usecaddy.com/terms-and-conditions/' ),
 									esc_html__( 'Terms', 'caddy' ),
 									esc_html__( ' &amp; ', 'caddy' ),
@@ -582,33 +581,89 @@ class Caddy_Admin_Notices {
 						</div>
 					</div>
 					<div class="cc-klaviyo-messages">
-						<div class="success_message" style="display:none;"></div>
-						<div class="error_message" style="display:none;"></div>
+						<div class="success_message" style="display:none;"><?php echo esc_html__( "You're in! Check your inbox.", 'caddy' ); ?></div>
+						<div class="error_message" style="display:none;"><?php echo esc_html__( 'Something went wrong. Please try again.', 'caddy' ); ?></div>
 					</div>
 					<div class="cc-klaviyo-form-actions">
-						<button type="submit" class="cc-klaviyo-submit-button button button-primary"><?php echo esc_html( __( 'Claim my special offer', 'caddy' ) ); ?></button>
+						<button type="submit" class="cc-klaviyo-submit-button button button-primary"><?php echo esc_html( __( 'Subscribe', 'caddy' ) ); ?></button>
 					</div>
 				</form>
-				<?php
-				// Enqueue Klaviyo script properly
-				wp_enqueue_script('klaviyo-subscribe', '//www.klaviyo.com/media/js/public/klaviyo_subscribe.js', array(), CADDY_VERSION, true);
-				
-				// Add inline script for Klaviyo initialization
-				$klaviyo_init_script = "
-					KlaviyoSubscribe.attachToForms( '#caddy-email-signup', {
-						hide_form_on_success: true,
-						success_message: 'Thank you for signing up! Your special offer is on its way!',
-						extra_properties: {
-							\$source: 'CaddyPluginSignup',
-							Website: '" . esc_url( get_site_url() ) . "',
-						}
-					} );
-				";
-				wp_add_inline_script('klaviyo-subscribe', $klaviyo_init_script);
-				?>
+				<script type="text/javascript">
+					jQuery(document).ready(function($) {
+						$('#caddy-email-signup').on('submit', function(e) {
+							e.preventDefault();
+							var $form = $(this);
+							var $button = $form.find('.cc-klaviyo-submit-button');
+							var $success = $form.find('.success_message');
+							var $error = $form.find('.error_message');
+							var buttonText = $button.text();
+
+							$button.prop('disabled', true).text('<?php echo esc_js( __( 'Subscribing...', 'caddy' ) ); ?>');
+							$error.hide();
+
+							$.ajax({
+								url: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',
+								type: 'POST',
+								dataType: 'json',
+								data: {
+									action: 'caddy_subscribe_email',
+									nonce: '<?php echo esc_js( wp_create_nonce( 'caddy_subscribe_nonce' ) ); ?>',
+									email_address: $form.find('[name="email_address"]').val(),
+									first_name: $form.find('[name="first_name"]').val()
+								},
+								success: function(response) {
+									if (response.success) {
+										$form.find('.cc-klaviyo-field-group, .cc-klaviyo-form-actions').slideUp(200);
+										$success.slideDown(200);
+									} else {
+										$error.slideDown(200);
+										$button.prop('disabled', false).text(buttonText);
+									}
+								},
+								error: function() {
+									$error.slideDown(200);
+									$button.prop('disabled', false).text(buttonText);
+								}
+							});
+						});
+					});
+				</script>
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Handle ConvertKit email subscription via admin AJAX
+	 */
+	public function handle_email_subscribe() {
+		check_ajax_referer( 'caddy_subscribe_nonce', 'nonce' );
+
+		$email = isset( $_POST['email_address'] ) ? sanitize_email( wp_unslash( $_POST['email_address'] ) ) : '';
+		$first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
+
+		if ( empty( $email ) || ! is_email( $email ) ) {
+			wp_send_json_error( 'Invalid email address.' );
+		}
+
+		$response = wp_remote_post( 'https://app.convertkit.com/forms/6803459/subscriptions', array(
+			'body'    => array(
+				'email_address' => $email,
+				'first_name'    => $first_name,
+			),
+			'timeout' => 15,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( $response->get_error_message() );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		if ( $code >= 200 && $code < 300 ) {
+			wp_send_json_success();
+		} else {
+			wp_send_json_error( 'Subscription failed.' );
+		}
 	}
 
 }

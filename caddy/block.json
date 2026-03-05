@@ -1,0 +1,41 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "caddy/cart",
+	"version": "3.0.0",
+	"title": "Caddy Smart Side Cart",
+	"category": "woocommerce",
+	"icon": "cart",
+	"description": "A high performance, conversion-boosting side cart for your WooCommerce store.",
+	"keywords": [
+		"cart",
+		"woocommerce",
+		"side cart",
+		"shopping cart",
+		"ecommerce"
+	],
+	"textdomain": "caddy",
+	"attributes": {
+		"cartText": {
+			"type": "string",
+			"default": "Cart"
+		},
+		"showIcon": {
+			"type": "boolean",
+			"default": true
+		},
+		"autoOpen": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"supports": {
+		"html": false,
+		"interactivity": true,
+		"multiple": false
+	},
+	"render": "file:./render.php",
+	"viewScriptModule": "caddy/cart",
+	"editorScript": "file:./editor.js",
+	"editorStyle": "file:./editor.css"
+}

@@ -4,27 +4,36 @@ Author URI: https://www.usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
 Tags: caddy, side cart, cart, woocommerce, sticky cart
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 6.9.1
 Requires PHP: 7.4
-Stable tag: 2.1.2
+Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A high performance, conversion-boosting side cart for your WooCommerce store that improves your store's shopping experience & helps grow your sales.
+A high performance side cart for WooCommerce built on the WordPress Interactivity API and WooCommerce Store API. Boost conversions with product recommendations, a free shipping meter, and save for later.
 
 == Description ==
 
-**[Caddy](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** is a **high performance, conversion-boosting side cart for your WooCommerce store** that improves your store's shopping experience & helps grow your sales. 
+**[Caddy](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** is a **high performance, conversion-boosting side cart for your WooCommerce store** that improves your store's shopping experience & helps grow your sales.
+
+= Built on Modern WordPress APIs =
+
+Caddy v3 is built from the ground up on the **WordPress Interactivity API** and the **WooCommerce Store API** — the same modern foundations that power WooCommerce's own cart and checkout blocks. This means:
+
+* **Instant cart updates** — no full-page reloads or legacy AJAX. Cart changes are reactive and immediate.
+* **Server-synced state** — every cart operation goes through the official WooCommerce Store API, ensuring accurate prices, tax calculations, and stock validation.
+* **Lightweight** — no jQuery dependency. Caddy uses native ES modules loaded as WordPress script modules for the smallest possible footprint.
+* **Future-proof** — built on the same APIs WordPress and WooCommerce are investing in long-term.
 
 **Increase average order sizes** with Caddy's built-in product recommendations, **reduce cart abandonment** with a free shipping meter, and **encourage repeat shoppers** with a saved product list.
 
-⚡️ **Optimized for performance**
+⚡️ **Built on WordPress Interactivity API &amp; WooCommerce Store API**
 📱 **Mobile friendly responsive design**
-🔄 **Real-time (ajax) cart updates**
-🌏 **Translation ready**
+🔄 **Real-time reactive cart updates**
+🌏 **Translated into 6 languages**
 ⚔️ **Cross-browser and cross-OS battle tested**
 🔒 **Secure and reliable**
-💡 **Lightweight and easy to use**
+💡 **Lightweight — no jQuery dependency**
 💰 **Boosts sales and average order value**
 🔄 **Works with most themes and plugins**
 🎁 **Apply cart discounts and promo codes**
@@ -33,24 +42,36 @@ A high performance, conversion-boosting side cart for your WooCommerce store tha
 
 = Caddy Lite features: =
 
-* Add an (ajax powered) sticky side cart across your whole site
-* Show a free shipping meter in the side cart that lets customers know when they qualify for free shipping
-* Show product recommendations when customers add products to their cart
-* Let customers save products for later
-* Add cart and saved list links to your navigation menu (short codes + widgets)
-* Let customers add products & manage their cart items without reloading the page
-* Let customers manage cart quantities in the side cart
-* Let customers remove items from the side cart
-* Show a sticky floating cart button with a cart quantity indicator
-* Let customers add coupons in the side cart
-* Add custom CSS to set your own styles and match your brand
+* Sticky side cart powered by the WordPress Interactivity API — available across your whole site
+* Real-time cart operations via the WooCommerce Store API — no legacy AJAX
+* Free shipping meter that shows customers how close they are to free shipping
+* Product recommendations when customers add products to their cart
+* Save products for later (logged-in users)
+* Cart and saved list links for your navigation menu (shortcodes + widgets)
+* Add products &amp; manage cart items without reloading the page
+* Manage cart quantities directly in the side cart
+* Sticky floating cart button with a cart quantity indicator
+* Apply coupon codes in the side cart
+* Custom CSS to match your brand
 * WooCommerce HPOS support
+* No jQuery dependency — pure ES modules
+
+= Supported Languages =
+
+Caddy is translated into the following languages:
+
+* English (default)
+* German (Deutsch)
+* French (Français)
+* Italian (Italiano)
+* Brazilian Portuguese (Português do Brasil)
+* Spanish (Español)
 
 = Compatibility =
 
 Caddy is compatible with most themes and plugins. The following themes and plugins have been tested and confirmed working:
 
-* Plugins: WooCommerce Subscriptions, WooCommerce Product Bundles, All Products For WooCommerceSubscriptions, Elementor, Divi
+* Plugins: WooCommerce Subscriptions, WooCommerce Product Bundles, All Products For WooCommerce Subscriptions, Elementor, Divi
 * Themes: GeneratePress, Flatsome, Astra, Hello Elementor, Kadence, OceanWP, Storefront
 
 == Upgrade to Pro ==
@@ -62,8 +83,8 @@ Upgrade to Pro and unlock powerful customization features, analytics, recommenda
 * 7 different cart icon styles & 30+ custom color options
 * Cart tracking & analytics dashboard
 * Multi-tier reward levels with free shipping, free gifts, and discounts
-* Workflow automation engine
-* In-cart annoucenment bar
+* Workflow automation engine — trigger targeted product recommendations, popup notifications, and auto-apply coupons based on cart contents, cart total, product categories, page, and customer role
+* In-cart announcement bar
 * In-cart product subscription upsells using with the All Products for WooCommerce Subscriptions extension
 * Change the cart bubble position on the screen
 * Display notices when adding to cart or adding/removing saved products
@@ -138,6 +159,18 @@ No. We've built Caddy with performance in mind and have fine tuned it for speed.
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 3.0.0 =
+* MAJOR: Complete rewrite using the WordPress Interactivity API for reactive, instant cart updates
+* MAJOR: All cart operations now use the WooCommerce Store API — no legacy AJAX
+* MAJOR: Removed jQuery dependency — pure ES modules for a dramatically smaller footprint
+* MAJOR: Cart displays instantly on page load with server-rendered initial state (no loading delay)
+* Improvement: Faster and more reliable save for later feature
+* Improvement: Replaced Slick Slider & Tabby JavaScript libraries with lightweight implementations
+* Improvement: Better compatibility with checkout plugins and themes
+* Improvement: Refactored cart items display to separate logic from template for better maintainability
+* Improvement: Enhanced save for later functionality with dedicated refresh endpoint for reliable updates
+* Performance: Optimized code for better overall site performance
 
 = 2.1.2 =
 * Improvement: Add cache-friendly cart fragments handler

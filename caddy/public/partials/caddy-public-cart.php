@@ -20,15 +20,14 @@ $cart_total = 0;
 // Get cart subtotal excluding virtual products
 foreach (WC()->cart->get_cart() as $cart_item) {
     $product = $cart_item['data'];
-    
+
     // Skip virtual products in the free shipping calculation
     if ($product->is_virtual()) {
         continue;
     }
-    
-    $item_total = WC()->cart->get_product_subtotal($product, $cart_item['quantity']);
-    $item_total = preg_replace('/[^0-9.]/', '', $item_total); // Remove currency symbols
-    $cart_total += floatval($item_total);
+
+    // Tax-aware price calculation using WC display settings
+    $cart_total += floatval( wc_get_price_to_display( $product ) ) * $cart_item['quantity'];
 }
 
 // Calculate the remaining amount for free shipping
@@ -83,15 +82,49 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 
 ?>
 
-<div class="cc-cart-container">
+<div class="cc-cart-container" data-wp-interactive="caddy/cart" data-wp-init="callbacks.init">
 
 	<?php do_action( 'caddy_before_cart_screen_data' ); ?>
 
 	<div class="cc-notice"><i class="ccicon-close"></i></div>
 	
 	<?php if ( ! empty( $cc_free_shipping_amount ) && $cc_free_shipping_bar ) { ?>
-		<div class="cc-fs cc-text-left">
-			<?php do_action( 'caddy_free_shipping_title_text' ); // Free shipping title html ?>
+		<div class="cc-fs cc-text-left" data-free-shipping-amount="<?php echo esc_attr( $cc_free_shipping_amount ); ?>" data-shipping-country="<?php echo esc_attr( $cc_shipping_country ); ?>" data-wp-interactive="caddy/cart" data-wp-watch="callbacks.updateFreeShippingMeter">
+			<?php if (class_exists('Caddy_Block') && (has_block('caddy/cart') || Caddy_Block::should_auto_insert())) { ?>
+				<!-- Dynamic free shipping bar for Interactivity API -->
+				<span class="cc-fs-title">
+					<span class="cc-fs-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M22.87,7.1A.24.24,0,0,0,23,6.86a.23.23,0,0,0-.15-.21L16,3.92a1.13,1.13,0,0,0-.9,0L13,4.94a.24.24,0,0,0-.14.23.24.24,0,0,0,.15.22l6.94,3.07a.52.52,0,0,0,.44,0Z" fill="currentColor"></path><path d="M16.61,19.85a.27.27,0,0,0,.12.22.26.26,0,0,0,.24,0l6.36-3.18a1.12,1.12,0,0,0,.62-1V8.06a.26.26,0,0,0-.13-.22.25.25,0,0,0-.24,0L16.74,11.5a.26.26,0,0,0-.13.22Z" fill="currentColor"></path><path d="M7.52,8.31a.24.24,0,0,0-.23,0,.23.23,0,0,0-.11.2c0,.56,0,2.22,0,7.41a1.11,1.11,0,0,0,.68,1l7.42,3.16a.21.21,0,0,0,.23,0,.24.24,0,0,0,.12-.21V11.78a.26.26,0,0,0-.16-.23Z" fill="currentColor"></path><path d="M15.87,10.65a.54.54,0,0,0,.43,0l2.3-1.23a.26.26,0,0,0,.13-.23.24.24,0,0,0-.15-.22L11.5,5.82a.48.48,0,0,0-.42,0L8.31,7.12a.24.24,0,0,0-.14.23.23.23,0,0,0,.15.22Z" fill="currentColor"></path><path d="M5,13.76,1.07,11.94a.72.72,0,0,0-1,.37.78.78,0,0,0,.39,1l3.9,1.8a.87.87,0,0,0,.31.07.73.73,0,0,0,.67-.43A.75.75,0,0,0,5,13.76Z" fill="currentColor"></path><path d="M5,10.31,2.68,9.23a.74.74,0,0,0-1,.36.75.75,0,0,0,.36,1L4.4,11.65a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,10.31Z" fill="currentColor"></path><path d="M5,6.86,3.91,6.35a.73.73,0,0,0-1,.36.74.74,0,0,0,.36,1L4.4,8.2a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,6.86Z" fill="currentColor"></path></g></svg>
+					</span>
+					<span data-wp-class--cc-hidden="state.freeShippingAchieved"<?php echo ($cart_total >= $cc_free_shipping_amount) ? ' class="cc-hidden"' : ''; ?>>
+						<?php
+						printf(
+							/* translators: 1: Amount remaining, 2: Country name */
+							esc_html__('Spend %1$s more to get free %2$s shipping', 'caddy'),
+							'<strong><span class="cc-fs-amount">' . wc_price($free_shipping_remaining_amount) . '</span></strong>',
+							'<strong><span class="cc-fs-country">' . esc_attr($cc_shipping_country) . '</span></strong>'
+						);
+						?>
+					</span>
+					<span data-wp-class--cc-hidden="!state.freeShippingAchieved"<?php echo ($cart_total < $cc_free_shipping_amount) ? ' class="cc-hidden"' : ''; ?>>
+						<?php
+						printf(
+							/* translators: %s: Country name */
+							esc_html__("Congrats, you've activated free %s shipping!", 'caddy'),
+							'<strong><span class="cc-fs-country">' . esc_attr($cc_shipping_country) . '</span></strong>'
+						);
+						?>
+					</span>
+				</span>
+				<div class="cc-fs-meter">
+					<span class="cc-fs-meter-used<?php echo esc_attr($cc_bar_active); ?>"
+						  data-wp-class--cc-bar-active="state.freeShippingAchieved"
+						  data-wp-style--width="state.freeShippingPercentage"
+						  style="width: <?php echo esc_attr($cc_bar_amount); ?>%;"></span>
+				</div>
+			<?php } else { ?>
+				<?php do_action( 'caddy_free_shipping_title_text' ); // Free shipping title html ?>
+			<?php } ?>
 		</div>
 	<?php } ?>
 	
@@ -100,52 +133,257 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 	
 			<?php do_action( 'caddy_display_registration_message' ); ?>
 	
-			<?php if ( ! WC()->cart->is_empty() ) { ?>
-	
+			<!-- Interactivity API cart items (shown when cart has items) -->
+			<div data-wp-class--cc-hidden="!state.cartCount">
 				<?php do_action( 'caddy_before_cart_items' ); ?>
-	
-				<div class="cc-row cc-cart-items cc-text-center">
-					<?php Caddy_Public::cart_items_list( $cart_items ); ?>
-	
+
+				<div class="cc-row cc-cart-items cc-text-center" data-wp-interactive="caddy/cart">
+					<!-- Interactivity API template renders items from PHP state -->
+					<template data-wp-each--item="state.items">
+						<div data-wp-bind--class="context.item.itemClass"
+						     data-wp-key="context.item.cartKey"
+						     data-wp-class--cc-updating="context.item.isUpdating"
+						     data-wp-class--cc-saving="context.item.isSaving">
+
+							<div class="cc-cart-product">
+								<a data-wp-bind--href="context.item.permalink" class="cc-product-link cc-product-thumb" data-wp-bind--data-title="context.item.name">
+									<img data-wp-bind--src="context.item.image" data-wp-bind--alt="context.item.name" loading="lazy" />
+								</a>
+
+								<div class="cc_item_content">
+									<div class="cc-item-content-top">
+										<div class="cc_item_title">
+											<a data-wp-bind--href="context.item.permalink" class="cc-product-link" data-wp-text="context.item.name"></a>
+											<div class="cc_item_variation"
+											     data-wp-class--cc-hidden="!context.item.variationText"
+											     data-wp-text="context.item.variationText"></div>
+
+											<!-- Quantity controls (hidden for bundled items) -->
+											<div class="cc_item_quantity_wrap"
+											     data-wp-class--cc-hidden="context.item.isBundledItem"
+											     data-wp-class--cc-sold-individually="context.item.soldIndividually">
+												<div class="cc_item_quantity_update cc_item_quantity_minus"
+												     data-wp-class--cc-hidden="context.item.soldIndividually"
+												     data-wp-on--click="actions.decreaseQuantity">−</div>
+
+												<input type="text"
+													readonly
+													class="cc_item_quantity"
+													data-wp-bind--data-product_id="context.item.productId"
+													data-wp-bind--data-key="context.item.cartKey"
+													data-wp-bind--value="context.item.quantity"
+													step="1"
+													min="1">
+
+												<div class="cc_item_quantity_update cc_item_quantity_plus"
+												     data-wp-class--cc-hidden="context.item.soldIndividually"
+												     data-wp-on--click="actions.increaseQuantity">+</div>
+											</div>
+										</div>
+
+										<div class="cc_item_total_price"
+										     data-wp-class--cc-hidden="context.item.isBundledItem">
+											<div class="price">
+												<span class="cc-sale-price-wrapper"
+												      data-wp-class--cc-hidden="!context.item.showSalePrice">
+													<del><span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol" data-wp-text="state.currencySymbol"><?php echo esc_html( html_entity_decode( get_woocommerce_currency_symbol() ) ); ?></span><span data-wp-text="context.item.regularPriceFormatted"></span></bdi></span></del>
+												</span>
+												<span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol" data-wp-text="state.currencySymbol"><?php echo esc_html( html_entity_decode( get_woocommerce_currency_symbol() ) ); ?></span><span data-wp-text="context.item.price"></span></bdi></span>
+											</div>
+											<div class="cc_saved_amount"
+											     data-wp-class--cc-hidden="!context.item.showSavings">
+												(<?php echo esc_html__('Save', 'caddy'); ?> <span data-wp-text="context.item.savingsPercentage"></span>%)
+											</div>
+										</div>
+									</div>
+
+									<div class="cc-item-content-bottom">
+										<div class="cc-item-content-bottom-left">
+											<?php
+											// Only show Save for Later button if user is logged in and feature is enabled
+											$cc_enable_sfl_options = get_option('cc_enable_sfl_options', 'enabled');
+											if (is_user_logged_in() && 'enabled' === $cc_enable_sfl_options) :
+											?>
+											<!-- Save for later (hidden for bundled items) -->
+											<div class="cc_sfl_btn"
+											     data-wp-class--cc-hidden="context.item.isBundledItem">
+												<a href="javascript:void(0);"
+												   class="button cc-button-sm save_for_later_btn"
+												   aria-label="<?php esc_attr_e('Save for later', 'caddy'); ?>"
+												   data-wp-bind--data-product_id="context.item.productId"
+												   data-wp-bind--data-cart_item_key="context.item.cartKey">
+													<?php esc_html_e('Save for later', 'caddy'); ?>
+												</a>
+												<div class="cc-loader" style="display: none;"></div>
+											</div>
+											<?php endif; ?>
+										</div>
+
+										<!-- Remove button (hidden for bundled items) -->
+										<a href="javascript:void(0);"
+										   class="cc-remove-item"
+										   data-wp-class--cc-hidden="context.item.isBundledItem"
+										   aria-label="<?php esc_attr_e('Remove this item', 'caddy'); ?>"
+										   data-wp-bind--data-product_id="context.item.productId"
+										   data-wp-bind--data-cart_item_key="context.item.cartKey"
+										   data-wp-bind--data-cart-key="context.item.cartKey"
+										   data-wp-bind--data-product_name="context.item.name"
+										   data-wp-on--click="actions.removeItem">
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+												<path stroke="currentColor" d="M1 6H23"></path>
+												<path stroke="currentColor" d="M4 6H20V22H4V6Z"></path>
+												<path stroke="currentColor" d="M9 10V18"></path>
+												<path stroke="currentColor" d="M15 10V18"></path>
+													<path stroke="currentColor" d="M8 6V6C8 3.79086 9.79086 2 12 2V2C14.2091 2 16 3.79086 16 6V6"></path>
+												</svg>
+											</a>
+										</div>
+									</div>
+								</div>
+							</div>
+					</template>
 				</div>
-	
-				<!--Product recommendation screen-->
-				<div class="cc-product-upsells-wrapper">
+
+				<!--Product recommendation screen (only shown when cart has items)-->
+				<?php
+				$cc_product_recommendation = get_option('cc_product_recommendation');
+				if ('enabled' === $cc_product_recommendation) :
+				?>
+				<div class="cc-product-upsells-wrapper" data-wp-class--cc-hidden="state.cartCount === 0">
 					<?php
-					if ( 0 !== $first_product_id ) {
-						do_action( 'caddy_product_upsells_slider', $first_product_id );
+					// For Interactivity API, use the reactive recommendations template
+					if (class_exists('Caddy_Block') && (has_block('caddy/cart') || Caddy_Block::should_auto_insert())) {
+						// Interactivity API implementation - recommendations render from state
+						?>
+						<div class="cc-pl-info-wrapper" data-wp-class--cc-hidden="!state.showRecommendations">
+							<div class="cc-pl-upsells">
+								<label><?php esc_html_e( 'We think you might also like...', 'caddy' ); ?></label>
+								<div class="cc-pl-upsells-wrapper">
+									<!-- Loading skeleton - shown while loading -->
+									<div class="cc-pl-recommendations cc-recommendations-loading"
+										 data-wp-class--cc-hidden="!state.recommendationsLoading">
+										<div class="cc-slide">
+											<div class="up-sells-product">
+												<div class="cc-up-sells-image">
+													<div class="cc-skeleton" style="width: 95px; height: 95px;"></div>
+												</div>
+												<div class="cc-up-sells-details">
+													<div class="cc-skeleton" style="height: 16px; width: 80%; margin-bottom: 8px;"></div>
+													<div class="cc-skeleton" style="height: 14px; width: 60%; margin-bottom: 12px;"></div>
+													<div class="cc-skeleton" style="height: 36px; width: 120px;"></div>
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<!-- Actual recommendations - hidden while loading -->
+									<div class="cc-pl-recommendations"
+										 data-wp-class--cc-hidden="state.recommendationsLoading"
+										 data-wp-style--transform="state.recommendationTransform"
+										 data-wp-style--width="state.recommendationSliderWidth">
+										<template data-wp-each--rec="state.recommendations" data-wp-each-key="context.rec.id">
+											<div class="cc-slide" data-wp-key="context.rec.id">
+												<div class="up-sells-product">
+													<div class="cc-up-sells-image">
+														<a data-wp-bind--href="context.rec.permalink">
+															<img data-wp-bind--src="context.rec.image"
+																 data-wp-bind--alt="context.rec.name"
+																 loading="lazy"
+																 class="attachment-woocommerce_thumbnail" />
+														</a>
+													</div>
+													<div class="cc-up-sells-details">
+														<a data-wp-bind--href="context.rec.permalink" class="title" data-wp-text="context.rec.name"></a>
+														<div class="cc_item_total_price">
+															<span class="price">
+																<del data-wp-class--cc-hidden="!context.rec.isOnSale"><span data-wp-text="context.rec.regularPrice"></span></del>
+																<span data-wp-text="context.rec.price"></span>
+															</span>
+														</div>
+														<!-- Variable product button -->
+														<a data-wp-bind--href="context.rec.permalink"
+														   data-wp-class--cc-hidden="!context.rec.isVariable"
+														   class="button product_type_variable"
+														   data-wp-text="context.rec.buttonText"></a>
+														<!-- Grouped product button -->
+														<a data-wp-bind--href="context.rec.permalink"
+														   data-wp-class--cc-hidden="!context.rec.isGrouped"
+														   class="button product_type_grouped"
+														   data-wp-text="context.rec.buttonText"></a>
+														<!-- Simple product button -->
+														<button data-wp-on--click="actions.addRecommendationToCart"
+																data-wp-class--cc-hidden="!context.rec.isSimple"
+																data-wp-class--loading="context.rec.isAdding"
+																class="button product_type_simple add_to_cart_button"
+																data-wp-text="context.rec.buttonText"><?php esc_html_e('Add to cart', 'woocommerce'); ?></button>
+													</div>
+												</div>
+											</div>
+										</template>
+									</div>
+								</div>
+								<!-- Navigation arrows (outside wrapper for positioning) -->
+								<div class="caddy-prev"
+									 data-wp-on--click="actions.prevRecommendation"
+									 data-wp-class--cc-disabled="state.isFirstRecommendation">
+									<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+										<path d="M13.75 0.68682C13.706 0.70136 13.6385 0.72918 13.6 0.74862C13.49172 0.80328 5.23742 9.06048 5.13158 9.22C4.8194 9.69054 4.8194 10.30936 5.13156 10.78C5.19276 10.87228 6.42668 12.1177 9.3839 15.072C14.07654 19.76 13.61372 19.32936 13.96 19.32978C14.12646 19.32998 14.16488 19.32306 14.27 19.274C14.41248 19.20752 14.56516 19.06538 14.6301 18.93874C14.69084 18.82024 14.72638 18.62038 14.70954 18.49188C14.7022 18.43584 14.67306 18.336 14.6448 18.27C14.5967 18.15768 14.33296 17.88932 10.52196 14.075L6.45052 10 10.52196 5.925C14.33296 2.11068 14.5967 1.84232 14.6448 1.73C14.71158 1.5741 14.72838 1.43654 14.69988 1.27938C14.66976 1.11322 14.60544 0.99154 14.48664 0.876C14.34748 0.74062 14.18934 0.67386 13.99 0.66636C13.89446 0.66278 13.79776 0.671 13.75 0.68682" fill="currentColor"/>
+									</svg>
+								</div>
+								<div class="caddy-next"
+									 data-wp-on--click="actions.nextRecommendation"
+									 data-wp-class--cc-disabled="state.isLastRecommendation">
+									<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+										<path d="M5.83 0.68688C5.61066 0.75962 5.43864 0.91026 5.3468 1.11C5.29948 1.21294 5.29164 1.2556 5.2918 1.41C5.29196 1.5643 5.30016 1.60856 5.34928 1.72C5.40416 1.8445 5.57904 2.0226 9.47804 5.925L13.54948 10 9.47804 14.075C5.57904 17.9774 5.40416 18.1555 5.34928 18.28C5.30008 18.39162 5.29198 18.43546 5.29198 18.59C5.29198 18.744 5.29998 18.78764 5.34742 18.8921C5.41748 19.04638 5.5714 19.20006 5.73 19.27404C5.8351 19.32306 5.87358 19.32998 6.04 19.32978C6.38628 19.32936 5.92346 19.76 10.6161 15.072C13.57332 12.1177 14.80724 10.87228 14.86844 10.78C15.02564 10.54298 15.1 10.29254 15.1 10C15.1 9.70746 15.02564 9.45702 14.86844 9.22C14.80724 9.12772 13.57332 7.8823 10.6161 4.928C6.84122 1.15686 6.43968 0.76166 6.34 0.71968C6.20594 0.66322 5.95082 0.6468 5.83 0.68688" fill="currentColor"/>
+									</svg>
+								</div>
+							</div>
+						</div>
+						<?php
+					} else {
+						// Fallback to action hook for legacy system
+						do_action( 'caddy_product_upsells_slider', 0 );
 					}
 					?>
 				</div>
-				
+				<?php endif; ?>
+
 				<?php do_action( 'caddy_after_cart_items' ); ?>
-	
-				
-			<?php } else { ?>
+			</div>
+
+
+			<!-- Reactive empty cart state (shown when cart is empty) -->
+			<div data-wp-class--cc-hidden="state.cartCount">
 				<div class="cc-empty-msg">
 					<img class="cc-empty-cart-img" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/cart-empty.svg" alt="Empty Cart">
 					<span class="cc-title"><?php esc_html_e( 'Your Cart is Empty!', 'caddy' ); ?></span>
-	
+
 					<?php if ( ! empty( $cc_sfl_items ) ) { ?>
 						<p><?php esc_html_e( 'You haven\'t added any items to your cart yet, but you do have products in your saved list.', 'caddy' ); ?></p>
 						<a href="javascript:void(0);" class="cc-button cc-view-saved-items"><?php esc_html_e( 'View Saved Items', 'caddy' ); ?></a>
-					<?php } else { ?>
+					<?php } else {
+						// Get custom browse products URL or default to shop page
+						$custom_browse_url = get_option('cc_browse_products_url', '');
+						$browse_url = !empty($custom_browse_url) ? $custom_browse_url : get_permalink( wc_get_page_id( 'shop' ) );
+					?>
 						<p><?php esc_html_e( 'It looks like you haven\'t added any items to your cart yet.', 'caddy' ); ?></p>
-						<a href="<?php echo esc_url( get_permalink( wc_get_page_id( 'shop' ) ) ); ?>" class="cc-button"><?php esc_html_e( 'Browse Products', 'caddy' ); ?></a>
+						<a href="<?php echo esc_url( $browse_url ); ?>" class="cc-button"><?php esc_html_e( 'Browse Products', 'caddy' ); ?></a>
 					<?php } ?>
 				</div>
-			<?php } ?>
+			</div>
+
 	
 		</div>
 	</div>
 	<?php do_action( 'caddy_after_cart_screen_data' ); ?>
 
-	<?php if ( ! WC()->cart->is_empty() ) { ?>
-		<div class="cc-cart-actions<?php echo esc_attr( $cc_disable_branding_class ); ?>">
+	<!-- Reactive cart actions (shown when cart has items) -->
+	<div data-wp-class--cc-hidden="!state.cartCount" class="cc-cart-actions<?php echo esc_attr( $cc_disable_branding_class ); ?>">
 
 			<?php do_action( 'caddy_before_cart_screen_totals' ); ?>
-			<?php if ( wc_coupons_enabled() ) {
-				$applied_coupons = WC()->cart->get_applied_coupons();
+			<?php
+			$applied_coupons = wc_coupons_enabled() ? WC()->cart->get_applied_coupons() : array();
+			if ( wc_coupons_enabled() ) {
 				?>
 				<div class="cc-coupon">
 					<div class="woocommerce-notices-wrapper">
@@ -174,26 +412,28 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					</div>
 				</div>
 			<?php } ?>
-			<?php if ( ! empty( $applied_coupons ) ) { ?>
-			<div class="cc-discounts">
+			<!-- Discounts container - managed by JavaScript/Store API -->
+			<div class="cc-discounts" style="<?php echo empty($applied_coupons) ? 'display:none;' : ''; ?>">
 				<div class="cc-discount">
-					<?php 
-					foreach ( $applied_coupons as $code ) {
-						$coupon_detail = new WC_Coupon( $code );
-						?>
-						<div class="cc-applied-coupon">
-							<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/tag-icon.svg" alt="Discount Code">
-							<span class="cc_applied_code"><?php echo esc_html( $code ); ?></span>
-							<a href="javascript:void(0);" class="cc-remove-coupon"><i class="ccicon-close"></i></a>
-						</div>
-						<?php
+					<?php
+					if (!empty($applied_coupons)) {
+						foreach ( $applied_coupons as $code ) {
+							$coupon_detail = new WC_Coupon( $code );
+							?>
+							<div class="cc-applied-coupon">
+								<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/tag-icon.svg" alt="Discount Code">
+								<span class="cc_applied_code"><?php echo esc_html( $code ); ?></span>
+								<a href="javascript:void(0);" class="cc-remove-coupon"><i class="ccicon-close"></i></a>
+							</div>
+							<?php
+						}
 					}
 					?>
 				</div>
 				<?php
 				// Get coupon discounts only
 				$coupon_discount_amount = 0;
-				if ( wc_coupons_enabled() ) {
+				if ( wc_coupons_enabled() && !empty($applied_coupons) ) {
 					$applied_coupons = WC()->cart->get_applied_coupons();
 					if ( ! empty( $applied_coupons ) ) {
 						foreach ( $applied_coupons as $code ) {
@@ -201,29 +441,26 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 							// Get discount amount respecting tax display setting
 							$tax_display = get_option( 'woocommerce_tax_display_cart' );
 							$inc_tax = ( 'incl' === $tax_display );
-							$coupon_discount_amount = WC()->cart->get_coupon_discount_amount( $coupon->get_code(), !$inc_tax );
+							$coupon_discount_amount += WC()->cart->get_coupon_discount_amount( $coupon->get_code(), !$inc_tax );
 						}
 					}
 				}
-
-				// Display coupon discount amount if greater than 0
-				if ($coupon_discount_amount > 0) {
-					echo '<div class="cc-savings">' . 
-						esc_html__('-', 'caddy') . 
-						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
-						wc_price($coupon_discount_amount) . 
-						'</div>';
-				}
 				?>
+				<div class="cc-savings">
+					<?php
+					// Display coupon discount amount if greater than 0
+					if ($coupon_discount_amount > 0) {
+						echo esc_html__('-', 'caddy') .
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
+							wc_price($coupon_discount_amount);
+					}
+					?>
+				</div>
 			</div>
-			<?php } ?>
 			<div class="cc-totals">
 				<div class="cc-total-box">
 					<div class="cc-total-text">
-						<?php 
-						echo esc_html__( 'Subtotal - ', 'caddy' ) . esc_html( $total_cart_item_count ) . ' ' . 
-						esc_html( _n( 'item', 'items', $total_cart_item_count, 'caddy' ) ); 
-						?>
+						<?php echo esc_html__( 'Subtotal', 'caddy' ); ?>
 						<br><span class="cc-subtotal-subtext"><?php esc_html_e( 'Shipping &amp; taxes calculated at checkout.', 'caddy' ); ?></span>
 					</div>
 
@@ -258,15 +495,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					}
 					?>
 					<div class="cc-total-amount">
-						<?php 
-						// Show the original total if it's greater than the cart total
-						if ($original_total > $cart_total) {
-							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
-							echo '<span class="cc-original-price"><del>' . wc_price($original_total) . '</del></span> ';
-						}
-						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
-						echo wc_price($cart_total, array('currency' => get_woocommerce_currency()));
-						?>
+						<span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span><span data-wp-text="state.cartSubtotalDisplay"><?php echo number_format($cart_total, 2, '.', ''); ?></span></bdi></span>
 					</div>
 				</div>
 			</div>
@@ -283,9 +512,8 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 			echo $checkout_arrow_svg; ?></a>
 
 			<?php do_action( 'caddy_after_cart_screen_checkout_button' ); ?>
+	</div>
 
-		</div>
-	<?php } ?>
 	<input type="hidden" name="cc-compass-count-after-remove" class="cc-cart-count-after-product-remove" value="<?php echo esc_attr( $total_cart_item_count ); ?>">
 
 	<?php

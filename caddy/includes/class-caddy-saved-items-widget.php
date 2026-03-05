@@ -7,7 +7,8 @@
  * @package    Caddy
  * @subpackage Caddy/includes
  */
-class caddy_saved_items_widget extends WP_Widget {
+if ( ! class_exists( 'caddy_saved_items_widget' ) ) {
+	class caddy_saved_items_widget extends WP_Widget {
 
 	function __construct() {
 		parent::__construct(
@@ -95,6 +96,7 @@ class caddy_saved_items_widget extends WP_Widget {
 		return $instance;
 	}
 
+	}
 }
 
 /**

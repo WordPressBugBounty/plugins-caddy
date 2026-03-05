@@ -521,6 +521,11 @@ class Caddy_Admin {
 		if (!isset($_POST['cc_submit_hidden']) || $_POST['cc_submit_hidden'] != 'Y') {
 			return;
 		}
+
+		// Require manage_options capability
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
 		
 		// Get the current tab
 		$caddy_tab = (!empty($_GET['tab'])) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'settings';
@@ -567,11 +572,11 @@ class Caddy_Admin {
 		} elseif (isset($_POST['caddy_styles_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_styles_settings_nonce'])), 'caddy-styles-settings-save')) {
 			// Styles settings form processing
 			$this->process_styles_settings();
-		} elseif (isset($_POST['caddy_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_settings_nonce'])), 'caddy-settings-save')) {
-			// Legacy settings form processing
-			$this->process_legacy_settings($caddy_tab);
+		} else {
+			// No valid nonce matched — do not show success message
+			return;
 		}
-		
+
 		// Set success message
 		set_transient('caddy_settings_updated', true, 30);
 		
@@ -608,7 +613,11 @@ class Caddy_Admin {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
 		$cc_menu_saves_widget = !empty($_POST['cc_menu_saves_widget']) ? sanitize_text_field(wp_unslash($_POST['cc_menu_saves_widget'])) : '';
 		update_option('cc_menu_saves_widget', $cc_menu_saves_widget);
-		
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
+		$cc_browse_products_url = !empty($_POST['cc_browse_products_url']) ? esc_url_raw(wp_unslash($_POST['cc_browse_products_url'])) : '';
+		update_option('cc_browse_products_url', $cc_browse_products_url);
+
 		// Process any additional general settings fields
 		do_action('caddy_save_general_settings');
 	}
@@ -619,7 +628,7 @@ class Caddy_Admin {
 	private function process_shipping_meter_settings() {
 		// Process shipping meter settings form fields
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
-		$cc_free_shipping_amount = !empty($_POST['cc_free_shipping_amount']) ? intval($_POST['cc_free_shipping_amount']) : '';
+		$cc_free_shipping_amount = !empty($_POST['cc_free_shipping_amount']) ? floatval($_POST['cc_free_shipping_amount']) : '';
 		update_option('cc_free_shipping_amount', $cc_free_shipping_amount);
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()

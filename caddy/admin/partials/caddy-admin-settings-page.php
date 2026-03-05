@@ -16,17 +16,19 @@ $caddy_license_status = get_option('caddy_premium_edd_license_status');
 
 /**
  * Helper function to display the Pro label
- * 
+ *
  * @return string HTML for the Pro label if license is not valid
  */
-function caddy_display_pro_label() {
-    $caddy_license_status = get_option('caddy_premium_edd_license_status');
-    
-    if (!isset($caddy_license_status) || $caddy_license_status != 'valid') {
-        return '<span class="caddy-pro-label">' . esc_html__('Pro', 'caddy') . '</span>';
-    }
-    
-    return '';
+if ( ! function_exists( 'caddy_display_pro_label' ) ) {
+	function caddy_display_pro_label() {
+		$caddy_license_status = get_option('caddy_premium_edd_license_status');
+
+		if (!isset($caddy_license_status) || $caddy_license_status != 'valid') {
+			return '<span class="caddy-pro-label">' . esc_html__('Pro', 'caddy') . '</span>';
+		}
+
+		return '';
+	}
 }
 ?>
 

@@ -78,7 +78,7 @@ class Caddy_Block {
 		$cart_state['i18n'] = array(
 			// Button text
 			'addToCart' => __('Add to cart', 'caddy'),
-			'seeOptions' => __('See Options', 'caddy'),
+			'seeOptions' => __('Select options', 'caddy'),
 			'viewProducts' => __('View products', 'caddy'),
 			'saveForLater' => __('Save for later', 'caddy'),
 			'saved' => __('Saved', 'caddy'),
@@ -115,6 +115,13 @@ class Caddy_Block {
 			// Recommendations
 			'recommendationsEmpty' => __('No recommendations available', 'caddy'),
 			'recommendationsLoadError' => __('Unable to load recommendations', 'caddy'),
+			'priceFrom' => __('From', 'caddy'),
+			'selectAttribute' => __('Select %s', 'caddy'),
+
+			// Rewards meter
+			'allRewardsUnlocked' => __('All rewards unlocked!', 'caddy'),
+			'spendMoreUnlockReward' => __('Spend {amount} more to unlock your reward', 'caddy'),
+			'spendMoreFreeShipping' => __('Spend {amount} more to get free shipping', 'caddy'),
 		);
 
 		if (function_exists('wp_interactivity_state')) {
@@ -185,11 +192,27 @@ class Caddy_Block {
 			}
 			$meta_output = true;
 			$thumbnail_size = wc_get_image_size('woocommerce_thumbnail');
+			$price_decimal_separator = wc_get_price_decimal_separator();
+			$price_trim_zeros = apply_filters( 'woocommerce_price_trim_zeros', false );
+			$sample_whole_price = html_entity_decode( strip_tags( wc_price( 1 ) ) );
+			if ( ! $price_trim_zeros && false === strpos( $sample_whole_price, $price_decimal_separator ) ) {
+				$price_trim_zeros = true;
+			}
+			$currency_symbol = html_entity_decode( get_woocommerce_currency_symbol() );
+			$currency_decimals = wc_get_price_decimals();
+			$currency_thousand_separator = wc_get_price_thousand_separator();
+			$currency_position = get_option( 'woocommerce_currency_pos', 'left' );
 			echo '<meta name="caddy-nonce" content="' . wp_create_nonce('wp_rest') . '">' . "\n";
 			echo '<meta name="wc-store-api-nonce" content="' . wp_create_nonce('wc_store_api') . '">' . "\n";
 			echo '<meta name="caddy-rest-url" content="' . esc_url( rest_url('caddy/v1/') ) . '">' . "\n";
 			echo '<meta name="wc-placeholder-image" content="' . esc_url(wc_placeholder_img_src('woocommerce_thumbnail')) . '">' . "\n";
 			echo '<meta name="wc-thumbnail-size" content="' . esc_attr($thumbnail_size['width']) . 'x' . esc_attr($thumbnail_size['height']) . '">' . "\n";
+			echo '<meta name="caddy-currency-symbol" content="' . esc_attr( $currency_symbol ) . '">' . "\n";
+			echo '<meta name="caddy-currency-decimals" content="' . esc_attr( $currency_decimals ) . '">' . "\n";
+			echo '<meta name="caddy-currency-dec-sep" content="' . esc_attr( $price_decimal_separator ) . '">' . "\n";
+			echo '<meta name="caddy-currency-thousand-sep" content="' . esc_attr( $currency_thousand_separator ) . '">' . "\n";
+			echo '<meta name="caddy-currency-position" content="' . esc_attr( $currency_position ) . '">' . "\n";
+			echo '<meta name="caddy-price-trim-zeros" content="' . esc_attr( $price_trim_zeros ? '1' : '0' ) . '">' . "\n";
 			echo '<style>
 				.cc-window.cc-show {
 					right: 0 !important;

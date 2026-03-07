@@ -85,6 +85,8 @@ class Caddy_Interactivity {
 		$cart_count = 0;
 		$cart_total = 0;
 		$cart_subtotal = 0;
+		$original_total = 0;
+		$has_discount = false;
 		$shipping_eligible_total = 0;
 
 		if ($cart && !$cart->is_empty()) {
@@ -96,18 +98,24 @@ class Caddy_Interactivity {
 
 				// Get thumbnail
 				$thumbnail_id = $product->get_image_id();
-				$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail') : wc_placeholder_img_src();
-				// Normalize double slashes and ensure 300x300 size suffix
-				$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
-				if ($thumbnail_id && !preg_match('#-\d+x\d+\.[a-zA-Z]+$#', $thumbnail_url)) {
-					$thumbnail_url = preg_replace('#(\.[a-zA-Z]+)$#', '-300x300$1', $thumbnail_url);
+				$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail') : false;
+				if (!$thumbnail_url) {
+					$thumbnail_url = wc_placeholder_img_src('woocommerce_thumbnail');
 				}
+				// Normalize double slashes in URL path
+				$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
 
 				// Detect bundle status
 				$is_bundle_container = function_exists('wc_pb_is_bundle_container_cart_item') &&
 									   wc_pb_is_bundle_container_cart_item($cart_item);
 				$is_bundled_item = function_exists('wc_pb_is_bundled_cart_item') &&
 								   wc_pb_is_bundled_cart_item($cart_item);
+
+				// Get parent bundle cart key if this is a bundled item
+				$bundled_by = null;
+				if ($is_bundled_item && isset($cart_item['bundled_by'])) {
+					$bundled_by = $cart_item['bundled_by'];
+				}
 
 				// Build item class string
 				$item_class = 'cc-cart-product-list cc-cart-item';
@@ -130,6 +138,20 @@ class Caddy_Interactivity {
 				$regular_line_total = $regular_unit_price * $quantity;
 				$sale_line_total = $sale_unit_price * $quantity;
 
+				// For bundle containers with $0 price (aggregate pricing), sum children's prices
+				if ($is_bundle_container && $line_total == 0 && function_exists('wc_pb_get_bundled_cart_items')) {
+					$bundled_cart_items = wc_pb_get_bundled_cart_items($cart_item);
+					if (!empty($bundled_cart_items)) {
+						$agg_total = 0;
+						foreach ($bundled_cart_items as $child) {
+							$child_product = $child['data'];
+							$agg_total += floatval(wc_get_price_to_display($child_product, array('qty' => $child['quantity'])));
+						}
+						$line_total = $agg_total;
+						$regular_line_total = $agg_total;
+					}
+				}
+
 				$is_on_sale = $product->is_on_sale();
 				$savings_percentage = 0;
 				if ($is_on_sale && $regular_unit_price > 0) {
@@ -145,9 +167,39 @@ class Caddy_Interactivity {
 
 				// Smart price formatting - matches formatPriceSmart in JavaScript
 				$wc_decimals = wc_get_price_decimals();
-				$format_price_smart = function($amount) use ($wc_decimals) {
-					return number_format($amount, $wc_decimals, '.', '');
+				$wc_dec_sep = wc_get_price_decimal_separator();
+				$wc_thou_sep = wc_get_price_thousand_separator();
+				$format_price_smart = function($amount) use ($wc_decimals, $wc_dec_sep, $wc_thou_sep) {
+					return number_format($amount, $wc_decimals, $wc_dec_sep, $wc_thou_sep);
 				};
+
+				// Get quantity limits
+				$sold_individually = $product->is_sold_individually();
+				$max_quantity = $sold_individually ? 1 : ($product->get_max_purchase_quantity() > 0 ? $product->get_max_purchase_quantity() : INF);
+				$min_quantity = max(1, $product->get_min_purchase_quantity());
+
+				// For bundled items, get quantity limits from the bundle configuration
+				if ($is_bundled_item && isset($cart_item['bundled_item_id'], $cart_item['bundled_by'])) {
+					$parent_cart_item = WC()->cart->cart_contents[$cart_item['bundled_by']] ?? null;
+					if ($parent_cart_item && $parent_cart_item['data']->is_type('bundle')) {
+						$bundled_item = $parent_cart_item['data']->get_bundled_item($cart_item['bundled_item_id']);
+						if ($bundled_item) {
+							$pb_min = $bundled_item->get_quantity('min');
+							$pb_max = $bundled_item->get_quantity('max');
+							$min_quantity = max(1, $pb_min);
+							$max_quantity = '' !== $pb_max ? (int) $pb_max : INF;
+						}
+					}
+					// Fixed-qty bundled items get a CSS class to hide +/- buttons
+					if ($min_quantity >= $max_quantity) {
+						$item_class .= ' bundled_fixed_qty';
+					}
+				}
+
+				// Compute display flags
+				$shouldHideControls = $is_bundled_item;
+				$hideQuantityButtons = $is_bundled_item && $min_quantity >= $max_quantity;
+				$hidePrice = !$is_bundle_container && ($line_total == 0 && $regular_line_total == 0);
 
 				// Format cart item for Caddy - match Store API converter structure
 				$cart_items[] = array(
@@ -157,43 +209,81 @@ class Caddy_Interactivity {
 					'name' => $product->get_name(),
 					'variationText' => $variation_text,
 					'price' => $format_price_smart($line_total),
+					'priceHtml' => html_entity_decode( strip_tags( wc_price($line_total) ) ),
 					'regularPrice' => $regular_unit_price,
 					'regularLineTotal' => $regular_line_total,
 					'regularPriceFormatted' => $format_price_smart($regular_line_total),
+					'regularPriceHtml' => $is_on_sale ? html_entity_decode( strip_tags( wc_price($regular_line_total) ) ) : '',
 					'salePrice' => $format_price_smart($sale_line_total),
 					'unitPrice' => $unit_price,
 					'isOnSale' => $is_on_sale,
 					'savingsPercentage' => $savings_percentage,
 					'lineTotal' => $line_total,
-					'lineTotalFormatted' => wc_price($line_total),
+					'lineTotalFormatted' => html_entity_decode( strip_tags( wc_price($line_total) ) ),
 					'image' => $thumbnail_url,
 					'permalink' => $product->get_permalink(),
 					'isBundleContainer' => $is_bundle_container,
 					'isBundledItem' => $is_bundled_item,
+					'bundledBy' => $bundled_by,
+					'shouldHideControls' => $shouldHideControls,
+					'hideQuantityButtons' => $hideQuantityButtons,
+					'hidePrice' => $hidePrice,
 					'itemClass' => $item_class,
 					'showSalePrice' => $is_on_sale,
 					'showSavings' => $is_on_sale && $savings_percentage > 0,
-					'soldIndividually' => $product->is_sold_individually()
+					'soldIndividually' => $sold_individually,
+					'maxQuantity' => $max_quantity === INF ? null : $max_quantity,
+					'minQuantity' => $min_quantity,
+					'isAtMinQty' => $quantity <= $min_quantity,
+					'isAtMaxQty' => $max_quantity !== INF && $quantity >= $max_quantity,
 				);
 			}
 
 			$cart_count = $cart->get_cart_contents_count();
 			$cart_total = $cart->get_total('');
-			$cart_subtotal = $cart->get_subtotal();
+
+			// Match subtotal logic used in the cart template (displayed subtotal minus coupon discounts).
+			$cart_subtotal_before_coupons = $cart->get_displayed_subtotal();
+			$coupon_discount_amount = 0;
+			if ( wc_coupons_enabled() ) {
+				$applied_coupons = $cart->get_applied_coupons();
+				if ( ! empty( $applied_coupons ) ) {
+					$tax_display = get_option( 'woocommerce_tax_display_cart' );
+					$inc_tax     = ( 'incl' === $tax_display );
+					foreach ( $applied_coupons as $code ) {
+						$coupon = new WC_Coupon( $code );
+						$coupon_discount_amount += $cart->get_coupon_discount_amount( $coupon->get_code(), ! $inc_tax );
+					}
+				}
+			}
+			$cart_subtotal = $cart_subtotal_before_coupons - $coupon_discount_amount;
+
+			// Calculate original total from regular line totals for consistent discount display.
+			foreach ( $cart_items as $item ) {
+				$original_total += $item['regularLineTotal'];
+			}
+			$has_discount = $original_total > floatval( $cart_subtotal );
+		}
+
+		$price_decimal_separator = wc_get_price_decimal_separator();
+		$price_trim_zeros = apply_filters( 'woocommerce_price_trim_zeros', false );
+		$sample_whole_price = html_entity_decode( strip_tags( wc_price( 1 ) ) );
+		if ( ! $price_trim_zeros && false === strpos( $sample_whole_price, $price_decimal_separator ) ) {
+			$price_trim_zeros = true;
 		}
 
 		return array(
 			'items' => $cart_items,
 			'cartCount' => $cart_count,
 			'cartTotal' => floatval($cart_total),
-			'cartTotalFormatted' => wc_price($cart_total),
+			'cartTotalFormatted' => html_entity_decode( strip_tags( wc_price($cart_total) ) ),
 			'cartSubtotal' => floatval($cart_subtotal),
-			'cartSubtotalFormatted' => wc_price($cart_subtotal),
-			'cartSubtotalDisplay' => number_format(floatval($cart_subtotal), 2, '.', ''),
-			'originalTotal' => floatval($cart_total),
-			'originalTotalFormatted' => wc_price($cart_total),
-			'originalTotalDisplay' => number_format(floatval($cart_total), 2, '.', ''),
-			'hasDiscount' => $cart ? ( $cart->get_discount_total() > 0 ) : false,
+			'cartSubtotalFormatted' => html_entity_decode( strip_tags( wc_price($cart_subtotal) ) ),
+			'cartSubtotalDisplay' => number_format(floatval($cart_subtotal), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
+			'originalTotal' => floatval($original_total),
+			'originalTotalFormatted' => html_entity_decode( strip_tags( wc_price($original_total) ) ),
+			'originalTotalDisplay' => number_format(floatval($original_total), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
+			'hasDiscount' => $has_discount,
 			'cartHash' => $cart ? $cart->get_cart_hash() : '',
 			'isOpen' => false,
 			'isLoading' => false,
@@ -207,9 +297,43 @@ class Caddy_Interactivity {
 			'currencySymbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
 			'currencyCode' => get_woocommerce_currency(),
 			'currencyDecimals' => wc_get_price_decimals(),
-			'currencyDecimalSep' => wc_get_price_decimal_separator(),
+			'currencyDecimalSep' => $price_decimal_separator,
 			'currencyThousandSep' => wc_get_price_thousand_separator(),
-			'currencyPosition' => get_option( 'woocommerce_currency_pos', 'left' )
+			'currencyPosition' => get_option( 'woocommerce_currency_pos', 'left' ),
+			'taxDisplayCart' => get_option( 'woocommerce_tax_display_cart', 'excl' ),
+			'priceTrimZeros' => $price_trim_zeros,
+			'i18n' => array(
+				'addToCart' => __('Add to cart', 'caddy'),
+				'seeOptions' => __('Select options', 'caddy'),
+				'viewProducts' => __('View products', 'caddy'),
+				'saveForLater' => __('Save for later', 'caddy'),
+				'saved' => __('Saved', 'caddy'),
+				'adding' => __('Adding...', 'caddy'),
+				'added' => __('Added!', 'caddy'),
+				'addedCheckmark' => __('Added ✓', 'caddy'),
+				'error' => __('Error', 'caddy'),
+				'errorTryAgain' => __('Error - Try Again', 'caddy'),
+				'removeItem' => __('Remove this item', 'caddy'),
+				'checkout' => __('Checkout Now', 'caddy'),
+				'browseProducts' => __('Browse Products', 'caddy'),
+				'viewSavedItems' => __('View Saved Items', 'caddy'),
+				'apply' => __('Apply', 'caddy'),
+				'promoCode' => __('Promo code', 'caddy'),
+				'subtotal' => __('Subtotal', 'caddy'),
+				'errorSaveItemFailed' => __('Failed to save item', 'caddy'),
+				'errorRemoveSavedItemFailed' => __('Failed to remove saved item', 'caddy'),
+				'errorAddToCartFailed' => __('Failed to add item to cart', 'caddy'),
+				'errorUpdateFailed' => __('Failed to update quantity', 'caddy'),
+				'errorRemoveFailed' => __('Failed to remove item', 'caddy'),
+				'errorMoveToCartFailed' => __('Failed to move item to cart', 'caddy'),
+				'errorApplyCouponFailed' => __('Failed to apply coupon', 'caddy'),
+				'errorRemoveCouponFailed' => __('Failed to remove coupon', 'caddy'),
+				'errorApplyCouponTryAgain' => __('Failed to apply coupon. Please try again.', 'caddy'),
+				'errorRemoveCouponTryAgain' => __('Failed to remove coupon. Please try again.', 'caddy'),
+				'alertSaveForLaterFailed' => __('Failed to save item for later. Please try again.', 'caddy'),
+				'recommendationsEmpty' => __('No recommendations available', 'caddy'),
+				'recommendationsLoadError' => __('Unable to load recommendations', 'caddy'),
+			),
 		);
 	}
 
@@ -314,11 +438,11 @@ class Caddy_Interactivity {
 			}
 
 			$thumbnail_id = $product->get_image_id();
-			$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail') : wc_placeholder_img_src();
-			$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
-			if ($thumbnail_id && !preg_match('#-\d+x\d+\.[a-zA-Z]+$#', $thumbnail_url)) {
-				$thumbnail_url = preg_replace('#(\.[a-zA-Z]+)$#', '-300x300$1', $thumbnail_url);
+			$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail') : false;
+			if (!$thumbnail_url) {
+				$thumbnail_url = wc_placeholder_img_src('woocommerce_thumbnail');
 			}
+			$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
 
 			$product_type = $product->get_type();
 			$is_variable = $product_type === 'variable';
@@ -330,11 +454,9 @@ class Caddy_Interactivity {
 			$price = $product->get_price();
 			$is_on_sale = $product->is_on_sale() && $sale_price;
 
-			// Format prices as plain text for Interactivity API
-			// Use html_entity_decode to convert HTML entities like &#36; to actual characters
-			$currency_symbol = html_entity_decode(get_woocommerce_currency_symbol());
-			$price_formatted = $currency_symbol . number_format((float)$price, 2);
-			$regular_price_formatted = $is_on_sale ? $currency_symbol . number_format((float)$regular_price, 2) : '';
+			// Format prices as plain text for Interactivity API using WooCommerce locale settings
+			$price_formatted = html_entity_decode( strip_tags( wc_price($price) ) );
+			$regular_price_formatted = $is_on_sale ? html_entity_decode( strip_tags( wc_price($regular_price) ) ) : '';
 
 			$formatted_products[] = array(
 				'id' => $product->get_id(),
@@ -348,7 +470,7 @@ class Caddy_Interactivity {
 				'isVariable' => $is_variable,
 				'isGrouped' => $is_grouped,
 				'isSimple' => !$is_variable && !$is_grouped,
-				'buttonText' => $is_variable ? __('Select options', 'woocommerce') : ($is_grouped ? __('View products', 'woocommerce') : __('Add to cart', 'woocommerce')),
+				'buttonText' => $is_variable ? __('Select options', 'caddy') : ($is_grouped ? __('View products', 'caddy') : __('Add to cart', 'caddy')),
 				'isAdding' => false
 			);
 		}
@@ -929,13 +1051,13 @@ class Caddy_Interactivity {
 					continue;
 				}
 
-				// Get thumbnail image
+				// Get thumbnail image (fall back to placeholder if attachment file is missing)
 				$thumbnail_id = $product->get_image_id();
-				$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail') : wc_placeholder_img_src();
-				$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
-				if ($thumbnail_id && !preg_match('#-\d+x\d+\.[a-zA-Z]+$#', $thumbnail_url)) {
-					$thumbnail_url = preg_replace('#(\.[a-zA-Z]+)$#', '-300x300$1', $thumbnail_url);
+				$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail') : false;
+				if (!$thumbnail_url) {
+					$thumbnail_url = wc_placeholder_img_src('woocommerce_thumbnail');
 				}
+				$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
 
 				// Format product data with only essential fields
 				// Prices must be in cents (multiply by 100) to match Store API format
@@ -1019,15 +1141,16 @@ class Caddy_Interactivity {
 			// Variable, bundle, and grouped products need to go to product page to select options
 			$can_add_to_cart = !in_array($product_type, array('variable', 'bundle', 'grouped'));
 
+			$price = (float) $product->get_price();
 			$saved_items[] = array(
 				'productId' => $product_id,
 				'name' => wp_specialchars_decode( $product->get_name(), ENT_QUOTES ),
-				'price' => wc_format_decimal($product->get_price(), 2),
-				'regularPrice' => wc_format_decimal($regular_price, 2),
+				'price' => html_entity_decode( strip_tags( wc_price( $price ) ) ),
+				'regularPrice' => $is_on_sale ? html_entity_decode( strip_tags( wc_price( (float) $regular_price ) ) ) : '',
 				'salePrice' => wc_format_decimal($sale_price, 2),
 				'priceFormatted' => $product->get_price_html(),
-				'image' => wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_single')[0] ?? wc_placeholder_img_src('woocommerce_single'),
-				'thumbnailImage' => wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_thumbnail')[0] ?? wc_placeholder_img_src('woocommerce_thumbnail'),
+				'image' => ($img_src = wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_single')) ? $img_src : wc_placeholder_img_src('woocommerce_single'),
+				'thumbnailImage' => ($thumb_src = wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_thumbnail')) ? $thumb_src : wc_placeholder_img_src('woocommerce_thumbnail'),
 				'permalink' => get_permalink($product_id),
 				'isInStock' => $product->is_in_stock(),
 				'isOnSale' => $is_on_sale,

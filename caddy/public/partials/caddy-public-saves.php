@@ -61,9 +61,9 @@ $account_url = trailingslashit( wc_get_account_endpoint_url( '' ) );
 									<div class="price">
 										<span class="cc-sale-price-wrapper"
 										      data-wp-class--cc-hidden="!context.item.isOnSale">
-											<del><span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol" data-wp-text="state.currencySymbol"><?php echo esc_html( html_entity_decode( get_woocommerce_currency_symbol() ) ); ?></span><span data-wp-text="context.item.regularPrice"></span></bdi></span></del>
+											<del><span class="woocommerce-Price-amount amount" data-wp-text="context.item.regularPrice"></span></del>
 										</span>
-										<span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol" data-wp-text="state.currencySymbol"><?php echo esc_html( html_entity_decode( get_woocommerce_currency_symbol() ) ); ?></span><span data-wp-text="context.item.price"></span></bdi></span>
+										<span class="woocommerce-Price-amount amount" data-wp-text="context.item.price"></span>
 									</div>
 									<div class="cc_saved_amount"
 									     data-wp-class--cc-hidden="!context.item.isOnSale">

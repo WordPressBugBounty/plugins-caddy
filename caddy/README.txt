@@ -2,27 +2,27 @@
 Author: Tribe Interactive
 Author URI: https://www.usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
-Tags: caddy, side cart, cart, woocommerce, sticky cart
-Requires at least: 5.0
+Tags: side cart, floating cart, ajax cart, cart drawer, sliding cart
+Requires at least: 6.5
 Tested up to: 6.9.1
 Requires PHP: 7.4
-Stable tag: 3.0.0
+Stable tag: 3.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A high performance side cart for WooCommerce built on the WordPress Interactivity API and WooCommerce Store API. Boost conversions with product recommendations, a free shipping meter, and save for later.
+A high performance WooCommerce side cart, floating cart, and AJAX cart drawer built on the WordPress Interactivity API and WooCommerce Store API. Boost conversions with product recommendations, a free shipping meter, and save for later.
 
 == Description ==
 
-**[Caddy](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** is a **high performance, conversion-boosting side cart for your WooCommerce store** that improves your store's shopping experience & helps grow your sales.
+**[Caddy](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** is a **high performance WooCommerce side cart plugin** (also known as a floating cart, sliding cart, cart drawer, or mini cart) that improves your store's shopping experience and helps grow your sales. It replaces the default WooCommerce cart page with a sticky AJAX side cart that slides in from the edge of the screen, letting customers manage their cart without leaving the page.
 
 = Built on Modern WordPress APIs =
 
 Caddy v3 is built from the ground up on the **WordPress Interactivity API** and the **WooCommerce Store API** — the same modern foundations that power WooCommerce's own cart and checkout blocks. This means:
 
-* **Instant cart updates** — no full-page reloads or legacy AJAX. Cart changes are reactive and immediate.
+* **Instant AJAX cart updates** — no full-page reloads. Cart changes are reactive and immediate, making it the fastest WooCommerce AJAX side cart available.
 * **Server-synced state** — every cart operation goes through the official WooCommerce Store API, ensuring accurate prices, tax calculations, and stock validation.
-* **Lightweight** — no jQuery dependency. Caddy uses native ES modules loaded as WordPress script modules for the smallest possible footprint.
+* **Lightweight floating cart** — no jQuery dependency. Caddy uses native ES modules loaded as WordPress script modules for the smallest possible footprint.
 * **Future-proof** — built on the same APIs WordPress and WooCommerce are investing in long-term.
 
 **Increase average order sizes** with Caddy's built-in product recommendations, **reduce cart abandonment** with a free shipping meter, and **encourage repeat shoppers** with a saved product list.
@@ -42,15 +42,15 @@ Caddy v3 is built from the ground up on the **WordPress Interactivity API** and 
 
 = Caddy Lite features: =
 
-* Sticky side cart powered by the WordPress Interactivity API — available across your whole site
-* Real-time cart operations via the WooCommerce Store API — no legacy AJAX
+* Sticky floating side cart powered by the WordPress Interactivity API — available across your whole site
+* Real-time AJAX cart operations via the WooCommerce Store API — no page reloads
 * Free shipping meter that shows customers how close they are to free shipping
 * Product recommendations when customers add products to their cart
 * Save products for later (logged-in users)
 * Cart and saved list links for your navigation menu (shortcodes + widgets)
 * Add products &amp; manage cart items without reloading the page
 * Manage cart quantities directly in the side cart
-* Sticky floating cart button with a cart quantity indicator
+* Sticky floating cart bubble with a cart quantity indicator
 * Apply coupon codes in the side cart
 * Custom CSS to match your brand
 * WooCommerce HPOS support
@@ -159,6 +159,16 @@ No. We've built Caddy with performance in mind and have fine tuned it for speed.
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 3.0.1 =
+* Compatibility: Improved free/pro compatibility handling for legacy Pro detection, plus clearer admin upgrade guidance for incompatible Pro versions.
+* Fix: Standardized cart/recommendation image handling to use WooCommerce thumbnail URLs directly and resolved broken image edge cases.
+* Fix: Recommendation results now refresh from current cart state on drawer open to prevent stale/fallback mismatches after add-to-cart.
+* Fix: Cart totals now consistently respect WooCommerce tax display mode (`Including tax` / `Excluding tax`) and currency formatting settings, including `woocommerce_price_trim_zeros`.
+* Fix: Recommendation titles now decode HTML entities correctly (including double-encoded content), and cart variation text now shows clean value-only output.
+* Fix: Resolved WooCommerce Product Bundles edge cases for bundled item removal, aggregate pricing persistence, and variable-quantity control behavior.
+* Improvement: Expanded translation coverage and consistency for recommendation/rewards UI, recommendation CTAs, and free shipping meter copy (Loco Translate-friendly).
+* Improvement: Hardened bundled quantity controls with layered safeguards (UI, Interactivity directives, and JS action guards).
 
 = 3.0.0 =
 * MAJOR: Complete rewrite using the WordPress Interactivity API for reactive, instant cart updates

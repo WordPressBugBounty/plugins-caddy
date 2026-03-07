@@ -3,7 +3,7 @@
  * Plugin Name:       Caddy - Smart Side Cart for WooCommerce
  * Plugin URI:        https://usecaddy.com
  * Description:       A high performance, conversion-boosting side cart for your WooCommerce store that improves the shopping experience & helps grow your sales.
- * Version:           3.0.0
+ * Version:           3.0.1
  * Author:            Tribe Interactive
  * Author URI:        https://usecaddy.com
  * License:           GPL-2.0+
@@ -26,7 +26,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Define all constants for the plugin
  */
 if ( ! defined( 'CADDY_VERSION' ) ) {
-    define( 'CADDY_VERSION', '3.0.0' );
+    define( 'CADDY_VERSION', '3.0.1' );
 }
 if ( ! defined( 'CADDY_PLUGIN_FILE' ) ) {
     define( 'CADDY_PLUGIN_FILE', __FILE__ );
@@ -35,11 +35,24 @@ if ( ! defined( 'CADDY_DIR_URL' ) ) {
     define( 'CADDY_DIR_URL', untrailingslashit( plugins_url( '/', CADDY_PLUGIN_FILE ) ) );
 }
 
-// If Caddy Premium is active in this request, bail out silently.
-// Premium replaces all free functionality. This prevents fatal errors
-// from duplicate block/store/script module registration.
+// If Caddy Premium v3+ is active, bail out — Premium replaces all free functionality.
+// For older Premium versions (< 3.0.0) we must NOT bail, because they depend on
+// classes from the free plugin (e.g. Caddy_Admin). We show an upgrade notice instead.
 if ( defined( 'CADDY_PREMIUM_VERSION' ) || defined( 'CADDY_PREMIUM_PLUGIN_FILE' ) ) {
-    return;
+    $caddy_premium_ver = defined( 'CADDY_PREMIUM_VERSION' ) ? CADDY_PREMIUM_VERSION : '0';
+    if ( version_compare( $caddy_premium_ver, '3.0.0', '>=' ) ) {
+        return;
+    }
+    // Old Premium detected — continue loading so it doesn't crash, and warn the admin.
+    add_action( 'admin_notices', function () {
+        if ( ! current_user_can( 'update_plugins' ) ) {
+            return;
+        }
+        echo '<div class="notice notice-error"><p>';
+        echo '<strong>' . esc_html__( 'Caddy Pro update required:', 'caddy' ) . '</strong> ';
+        echo esc_html__( 'Your version of Caddy Pro is not compatible with Caddy 3.0. Please update Caddy Pro to version 3.0 or later to avoid errors.', 'caddy' );
+        echo '</p></div>';
+    } );
 }
 
 if ( ! function_exists( 'is_plugin_active_for_network' ) ) {

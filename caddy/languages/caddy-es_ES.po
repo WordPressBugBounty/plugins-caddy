@@ -883,6 +883,33 @@ msgstr "Eliminar este artículo"
 msgid "Saves"
 msgstr "Guardados"
 
+#: includes/class-caddy-block.php:80
+#: includes/class-caddy-interactivity.php:286
+#: includes/class-caddy-interactivity.php:455
+#: public/partials/caddy-public-cart.php:88
+#: public/partials/caddy-public-cart.php:326
+#: public/partials/caddy-public-recommendations.php:91
+msgid "Add to cart"
+msgstr "Añadir al carrito"
+
+#: includes/class-caddy-block.php:81
+#: includes/class-caddy-interactivity.php:287
+#: includes/class-caddy-interactivity.php:455
+#: public/partials/caddy-public-cart.php:89
+#: public/partials/caddy-public-cart.php:315
+#: public/partials/caddy-public-recommendations.php:80
+msgid "Select options"
+msgstr "Seleccionar opciones"
+
+#: includes/class-caddy-block.php:82
+#: includes/class-caddy-interactivity.php:288
+#: includes/class-caddy-interactivity.php:455
+#: public/partials/caddy-public-cart.php:90
+#: public/partials/caddy-public-cart.php:320
+#: public/partials/caddy-public-recommendations.php:85
+msgid "View products"
+msgstr "Ver productos"
+
 #: public/partials/caddy-public-cart.php:127
 msgid "Your Cart is Empty!"
 msgstr "¡Su carrito está vacío!"

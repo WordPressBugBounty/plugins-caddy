@@ -82,7 +82,12 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 
 ?>
 
-<div class="cc-cart-container" data-wp-interactive="caddy/cart" data-wp-init="callbacks.init">
+<div class="cc-cart-container"
+	 data-wp-interactive="caddy/cart"
+	 data-wp-init="callbacks.init"
+	 data-label-add-to-cart="<?php echo esc_attr__( 'Add to cart', 'caddy' ); ?>"
+	 data-label-see-options="<?php echo esc_attr__( 'Select options', 'caddy' ); ?>"
+	 data-label-view-products="<?php echo esc_attr__( 'View products', 'caddy' ); ?>">
 
 	<?php do_action( 'caddy_before_cart_screen_data' ); ?>
 
@@ -97,23 +102,24 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M22.87,7.1A.24.24,0,0,0,23,6.86a.23.23,0,0,0-.15-.21L16,3.92a1.13,1.13,0,0,0-.9,0L13,4.94a.24.24,0,0,0-.14.23.24.24,0,0,0,.15.22l6.94,3.07a.52.52,0,0,0,.44,0Z" fill="currentColor"></path><path d="M16.61,19.85a.27.27,0,0,0,.12.22.26.26,0,0,0,.24,0l6.36-3.18a1.12,1.12,0,0,0,.62-1V8.06a.26.26,0,0,0-.13-.22.25.25,0,0,0-.24,0L16.74,11.5a.26.26,0,0,0-.13.22Z" fill="currentColor"></path><path d="M7.52,8.31a.24.24,0,0,0-.23,0,.23.23,0,0,0-.11.2c0,.56,0,2.22,0,7.41a1.11,1.11,0,0,0,.68,1l7.42,3.16a.21.21,0,0,0,.23,0,.24.24,0,0,0,.12-.21V11.78a.26.26,0,0,0-.16-.23Z" fill="currentColor"></path><path d="M15.87,10.65a.54.54,0,0,0,.43,0l2.3-1.23a.26.26,0,0,0,.13-.23.24.24,0,0,0-.15-.22L11.5,5.82a.48.48,0,0,0-.42,0L8.31,7.12a.24.24,0,0,0-.14.23.23.23,0,0,0,.15.22Z" fill="currentColor"></path><path d="M5,13.76,1.07,11.94a.72.72,0,0,0-1,.37.78.78,0,0,0,.39,1l3.9,1.8a.87.87,0,0,0,.31.07.73.73,0,0,0,.67-.43A.75.75,0,0,0,5,13.76Z" fill="currentColor"></path><path d="M5,10.31,2.68,9.23a.74.74,0,0,0-1,.36.75.75,0,0,0,.36,1L4.4,11.65a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,10.31Z" fill="currentColor"></path><path d="M5,6.86,3.91,6.35a.73.73,0,0,0-1,.36.74.74,0,0,0,.36,1L4.4,8.2a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,6.86Z" fill="currentColor"></path></g></svg>
 					</span>
 					<span data-wp-class--cc-hidden="state.freeShippingAchieved"<?php echo ($cart_total >= $cc_free_shipping_amount) ? ' class="cc-hidden"' : ''; ?>>
-						<?php
-						printf(
-							/* translators: 1: Amount remaining, 2: Country name */
-							esc_html__('Spend %1$s more to get free %2$s shipping', 'caddy'),
-							'<strong><span class="cc-fs-amount">' . wc_price($free_shipping_remaining_amount) . '</span></strong>',
-							'<strong><span class="cc-fs-country">' . esc_attr($cc_shipping_country) . '</span></strong>'
-						);
-						?>
+						<?php esc_html_e( 'Spend', 'caddy' ); ?>
+						<strong>
+							<span class="cc-fs-amount"><?php echo wp_kses_post( wc_price( $free_shipping_remaining_amount ) ); ?></span>
+							<?php esc_html_e( 'more', 'caddy' ); ?>
+						</strong>
+						<?php esc_html_e( 'to get', 'caddy' ); ?>
+						<strong>
+							<?php esc_html_e( 'free', 'caddy' ); ?>
+							<?php esc_html_e( 'shipping', 'caddy' ); ?>
+						</strong>
 					</span>
 					<span data-wp-class--cc-hidden="!state.freeShippingAchieved"<?php echo ($cart_total < $cc_free_shipping_amount) ? ' class="cc-hidden"' : ''; ?>>
-						<?php
-						printf(
-							/* translators: %s: Country name */
-							esc_html__("Congrats, you've activated free %s shipping!", 'caddy'),
-							'<strong><span class="cc-fs-country">' . esc_attr($cc_shipping_country) . '</span></strong>'
-						);
-						?>
+						<?php esc_html_e( "Congrats, you've activated", 'caddy' ); ?>
+						<strong>
+							<?php esc_html_e( 'free', 'caddy' ); ?>
+							<?php esc_html_e( 'shipping', 'caddy' ); ?>
+						</strong>
+						!
 					</span>
 				</span>
 				<div class="cc-fs-meter">
@@ -158,12 +164,13 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 											     data-wp-class--cc-hidden="!context.item.variationText"
 											     data-wp-text="context.item.variationText"></div>
 
-											<!-- Quantity controls (hidden for bundled items) -->
+											<!-- Quantity controls -->
 											<div class="cc_item_quantity_wrap"
-											     data-wp-class--cc-hidden="context.item.isBundledItem"
+											     data-wp-class--cc-hidden="context.item.hideQuantity"
 											     data-wp-class--cc-sold-individually="context.item.soldIndividually">
 												<div class="cc_item_quantity_update cc_item_quantity_minus"
-												     data-wp-class--cc-hidden="context.item.soldIndividually"
+												     data-wp-class--cc-hidden="context.item.soldIndividually || context.item.hideQuantityButtons"
+												     data-wp-class--cc-qty-disabled="context.item.isAtMinQty"
 												     data-wp-on--click="actions.decreaseQuantity">−</div>
 
 												<input type="text"
@@ -176,19 +183,20 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 													min="1">
 
 												<div class="cc_item_quantity_update cc_item_quantity_plus"
-												     data-wp-class--cc-hidden="context.item.soldIndividually"
+												     data-wp-class--cc-hidden="context.item.soldIndividually || context.item.hideQuantityButtons"
+												     data-wp-class--cc-qty-disabled="context.item.isAtMaxQty"
 												     data-wp-on--click="actions.increaseQuantity">+</div>
 											</div>
 										</div>
 
 										<div class="cc_item_total_price"
-										     data-wp-class--cc-hidden="context.item.isBundledItem">
+										     data-wp-class--cc-hidden="context.item.hidePrice">
 											<div class="price">
 												<span class="cc-sale-price-wrapper"
 												      data-wp-class--cc-hidden="!context.item.showSalePrice">
-													<del><span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol" data-wp-text="state.currencySymbol"><?php echo esc_html( html_entity_decode( get_woocommerce_currency_symbol() ) ); ?></span><span data-wp-text="context.item.regularPriceFormatted"></span></bdi></span></del>
+													<del><span class="woocommerce-Price-amount amount" data-wp-text="context.item.regularPriceHtml"></span></del>
 												</span>
-												<span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol" data-wp-text="state.currencySymbol"><?php echo esc_html( html_entity_decode( get_woocommerce_currency_symbol() ) ); ?></span><span data-wp-text="context.item.price"></span></bdi></span>
+												<span class="woocommerce-Price-amount amount" data-wp-text="context.item.priceHtml"></span>
 											</div>
 											<div class="cc_saved_amount"
 											     data-wp-class--cc-hidden="!context.item.showSavings">
@@ -206,7 +214,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 											?>
 											<!-- Save for later (hidden for bundled items) -->
 											<div class="cc_sfl_btn"
-											     data-wp-class--cc-hidden="context.item.isBundledItem">
+											     data-wp-class--cc-hidden="context.item.shouldHideControls">
 												<a href="javascript:void(0);"
 												   class="button cc-button-sm save_for_later_btn"
 												   aria-label="<?php esc_attr_e('Save for later', 'caddy'); ?>"
@@ -222,7 +230,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 										<!-- Remove button (hidden for bundled items) -->
 										<a href="javascript:void(0);"
 										   class="cc-remove-item"
-										   data-wp-class--cc-hidden="context.item.isBundledItem"
+										   data-wp-class--cc-hidden="context.item.shouldHideControls"
 										   aria-label="<?php esc_attr_e('Remove this item', 'caddy'); ?>"
 										   data-wp-bind--data-product_id="context.item.productId"
 										   data-wp-bind--data-cart_item_key="context.item.cartKey"
@@ -277,10 +285,10 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 									</div>
 
 									<!-- Actual recommendations - hidden while loading -->
-									<div class="cc-pl-recommendations"
-										 data-wp-class--cc-hidden="state.recommendationsLoading"
-										 data-wp-style--transform="state.recommendationTransform"
-										 data-wp-style--width="state.recommendationSliderWidth">
+										<div class="cc-pl-recommendations"
+											 data-wp-class--cc-hidden="state.recommendationsLoading"
+											 data-wp-style--transform="state.recommendationTransform"
+											 data-wp-style--width="state.recommendationSliderWidth">
 										<template data-wp-each--rec="state.recommendations" data-wp-each-key="context.rec.id">
 											<div class="cc-slide" data-wp-key="context.rec.id">
 												<div class="up-sells-product">
@@ -300,22 +308,22 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 																<span data-wp-text="context.rec.price"></span>
 															</span>
 														</div>
-														<!-- Variable product button -->
-														<a data-wp-bind--href="context.rec.permalink"
-														   data-wp-class--cc-hidden="!context.rec.isVariable"
-														   class="button product_type_variable"
-														   data-wp-text="context.rec.buttonText"></a>
-														<!-- Grouped product button -->
-														<a data-wp-bind--href="context.rec.permalink"
-														   data-wp-class--cc-hidden="!context.rec.isGrouped"
-														   class="button product_type_grouped"
-														   data-wp-text="context.rec.buttonText"></a>
-														<!-- Simple product button -->
-														<button data-wp-on--click="actions.addRecommendationToCart"
-																data-wp-class--cc-hidden="!context.rec.isSimple"
-																data-wp-class--loading="context.rec.isAdding"
-																class="button product_type_simple add_to_cart_button"
-																data-wp-text="context.rec.buttonText"><?php esc_html_e('Add to cart', 'woocommerce'); ?></button>
+															<!-- Variable product button -->
+															<a data-wp-bind--href="context.rec.permalink"
+															   data-wp-class--cc-hidden="!context.rec.isVariable"
+															   class="button product_type_variable"
+															   data-wp-text="context.rec.buttonText"><?php esc_html_e('Select options', 'caddy'); ?></a>
+															<!-- Grouped product button -->
+															<a data-wp-bind--href="context.rec.permalink"
+															   data-wp-class--cc-hidden="!context.rec.isGrouped"
+															   class="button product_type_grouped"
+															   data-wp-text="context.rec.buttonText"><?php esc_html_e('View products', 'caddy'); ?></a>
+															<!-- Simple product button -->
+															<button data-wp-on--click="actions.addRecommendationToCart"
+																	data-wp-class--cc-hidden="!context.rec.isSimple"
+																	data-wp-class--loading="context.rec.isAdding"
+																	class="button product_type_simple add_to_cart_button"
+																	data-wp-text="context.rec.buttonText"><?php esc_html_e('Add to cart', 'caddy'); ?></button>
 													</div>
 												</div>
 											</div>
@@ -495,7 +503,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					}
 					?>
 					<div class="cc-total-amount">
-						<span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol"><?php echo esc_html( get_woocommerce_currency_symbol() ); ?></span><span data-wp-text="state.cartSubtotalDisplay"><?php echo number_format($cart_total, 2, '.', ''); ?></span></bdi></span>
+						<span class="woocommerce-Price-amount amount" data-wp-text="state.cartSubtotalFormatted"><?php echo esc_html( html_entity_decode( strip_tags( wc_price($cart_total) ) ) ); ?></span>
 					</div>
 				</div>
 			</div>

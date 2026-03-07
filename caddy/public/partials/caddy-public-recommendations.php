@@ -74,18 +74,18 @@ if (class_exists('Caddy_Premium')) {
 								<a data-wp-bind--href="context.rec.permalink"
 								   data-wp-class--cc-hidden="!context.rec.isVariable"
 								   class="button product_type_variable"
-								   data-wp-text="context.rec.buttonText"></a>
+								   data-wp-text="context.rec.buttonText"><?php esc_html_e('Select options', 'caddy'); ?></a>
 								<!-- Grouped product button -->
 								<a data-wp-bind--href="context.rec.permalink"
 								   data-wp-class--cc-hidden="!context.rec.isGrouped"
 								   class="button product_type_grouped"
-								   data-wp-text="context.rec.buttonText"></a>
+								   data-wp-text="context.rec.buttonText"><?php esc_html_e('View products', 'caddy'); ?></a>
 								<!-- Simple product button -->
 								<button data-wp-on--click="actions.addRecommendationToCart"
 										data-wp-class--cc-hidden="!context.rec.isSimple"
 										data-wp-class--loading="context.rec.isAdding"
 										class="button product_type_simple add_to_cart_button"
-										data-wp-text="context.rec.buttonText"><?php esc_html_e('Add to cart', 'woocommerce'); ?></button>
+										data-wp-text="context.rec.buttonText"><?php esc_html_e('Add to cart', 'caddy'); ?></button>
 							</div>
 						</div>
 					</div>

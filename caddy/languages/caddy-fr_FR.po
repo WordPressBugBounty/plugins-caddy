@@ -976,3 +976,30 @@ msgstr "Se connecter ou s'inscrire"
 #: public/partials/caddy-public-window.php:30
 msgid "Your Cart"
 msgstr "Votre panier"
+
+#: includes/class-caddy-block.php:80
+#: includes/class-caddy-interactivity.php:286
+#: includes/class-caddy-interactivity.php:455
+#: public/partials/caddy-public-cart.php:88
+#: public/partials/caddy-public-cart.php:326
+#: public/partials/caddy-public-recommendations.php:91
+msgid "Add to cart"
+msgstr "Ajouter au panier"
+
+#: includes/class-caddy-block.php:81
+#: includes/class-caddy-interactivity.php:287
+#: includes/class-caddy-interactivity.php:455
+#: public/partials/caddy-public-cart.php:89
+#: public/partials/caddy-public-cart.php:315
+#: public/partials/caddy-public-recommendations.php:80
+msgid "Select options"
+msgstr "Choisir les options"
+
+#: includes/class-caddy-block.php:82
+#: includes/class-caddy-interactivity.php:288
+#: includes/class-caddy-interactivity.php:455
+#: public/partials/caddy-public-cart.php:90
+#: public/partials/caddy-public-cart.php:320
+#: public/partials/caddy-public-recommendations.php:85
+msgid "View products"
+msgstr "Voir les produits"

@@ -977,6 +977,14 @@ msgstr "Anmelden oder Registrieren"
 msgid "Your Cart"
 msgstr "Ihr Warenkorb"
 
+#: includes/class-caddy-block.php
+msgid "Your Saves"
+msgstr "Gespeicherte Artikel"
+
+#: includes/class-caddy-block.php
+msgid "Your Offers"
+msgstr "Deine Angebote"
+
 #: includes/class-caddy-block.php:80
 #: includes/class-caddy-interactivity.php:286
 #: includes/class-caddy-interactivity.php:455

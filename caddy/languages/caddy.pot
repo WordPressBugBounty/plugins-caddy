@@ -991,3 +991,11 @@ msgstr ""
 #: public/partials/caddy-public-window.php:30
 msgid "Your Cart"
 msgstr ""
+
+#: includes/class-caddy-block.php
+msgid "Your Saves"
+msgstr ""
+
+#: includes/class-caddy-block.php
+msgid "Your Offers"
+msgstr ""

@@ -16,27 +16,28 @@ $shop_page_url = !empty($custom_browse_url) ? $custom_browse_url : get_permalink
 $cc_enable_sfl_options = get_option( 'cc_enable_sfl_options', 'enabled' ); // Default to 'enabled'
 $cc_sfl_tab_flag       = ( 'enabled' === $cc_enable_sfl_options );
 ?>
-<div class="cc-header cc-text-left" data-wp-interactive="caddy/cart">
-	<i class="ccicon-x" data-wp-on--click="actions.closeCart"></i>
-	<div class="cc-inner-container">
-		<div class="cc-nav">
-			<ul data-tabs>
-				<li><a href="#cc-cart" class="cc-cart-nav" data-id="cc-cart">
-					<?php esc_html_e( 'Your Cart', 'caddy' ); ?>
-					<span class="cc-cart-tab-count" data-wp-class--cc-hidden="!state.cartCount">
-						(<span data-wp-text="state.cartCount"><?php echo esc_html( $cart_contents_count ); ?></span>)
+<div class="cc-header" data-wp-interactive="caddy/cart">
+	<div class="cc-header-bar">
+		<button class="cc-header-back" data-wp-on--click="actions.handleHeaderBack" aria-label="<?php esc_attr_e( 'Back', 'caddy' ); ?>">
+			<span class="cc-header-back-close"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+			<span class="cc-header-back-arrow" style="display:none;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></span>
+		</button>
+		<span class="cc-header-title">
+			<?php esc_html_e( 'Your Cart', 'caddy' ); ?>
+			<span class="cc-cart-tab-count" data-wp-class--cc-hidden="!state.cartCount">
+				(<span data-wp-text="state.cartCount"><?php echo esc_html( $cart_contents_count ); ?></span>)
+			</span>
+		</span>
+		<div class="cc-header-icons" data-tabs>
+			<?php if ( is_user_logged_in() && $cc_sfl_tab_flag ) { ?>
+				<a href="#cc-saves" class="cc-save-nav cc-icon-nav" data-id="cc-saves">
+					<i class="ccicon-heart-empty"></i>
+					<span class="cc-saved-tab-count" data-wp-class--cc-hidden="!state.savedItemsCount">
+						<span data-wp-text="state.savedItemsCount">0</span>
 					</span>
-				</a></li>
-				<?php if ( is_user_logged_in() && $cc_sfl_tab_flag ) { ?>
-					<li><a href="#cc-saves" class="cc-save-nav" data-id="cc-saves">
-						<?php esc_html_e( 'Saved Items', 'caddy' ); ?>
-						<span class="cc-saved-tab-count" data-wp-class--cc-hidden="!state.savedItemsCount">
-							(<span data-wp-text="state.savedItemsCount">0</span>)
-						</span>
-					</a></li>
-				<?php } ?>
-				<?php do_action( 'caddy_after_nav_tabs' ); ?>
-			</ul>
+				</a>
+			<?php } ?>
+			<?php do_action( 'caddy_after_nav_tabs' ); ?>
 		</div>
 	</div>
 </div>

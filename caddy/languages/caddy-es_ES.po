@@ -1002,3 +1002,11 @@ msgstr "Iniciar sesión o registrarse"
 #: public/partials/caddy-public-window.php:30
 msgid "Your Cart"
 msgstr "Su carrito"
+
+#: includes/class-caddy-block.php
+msgid "Your Saves"
+msgstr "Tus Guardados"
+
+#: includes/class-caddy-block.php
+msgid "Your Offers"
+msgstr "Tus Ofertas"

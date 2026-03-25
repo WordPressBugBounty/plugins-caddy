@@ -112,6 +112,11 @@ class Caddy_Block {
 			'errorRemoveCouponTryAgain' => __('Failed to remove coupon. Please try again.', 'caddy'),
 			'alertSaveForLaterFailed' => __('Failed to save item for later. Please try again.', 'caddy'),
 
+			// Tab titles
+			'yourCart' => __('Your Cart', 'caddy'),
+			'yourSaves' => __('Your Saves', 'caddy'),
+			'yourOffers' => __('Your Offers', 'caddy'),
+
 			// Recommendations
 			'recommendationsEmpty' => __('No recommendations available', 'caddy'),
 			'recommendationsLoadError' => __('Unable to load recommendations', 'caddy'),

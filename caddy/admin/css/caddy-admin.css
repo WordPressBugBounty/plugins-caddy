@@ -947,3 +947,131 @@ body.toplevel_page_caddy .update-nag, body.caddy_page_caddy-addons .update-nag {
 .cc-settings-wrap #cc-styles-settings-form{
 	flex: 1;
 }
+
+/* --- Resources Page --- */
+
+.cc-resources-list {
+	background-color: #FFF;
+	border: 1px solid #d8d8d8;
+	border-radius: 5px;
+	margin-top: 20px;
+	box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+}
+
+.cc-resources-category-heading {
+	font-size: 15px;
+	font-weight: 700;
+	margin: 20px 0 0;
+	padding: 0;
+}
+
+.cc-resources-category-heading:first-of-type {
+	margin-top: 16px;
+}
+
+.cc-resources-item {
+	padding: 12px 20px;
+	border-bottom: 1px solid #f1f1f1;
+}
+
+.cc-resources-item:last-child {
+	border-bottom: none;
+}
+
+.cc-resources-item a {
+	font-size: 15px;
+	font-weight: 600;
+	color: #000;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	transition: color 150ms linear;
+}
+
+.cc-resources-item a:hover {
+	color: #634ef4;
+}
+
+.cc-resources-item p {
+	margin: 4px 0 0;
+	color: #666;
+	font-size: 13px;
+}
+
+.cc-resources-plugins-header {
+	margin-top: 20px;
+}
+
+.cc-resources-plugins-header h3 {
+	font-size: 18px;
+	font-weight: 700;
+	margin: 0 0 4px;
+}
+
+.cc-resources-plugins-header p {
+	color: #666;
+	margin: 0 0 16px;
+}
+
+.cc-resources-plugins-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 15px;
+}
+
+.cc-resources-plugin {
+	width: auto !important;
+	min-height: 0;
+	padding: 20px 24px;
+	display: flex;
+	flex-direction: column;
+}
+
+.cc-resources-plugin-icon {
+	display: inline-flex;
+	width: 36px;
+	height: 36px;
+	align-items: center;
+	justify-content: center;
+	background-color: #000;
+	color: #FFF;
+	border-radius: 8px;
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.cc-resources-plugin .addon-title {
+	margin-bottom: 4px;
+}
+
+.cc-resources-plugin .addon-description {
+	height: auto;
+	flex: 1;
+	margin-top: 0;
+}
+
+.cc-resources-plugin-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 10px;
+}
+
+.cc-resources-plugin-price {
+	font-size: 13px;
+	color: #666;
+	font-weight: 600;
+}
+
+.cc-resources-plugin-featured {
+	grid-column: 1 / -1;
+	border-color: #634ef4 !important;
+	background: linear-gradient(135deg, #f8f7ff 0%, #FFF 100%) !important;
+}
+
+@media screen and (max-width: 782px) {
+	.cc-resources-plugins-grid {
+		grid-template-columns: 1fr;
+	}
+}

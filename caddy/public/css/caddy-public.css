@@ -260,6 +260,105 @@ body.cc-window-open .cc-window {
   border-bottom: var(--cc-window-border-width) solid var(--cc-window-border-color);
 }
 
+.cc-header-bar {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  min-height: 48px;
+  position: relative;
+}
+
+.cc-header-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  width: 24px;
+}
+
+.cc-header-back svg {
+  display: block;
+}
+
+.cc-header-back:hover,
+.cc-header-back:focus,
+.cc-header-back:active,
+.cc-header-back:focus-visible {
+  opacity: 0.6;
+  background: none !important;
+  color: #000 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.cc-header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #000;
+  letter-spacing: -0.2px;
+  pointer-events: none;
+}
+
+.cc-header-title .cc-cart-tab-count {
+  font-weight: 400;
+}
+
+.cc-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.cc-header-icons .cc-icon-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #000;
+}
+
+.cc-header-icons .cc-icon-nav i {
+  font-size: 22px;
+  line-height: 1;
+  display: block;
+}
+
+.cc-header-icons .cc-icon-nav .cc-saved-tab-count {
+  display: inline-block !important;
+  border-radius: 50%;
+  height: 17px;
+  line-height: 17px;
+  width: 17px;
+  text-align: center;
+  font-size: 11px !important;
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background-color: #000;
+  color: #fff;
+}
+
+.cc-header-icons .cc-icon-nav .cc-saved-tab-count.cc-hidden {
+  display: none !important;
+}
+
+/* Old X button hidden — replaced by .cc-header-back */
+.cc-header > .ccicon-x {
+  display: none !important;
+}
+
 .cc-header [class^="licon-"],
 .cc-header [class*=" licon-"] {
   -webkit-font-smoothing: auto;
@@ -374,7 +473,7 @@ body.cc-window-open .cc-window {
 }
 
 .ccicon-x:hover {
-  color: white;
+  color: #000;
 }
 
 .cc-compass .licon::before {

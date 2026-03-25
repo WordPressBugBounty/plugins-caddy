@@ -66,7 +66,7 @@ class Caddy_Admin {
 			// Sanitize the 'page' parameter
 			$page_name = sanitize_text_field($raw_page_name);
 
-			if ( 'caddy' == $page_name || 'caddy-addons' === $page_name ) {
+			if ( 'caddy' == $page_name || 'caddy-addons' === $page_name || 'caddy-resources' === $page_name ) {
 				wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/caddy-admin.css', array(), $this->version, 'all' );
 				wp_enqueue_style( 'kt-admin-notice', plugin_dir_url( __FILE__ ) . 'css/caddy-admin-notices.css', array(), $this->version, 'all' );
 			}
@@ -138,6 +138,14 @@ class Caddy_Admin {
 			'caddy-addons',
 			[ $this, 'caddy_addons_page_callback' ]
 		);
+		add_submenu_page(
+			'caddy',
+			__( 'Resources', 'caddy' ),
+			__( 'Resources', 'caddy' ),
+			'manage_options',
+			'caddy-resources',
+			[ $this, 'caddy_resources_page_callback' ]
+		);
 
 	}
 
@@ -153,6 +161,13 @@ class Caddy_Admin {
 	 */
 	public function caddy_addons_page_callback() {
 		require_once plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-addons-page.php';
+	}
+
+	/**
+	 * Display a caddy resources submenu page.
+	 */
+	public function caddy_resources_page_callback() {
+		require_once plugin_dir_path( __FILE__ ) . 'partials/caddy-admin-resources-page.php';
 	}
 
 	/**
@@ -284,6 +299,7 @@ class Caddy_Admin {
 			| <a href="https://usecaddy.com/docs/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=plugin-links"><?php echo esc_html( __( 'Documentation', 'caddy' ) ); ?></a>
 			| <a href="https://wordpress.org/support/plugin/caddy/reviews/#new-post" target="_blank"><?php echo esc_html( __( 'Leave a Review', 'caddy' ) ); ?></a>
 			| <a href="?page=caddy-addons"><?php echo esc_html( __( 'Get Add-ons', 'caddy' ) ); ?></a>
+			| <a href="?page=caddy-resources"><?php echo esc_html( __( 'Resources', 'caddy' ) ); ?></a>
 			<?php
 			$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 

@@ -387,6 +387,14 @@ msgstr "Login of registreer"
 msgid "Your Cart"
 msgstr "Jou bestellijst"
 
+#: includes/class-caddy-block.php
+msgid "Your Saves"
+msgstr "Opgeslagen"
+
+#: includes/class-caddy-block.php
+msgid "Your Offers"
+msgstr "Aanbiedingen"
+
 #: includes/class-caddy-block.php:80
 #: includes/class-caddy-interactivity.php:286
 #: includes/class-caddy-interactivity.php:455

@@ -6,7 +6,7 @@ Tags: side cart, floating cart, ajax cart, cart drawer, sliding cart
 Requires at least: 6.5
 Tested up to: 6.9.1
 Requires PHP: 7.4
-Stable tag: 3.0.1
+Stable tag: 3.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,6 +159,13 @@ No. We've built Caddy with performance in mind and have fine tuned it for speed.
 4. The custom CSS styling screen.
 
 == Changelog ==
+
+= 3.0.2 =
+* Fix: Cart item prices now remain tax-inclusive after quantity changes when WooCommerce is set to display prices including tax.
+* Fix: Prices now display correctly for currencies with non-standard decimal settings (e.g. INR with 0 decimals, JPY). Previously all Store API prices were hardcoded to divide by 100.
+* Fix: Cart item shortcode (`[cc_cart_items]`) is now clickable regardless of whether Save for Later is active.
+* Fix: Shop page add-to-cart buttons no longer replace theme icons/markup with text, preventing layout shifts and preserving theme styling (e.g. WoodMart, Flatsome).
+* Fix: Caddy Recommendations now display correctly for variable products (previously looked up variation ID instead of parent product).
 
 = 3.0.1 =
 * Compatibility: Improved free/pro compatibility handling for legacy Pro detection, plus clearer admin upgrade guidance for incompatible Pro versions.

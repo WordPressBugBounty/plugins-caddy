@@ -3,7 +3,7 @@
  * Plugin Name:       Caddy - Smart Side Cart for WooCommerce
  * Plugin URI:        https://usecaddy.com
  * Description:       A high performance, conversion-boosting side cart for your WooCommerce store that improves the shopping experience & helps grow your sales.
- * Version:           3.0.1
+ * Version:           3.0.2
  * Author:            Tribe Interactive
  * Author URI:        https://usecaddy.com
  * License:           GPL-2.0+
@@ -26,7 +26,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Define all constants for the plugin
  */
 if ( ! defined( 'CADDY_VERSION' ) ) {
-    define( 'CADDY_VERSION', '3.0.1' );
+    define( 'CADDY_VERSION', '3.0.2' );
 }
 if ( ! defined( 'CADDY_PLUGIN_FILE' ) ) {
     define( 'CADDY_PLUGIN_FILE', __FILE__ );

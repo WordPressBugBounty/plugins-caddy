@@ -71,27 +71,6 @@ if (get_transient('caddy_settings_updated')) {
 
 			<?php do_action( 'cc_upgrade_to_premium' ); ?>
 			<div class="cc-box cc-links">
-				<h3><?php echo esc_html( __( 'More Premium Plugins', 'caddy' ) ); ?></h3>
-				<ul class="cc-product-links">
-					<li>
-						<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'img/klaviyo-logo.jpg' ); ?>" width="40" height="40" />
-						<div>
-							<a href="https://www.madebytribe.com/products/klaviyo-toolkit/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=caddy-links"
-							   target="_blank"><?php echo esc_html( __( 'Klaviyo ToolKit', 'caddy' ) ); ?></a>
-							<p><?php echo esc_html( __( 'Improve your WooCommerce email marketing with Klaviyo.', 'caddy' ) ); ?></p>
-						</div>
-					</li>
-					<li>
-						<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'img/rk-logo-avatar.svg' ); ?>" width="40" height="40" />
-						<div>
-							<a href="https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=caddy-links"
-							   target="_blank"><?php echo esc_html( __( 'RetentionKit', 'caddy' ) ); ?></a>
-							<p><?php echo esc_html( __( 'Learn why users cancel their WC subscriptions with exit surveys, offer renewal discounts to stay and more.', 'caddy' ) ); ?></p>
-						</div>
-					</li>
-				</ul>
-			</div>
-			<div class="cc-box cc-links">
 				<h3><?php echo esc_html( __( 'Caddy Quick Links', 'caddy' ) ); ?></h3>
 				<ul>
 					<li>

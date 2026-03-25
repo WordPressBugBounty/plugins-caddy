@@ -378,15 +378,35 @@ class Caddy_Interactivity {
 		if ($product_id > 0) {
 			$product = wc_get_product($product_id);
 			if ($product && !empty($cc_product_recommendation_type)) {
+				// For variations, look up recommendations on the parent product
+				$lookup_id = $product_id;
+				$lookup_product = $product;
+				if ($product->is_type('variation')) {
+					$lookup_id = $product->get_parent_id();
+					$lookup_product = wc_get_product($lookup_id) ?: $product;
+				} else {
+					// For Variation Bundles: trace mapped bundle back to original variable product
+					$variation_id = self::get_variation_bundle_source($product_id);
+					if ($variation_id) {
+						$parent_id = wp_get_post_parent_id($variation_id);
+						if ($parent_id) {
+							$parent_product = wc_get_product($parent_id);
+							if ($parent_product) {
+								$lookup_id = $parent_id;
+								$lookup_product = $parent_product;
+							}
+						}
+					}
+				}
 				switch ($cc_product_recommendation_type) {
 					case 'caddy-recommendations':
-						$recommended_products = get_post_meta($product_id, '_caddy_recommendations', true);
+						$recommended_products = get_post_meta($lookup_id, '_caddy_recommendations', true);
 						break;
 					case 'cross-sells':
-						$recommended_products = $product->get_cross_sell_ids();
+						$recommended_products = $lookup_product->get_cross_sell_ids();
 						break;
 					case 'upsells':
-						$recommended_products = $product->get_upsell_ids();
+						$recommended_products = $lookup_product->get_upsell_ids();
 						break;
 				}
 			}
@@ -977,11 +997,31 @@ class Caddy_Interactivity {
 			), 404);
 		}
 
+		// For variations, look up recommendations on the parent product
+		$lookup_id = $product_id;
+		if ($product->is_type('variation')) {
+			$lookup_id = $product->get_parent_id();
+			$product = wc_get_product($lookup_id) ?: $product;
+		} else {
+			// For Variation Bundles: trace mapped bundle back to original variable product
+			$variation_id = self::get_variation_bundle_source($product_id);
+			if ($variation_id) {
+				$parent_id = wp_get_post_parent_id($variation_id);
+				if ($parent_id) {
+					$parent_product = wc_get_product($parent_id);
+					if ($parent_product) {
+						$lookup_id = $parent_id;
+						$product = $parent_product;
+					}
+				}
+			}
+		}
+
 		// Get recommendations based on type
 		if (!empty($cc_product_recommendation_type)) {
 			switch ($cc_product_recommendation_type) {
 				case 'caddy-recommendations':
-					$recommended_products = get_post_meta($product_id, '_caddy_recommendations', true);
+					$recommended_products = get_post_meta($lookup_id, '_caddy_recommendations', true);
 					break;
 
 				case 'cross-sells':
@@ -1101,6 +1141,21 @@ class Caddy_Interactivity {
 		// Bump the cache version — all old transients become stale and expire naturally
 		$version = (int) get_option( 'caddy_recs_cache_version', 0 );
 		update_option( 'caddy_recs_cache_version', $version + 1, true );
+	}
+
+	/**
+	 * For WC Product Bundles Variation Bundles: find the variation that maps to a given bundle.
+	 * Returns the variation ID if found, or 0 if this product isn't a mapped bundle.
+	 *
+	 * @param int $bundle_product_id The bundle product ID in the cart
+	 * @return int Variation ID or 0
+	 */
+	private static function get_variation_bundle_source($bundle_product_id) {
+		global $wpdb;
+		return (int) $wpdb->get_var($wpdb->prepare(
+			"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wc_pb_variable_bundle' AND meta_value = %s LIMIT 1",
+			(string) $bundle_product_id
+		));
 	}
 
 	/**

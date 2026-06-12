@@ -30,6 +30,15 @@ class Caddy_Interactivity {
 		// Clear recommendations cache when products are updated
 		add_action('woocommerce_update_product', array(__CLASS__, 'clear_recommendations_cache'));
 		add_action('woocommerce_delete_product', array(__CLASS__, 'clear_recommendations_cache'));
+
+		// Clear recommendations cache when recommendation settings change —
+		// the cache key only includes version/product/exclude/limit, so option
+		// changes would otherwise serve stale results for up to an hour.
+		// add_option_* covers the first-ever save (update_option_* doesn't fire then).
+		foreach (array('cc_product_recommendation', 'cc_product_recommendation_type') as $cc_recs_option) {
+			add_action("update_option_{$cc_recs_option}", array(__CLASS__, 'clear_recommendations_cache'));
+			add_action("add_option_{$cc_recs_option}", array(__CLASS__, 'clear_recommendations_cache'));
+		}
 	}
 
 	/**
@@ -91,7 +100,14 @@ class Caddy_Interactivity {
 
 		if ($cart && !$cart->is_empty()) {
 			foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-				$product = $cart_item['data'];
+				$product = $cart_item['data'] ?? null;
+
+				// Defensive: a deleted/corrupt product can leave a stale session
+				// row without a product object — skip instead of fataling
+				if (!$product instanceof WC_Product) {
+					continue;
+				}
+
 				$product_id = $cart_item['product_id'];
 				$variation_id = $cart_item['variation_id'];
 				$quantity = $cart_item['quantity'];
@@ -158,11 +174,29 @@ class Caddy_Interactivity {
 					$savings_percentage = round((($regular_unit_price - $sale_unit_price) / $regular_unit_price) * 100);
 				}
 
-				// Get variation text
+				// Get variation/add-on text (works for both variable products and simple products with add-ons)
 				$variation_text = '';
-				if ($variation_id && function_exists('wc_get_formatted_cart_item_data')) {
-					$variation_data = wc_get_formatted_cart_item_data($cart_item);
-					$variation_text = strip_tags($variation_data);
+				if (function_exists('wc_get_formatted_cart_item_data')) {
+					$variation_data = wc_get_formatted_cart_item_data( $cart_item );
+					if ( ! empty( $variation_data ) ) {
+						// Output is <dl><dt>Label:</dt><dd><p>Value</p></dd>...</dl>
+						// Extract dt/dd pairs with regex for reliable parsing
+						$parts = array();
+						if ( preg_match_all( '/<dt[^>]*>(.*?)<\/dt>\s*<dd[^>]*>(.*?)<\/dd>/si', $variation_data, $matches, PREG_SET_ORDER ) ) {
+							foreach ( $matches as $match ) {
+								$label = trim( wp_strip_all_tags( html_entity_decode( $match[1] ) ) );
+								$value = trim( wp_strip_all_tags( html_entity_decode( $match[2] ) ) );
+								// Remove trailing colon from label if present (WC adds it)
+								$label = rtrim( $label, ':' );
+								if ( $label && $value ) {
+									$parts[] = $label . ': ' . $value;
+								} elseif ( $value ) {
+									$parts[] = $value;
+								}
+							}
+						}
+						$variation_text = implode( "\n", $parts );
+					}
 				}
 
 				// Smart price formatting - matches formatPriceSmart in JavaScript
@@ -216,6 +250,7 @@ class Caddy_Interactivity {
 					'regularPriceHtml' => $is_on_sale ? html_entity_decode( strip_tags( wc_price($regular_line_total) ) ) : '',
 					'salePrice' => $format_price_smart($sale_line_total),
 					'unitPrice' => $unit_price,
+					'hasCustomPricing' => self::cart_item_has_custom_pricing( $cart_item, $product ),
 					'isOnSale' => $is_on_sale,
 					'savingsPercentage' => $savings_percentage,
 					'lineTotal' => $line_total,
@@ -424,7 +459,10 @@ class Caddy_Interactivity {
 					continue;
 				}
 				$recommended_product = wc_get_product($recommended_id);
-				if ($recommended_product && 'publish' === $recommended_product->get_status()) {
+				// Only recommend products that can actually be added to the cart —
+				// out-of-stock items render an Add to Cart button that fails silently.
+				if ($recommended_product && 'publish' === $recommended_product->get_status()
+					&& $recommended_product->is_in_stock() && $recommended_product->is_purchasable()) {
 					$final_recommended_products[] = $recommended_id;
 				}
 			}
@@ -437,7 +475,8 @@ class Caddy_Interactivity {
 				'orderby' => 'popularity',
 				'order' => 'DESC',
 				'return' => 'ids',
-				'status' => 'publish'
+				'status' => 'publish',
+				'stock_status' => 'instock'
 			));
 
 			if (!empty($best_sellers)) {
@@ -1051,7 +1090,10 @@ class Caddy_Interactivity {
 				}
 
 				$recommended_product = wc_get_product($recommended_id);
-				if ($recommended_product && 'publish' === $recommended_product->get_status()) {
+				// Only recommend products that can actually be added to the cart —
+				// out-of-stock items render an Add to Cart button that fails silently.
+				if ($recommended_product && 'publish' === $recommended_product->get_status()
+					&& $recommended_product->is_in_stock() && $recommended_product->is_purchasable()) {
 					$final_recommended_products[] = $recommended_id;
 				}
 			}
@@ -1065,7 +1107,8 @@ class Caddy_Interactivity {
 				'orderby' => 'popularity',
 				'order' => 'DESC',
 				'return' => 'ids',
-				'status' => 'publish'
+				'status' => 'publish',
+				'stock_status' => 'instock'
 			));
 
 			if (!empty($best_sellers)) {
@@ -1216,5 +1259,25 @@ class Caddy_Interactivity {
 		}
 
 		return $saved_items;
+	}
+
+	/**
+	 * Detect if a cart item has custom pricing from add-ons or other plugins.
+	 * Checks common indicators without coupling to any specific plugin.
+	 */
+	private static function cart_item_has_custom_pricing( $cart_item, $product ) {
+		// Product Add-Ons stores add-on data in cart_item['addons']
+		if ( ! empty( $cart_item['addons'] ) ) {
+			return true;
+		}
+
+		// Generic check: compare the cart product's modified price against the stored original price
+		// Uses post meta directly (cached by WP object cache) instead of instantiating a full product
+		$original_price = floatval( get_post_meta( $product->get_id(), '_price', true ) );
+		if ( $original_price > 0 && abs( floatval( $product->get_price() ) - $original_price ) > 0.01 ) {
+			return true;
+		}
+
+		return false;
 	}
 }

@@ -149,7 +149,7 @@ class Caddy_Save_For_Later {
 			<?php if ( ! empty( $atts['icon'] ) ) : ?>
 				<i class="<?php echo esc_attr( $atts['icon'] ); ?>"></i>
 			<?php endif; ?>
-			<span class="cc-cart-count"><?php echo esc_html( $count ); ?></span>
+			<span class="cc-saved-count"><?php echo esc_html( $count ); ?></span>
 			<?php if ( ! empty( $atts['text'] ) ) : ?>
 				<span><?php echo esc_html( $atts['text'] ); ?></span>
 			<?php endif; ?>

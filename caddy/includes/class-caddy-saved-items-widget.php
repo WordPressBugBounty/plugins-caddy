@@ -35,12 +35,20 @@ if ( ! class_exists( 'caddy_saved_items_widget' ) ) {
 		}
 	
 		$si_text = !empty($instance['si_text']) ? $instance['si_text'] : '';
+
+		// Saved items count badge (class matches updateSavedItemsWidgetCount()).
+		$cc_sfl_items_array = get_user_meta( get_current_user_id(), 'cc_save_for_later_items', true );
+		$count = is_array( $cc_sfl_items_array ) ? count( array_unique( $cc_sfl_items_array ) ) : 0;
+		$cc_saved_class = ( 0 === $count ) ? 'cc-saved-count cc-saved-zero' : 'cc-saved-count';
+
 		$saved_items_link = sprintf(
-			'<a href="%1$s" class="cc_saved_items_list" aria-label="%2$s">%3$s %4$s</a>',
+			'<a href="%1$s" class="cc_saved_items_list" aria-label="%2$s">%3$s %4$s <span class="%5$s">%6$s</span></a>',
 			'javascript:void(0);',
 			esc_html__('Saved Items', 'caddy'),
 			('on' == $instance['cc_si_icon']) ? '' : '<i class="ccicon-heart-empty"></i>',
-			esc_html($si_text)
+			esc_html($si_text),
+			esc_attr($cc_saved_class),
+			esc_html($count)
 		);
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in sprintf above
 		echo $saved_items_link;

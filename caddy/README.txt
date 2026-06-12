@@ -1,16 +1,16 @@
-=== Caddy - Smart Side Cart for WooCommerce ===
+=== Caddy – WooCommerce Side Cart & Free Shipping Bar ===
 Author: Tribe Interactive
 Author URI: https://www.usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
-Tags: side cart, floating cart, ajax cart, cart drawer, sliding cart
+Tags: side cart, woocommerce side cart, floating cart, mini cart, free shipping bar
 Requires at least: 6.5
-Tested up to: 6.9.1
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 3.0.2
+Stable tag: 3.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A high performance WooCommerce side cart that boosts conversions with product recommendations, a free shipping meter, and save for later.
+A high-performance WooCommerce side cart, mini cart, and free shipping bar that boosts AOV with in-cart upsells and save for later.
 
 == Description ==
 
@@ -25,8 +25,10 @@ Caddy v3 is built from the ground up on the **WordPress Interactivity API** and 
 * **Lightweight floating cart** - no jQuery dependency. Caddy uses native ES modules loaded as WordPress script modules for the smallest possible footprint.
 * **Future-proof** - built on the same APIs WordPress and WooCommerce are investing in long-term.
 
-**Increase average order sizes** with Caddy's built-in product recommendations, **reduce cart abandonment** with a free shipping meter, and **encourage repeat shoppers** with a saved product list.
+**Increase average order value** with Caddy's built-in in-cart upsells and cross-sell product recommendations, **reduce cart abandonment** with a free shipping bar, and **encourage repeat shoppers** with a save for later wishlist.
 
+🛒 **Side cart, mini cart &amp; floating cart drawer in one**
+🚚 **Free shipping bar to lift average order value**
 ⚡️ **Built on WordPress Interactivity API &amp; WooCommerce Store API**
 📱 **Mobile friendly responsive design**
 🔄 **Real-time reactive cart updates**
@@ -38,19 +40,22 @@ Caddy v3 is built from the ground up on the **WordPress Interactivity API** and 
 🔄 **Works with most themes and plugins**
 🎁 **Apply cart discounts and promo codes**
 
-**[Try the Demo](https://demo.usecaddy.com/)** | **[Visit usecaddy.com](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)**
+**[Try the Demo](https://demo.usecaddy.com/)** | **[Cart Optimization Playbooks](https://www.usecaddy.com/playbooks/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)** | **[Visit usecaddy.com](https://www.usecaddy.com/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-desc-links)**
 
 = Caddy Lite features: =
 
-* Sticky floating side cart powered by the WordPress Interactivity API - available across your whole site
+* Sticky floating side cart / mini cart powered by the WordPress Interactivity API - available across your whole site
+* Slide-in cart drawer that opens like an add-to-cart popup - no page reloads
 * Real-time AJAX cart operations via the WooCommerce Store API - no page reloads
-* Free shipping meter that shows customers how close they are to free shipping
-* Product recommendations when customers add products to their cart
-* Save products for later (logged-in users)
+* Free shipping bar (progress meter) that shows customers how close they are to free shipping
+* In-cart upsell and cross-sell product recommendations when customers add to cart
+* Save products for later / wishlist (logged-in users)
+* Quick AJAX add to cart from shop and archive pages - no page reload
 * Cart and saved list links for your navigation menu (shortcodes + widgets)
+* Elementor widgets: drag a "Caddy Cart" or "Caddy Saved Items" element into any Elementor header or layout, with full icon, label, and count-badge styling; clicking opens the side cart and the count stays live
 * Add products &amp; manage cart items without reloading the page
 * Manage cart quantities directly in the side cart
-* Sticky floating cart bubble with a cart quantity indicator
+* Sticky add-to-cart bubble (floating cart icon) with a live quantity indicator
 * Apply coupon codes in the side cart
 * Custom CSS to match your brand
 * WooCommerce HPOS support
@@ -115,12 +120,39 @@ Important: You must download and activate the WooCommerce plugin, before using C
 
 == Frequently Asked Questions ==
 
+= Is Caddy a WooCommerce mini cart replacement? =
+
+Yes. Caddy works as a WooCommerce mini cart, side cart, and floating cart all in one. It replaces the default WooCommerce cart page with a slide-in cart drawer, and the WooCommerce mini-cart block is handled automatically so you don't get a duplicate cart.
+
+= Is this a side cart or a popup cart? =
+
+Caddy is a slide-in side cart drawer that opens automatically when a customer adds to cart - similar to an add-to-cart popup, but it slides in from the edge of the screen instead of covering the page. Customers can keep shopping without a page reload.
+
+= Does Caddy add a free shipping bar to the cart? =
+
+Yes. Caddy includes a free shipping bar (a progress meter) that shows customers how much more they need to spend to unlock free shipping - one of the most effective ways to increase average order value and reduce cart abandonment.
+
+= Can I show product upsells and cross-sells in the cart? =
+
+Yes. Caddy displays in-cart upsell and cross-sell product recommendations when customers add to cart, helping you raise average order value. Caddy Pro adds rule-based recommendations, multi-tier rewards, and workflow automation.
+
+= Does Caddy replace the WooCommerce cart page? =
+
+Yes. Caddy gives customers a fast AJAX side cart so they can view, update quantities, apply coupons, and check out without loading the standalone cart page.
+
+= Where can I learn cart optimization strategies? =
+
+We publish free WooCommerce cart optimization playbooks covering average order value growth, cart abandonment recovery, and seasonal campaigns. Read them at [usecaddy.com/playbooks](https://www.usecaddy.com/playbooks/?utm_source=wp-org&amp;utm_medium=plugin-lp&amp;utm_campaign=plugin-faq).
+
 = How do I add the Caddy cart icon & link to my menu or header? =
 
 Caddy has an option in it's settings to insert the cart icon into your menu. If you want to add the cart icon somewhere else in your header you can use our widget or shortcode:
 
 Widget:
-Search for the "Caddy Cart" widget and add it to your header. 
+Search for the "Caddy Cart" widget and add it to your header.
+
+Elementor:
+If you build your header with Elementor, drag in the "Caddy Cart" or "Caddy Saved Items" widget. Each has full style controls (icon size and color, label typography, count-badge colors, alignment, and spacing). Clicking opens the side cart, and the cart count stays live.
 
 Shortcodes:
 Or, you can use our included shortcodes using the "Shortcodes in Menus" plugin and then adding the following Caddy shortcodes:
@@ -153,12 +185,23 @@ No. We've built Caddy with performance in mind and have fine tuned it for speed.
 
 == Screenshots ==
 
-1. The Caddy side cart opened.
-2. The up-sell recommendations screen after a product has been added to the side cart.
-3. The settings screen.
-4. The custom CSS styling screen.
+1. The Caddy WooCommerce side cart drawer open, with the free shipping bar and live cart subtotal.
+2. In-cart upsell and cross-sell product recommendations shown after a product is added to the side cart.
+3. The Caddy settings screen for the side cart, free shipping bar, and recommendations.
+4. The custom CSS styling screen for matching the cart drawer to your brand.
 
 == Changelog ==
+
+= 3.1.0 =
+* New: Elementor "Caddy Cart" and "Caddy Saved Items" widgets for your header and layouts.
+* New: Support for products with custom fields and add-ons, like gift cards, personalization, and engraving.
+* New: Resources admin page with help docs, playbooks, and recommended plugins.
+* Improvement: Better page-caching compatibility, including WP Rocket, so the cart stays accurate and pages stay cacheable.
+* Improvement: Accessibility upgrades across the cart launcher, quantity controls, and screen readers.
+* Improvement: Faster, more reliable cart updates and product recommendations.
+* Fix: Cart and recommendation thumbnails now show a placeholder instead of a broken image when a product image or one of its generated sizes is missing.
+* Fix: The "Add Cart Widget to Menu" and "Add Saved Items Widget to Menu" options now work with menus assigned to a theme location, not only menus rendered by slug.
+* Fix: Many smaller fixes across translations, recommendations, bundles, variations, and older browsers.
 
 = 3.0.2 =
 * Fix: Cart item prices now remain tax-inclusive after quantity changes when WooCommerce is set to display prices including tax.

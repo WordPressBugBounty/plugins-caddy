@@ -656,8 +656,15 @@ class Caddy_Public {
 		// Handle cases where menu is passed as object or string
 		if (is_object($args->menu) && property_exists($args->menu, 'slug')) {
 			$menu_slug = $args->menu->slug;
-		} elseif (is_string($args->menu)) {
-			$menu_slug = $args->menu;
+		} elseif (is_string($args->menu) && '' !== $args->menu) {
+			$menu_obj  = wp_get_nav_menu_object($args->menu);
+			$menu_slug = $menu_obj ? $menu_obj->slug : $args->menu;
+		} elseif (!empty($args->theme_location)) {
+			$locations = get_nav_menu_locations();
+			if (!empty($locations[$args->theme_location])) {
+				$menu_obj  = wp_get_nav_menu_object($locations[$args->theme_location]);
+				$menu_slug = $menu_obj ? $menu_obj->slug : '';
+			}
 		}
 
 		if ($menu_slug === get_option('cc_menu_cart_widget')) {
@@ -698,8 +705,15 @@ class Caddy_Public {
 		$menu_slug = '';
 		if (is_object($args->menu) && property_exists($args->menu, 'slug')) {
 			$menu_slug = $args->menu->slug;
-		} elseif (is_string($args->menu)) {
-			$menu_slug = $args->menu;
+		} elseif (is_string($args->menu) && '' !== $args->menu) {
+			$menu_obj  = wp_get_nav_menu_object($args->menu);
+			$menu_slug = $menu_obj ? $menu_obj->slug : $args->menu;
+		} elseif (!empty($args->theme_location)) {
+			$locations = get_nav_menu_locations();
+			if (!empty($locations[$args->theme_location])) {
+				$menu_obj  = wp_get_nav_menu_object($locations[$args->theme_location]);
+				$menu_slug = $menu_obj ? $menu_obj->slug : '';
+			}
 		}
 
 		if ($menu_slug === get_option('cc_menu_saves_widget')) {
@@ -736,6 +750,25 @@ class Caddy_Public {
 	 */
 	public function prevent_cart_redirect($value) {
 		return false;
+	}
+
+	/**
+	 * Exclude Caddy scripts from WP Rocket's "Delay JavaScript execution".
+	 *
+	 * Delayed scripts only run after the first user interaction, which leaves
+	 * the cart count/drawer showing stale cached values until the visitor
+	 * moves the mouse. The drawer must hydrate immediately to correct
+	 * cache-served state.
+	 *
+	 * @param array $excluded Existing exclusion patterns.
+	 * @return array
+	 */
+	public function caddy_rocket_delay_js_exclusions( $excluded ) {
+		$excluded[] = 'wp-content/plugins/caddy';          // Caddy (and Caddy Premium) assets
+		$excluded[] = 'wp-includes/js/dist/interactivity'; // WP Interactivity API runtime
+		$excluded[] = 'wp-includes/js/dist/script-modules'; // Script Modules runtime (WP 6.5+)
+		$excluded[] = 'importmap';                          // module import map must not be delayed
+		return $excluded;
 	}
 
 	/**

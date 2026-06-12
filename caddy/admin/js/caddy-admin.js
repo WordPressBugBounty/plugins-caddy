@@ -58,23 +58,6 @@
 		cc_dismiss_optin_notice();
 	} );
 
-	/* Dismiss welcome notice screen function */
-	function cc_dismiss_welcome_notice() {
-		// AJAX Request to dismiss the welcome notice
-		var data = {
-			action: 'dismiss_welcome_notice',
-			nonce: caddyAjaxObject.nonce,
-		};
-
-		$.ajax( {
-			type: 'post',
-			url: caddyAjaxObject.ajaxurl,
-			data: data,
-			success: function( response ) {
-			}
-		} );
-	}
-
 	/* Dismiss the opt-in notice */
 	function cc_dismiss_optin_notice() {
 		var data = {

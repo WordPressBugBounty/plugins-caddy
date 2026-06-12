@@ -115,6 +115,12 @@
   line-height: 1;
 }
 
+/* Keyboard focus ring for the launcher (visible on any background) */
+.cc-compass:focus-visible {
+  outline: none;
+  box-shadow: 0 0 10px #00000030, 0 0 0 2px #fff, 0 0 0 4px #000;
+}
+
 .cc-compass-cart-icon {
   display: flex;
 }
@@ -1223,6 +1229,15 @@ body.cc-window-open {
 .cc_item_total_price {
   display: block !important;
   text-align: left;
+}
+
+.cc_item_variation {
+  font-weight: normal;
+  font-size: 13px;
+  color: #666;
+  white-space: pre-line;
+  margin-top: 2px;
+  line-height: 1.4;
 }
 
 .cc-cart {

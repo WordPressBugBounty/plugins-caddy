@@ -58,6 +58,7 @@ if (class_exists('Caddy_Premium')) {
 								<a data-wp-bind--href="context.rec.permalink">
 									<img data-wp-bind--src="context.rec.image"
 										 data-wp-bind--alt="context.rec.name"
+										 data-wp-on--error="actions.onImageError"
 										 loading="lazy"
 										 class="attachment-woocommerce_thumbnail" />
 								</a>

@@ -2,8 +2,7 @@
 /**
  * Caddy Cart Block Render Template
  *
- * This template renders the interactive cart block using WordPress Interactivity API
- * with the original Caddy template structure.
+ * Renders the interactive cart block using the WordPress Interactivity API.
  *
  * @package    Caddy
  * @since      2.1.3
@@ -16,15 +15,15 @@ if (!defined('ABSPATH')) {
 // Get block attributes with defaults
 $auto_open = $attributes['autoOpen'] ?? true;
 
-// Only show free version compass if premium plugin is not active (same logic as original)
+// Only render the free version when the premium plugin is not active
 if (!class_exists('Caddy_Premium')) {
-	// Ensure cart session is properly initialized
+	// Note: we deliberately do NOT force a WooCommerce session cookie here.
+	// Setting a cookie on every guest pageview makes the response uncacheable
+	// (WP Rocket and host page caches skip responses with Set-Cookie), which
+	// disabled page caching site-wide for first-time visitors. Sessionless
+	// guests render an empty drawer; the Store API creates the session on
+	// their first cart mutation.
 	if (function_exists('WC') && WC()->session) {
-		// Initialize WooCommerce session if not already done
-		if (!WC()->session->has_session()) {
-			WC()->session->set_customer_session_cookie(true);
-		}
-
 		// Ensure cart is loaded
 		if (WC()->cart) {
 			$cart_count = WC()->cart->get_cart_contents_count();
@@ -39,8 +38,8 @@ if (!class_exists('Caddy_Premium')) {
 	}
 	?>
 	<div data-wp-interactive="caddy/cart" data-wp-context='{"autoOpen": <?php echo json_encode($auto_open); ?>}'>
-		<!-- The floating compass icon (same as original) -->
-		<div class="cc-compass" data-wp-on--click="actions.toggleCart" data-wp-class--cc-compass-open="state.isOpen">
+		<!-- Floating cart launcher -->
+		<div class="cc-compass" role="button" tabindex="0" aria-label="<?php esc_attr_e( 'Cart', 'caddy' ); ?>" aria-expanded="false" data-wp-bind--aria-expanded="state.isOpen" data-wp-on--click="actions.toggleCart" data-wp-on--keydown="actions.handleCompassKeydown" data-wp-class--cc-compass-open="state.isOpen">
 			<span class="cc-compass-cart-icon" data-wp-class--cc-hidden="state.isOpen">
 				<?php
 			$allowed_svg = array(
@@ -67,17 +66,16 @@ if (!class_exists('Caddy_Premium')) {
 			</span>
 		</div>
 
-		<!-- The expanded modal (using original structure) -->
+		<!-- Cart window -->
 		<div class="cc-window disable-scrollbars" data-wp-class--cc-show="state.isOpen">
 			<div class="cc-window-wrapper">
 				<?php
-				// Use the original window screen content
-				include(plugin_dir_path(__FILE__) . 'public/partials/caddy-public-window.php');
+					include(plugin_dir_path(__FILE__) . 'public/partials/caddy-public-window.php');
 				?>
 			</div>
 		</div>
 
-		<!-- Overlay (same as original) -->
+		<!-- Overlay -->
 		<div class="cc-overlay" data-wp-class--cc-show="state.isOpen" data-wp-on--click="actions.closeCart"></div>
 	</div>
 	<?php

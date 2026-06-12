@@ -180,19 +180,6 @@ class Caddy_Admin {
 
 
 	/**
-	 * Dismiss the welcome notice.
-	 */
-	public function cc_dismiss_welcome_notice() {
-
-		//Check nonce
-		if ( isset($_POST['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['nonce'])), 'caddy' ) ) {
-			update_option( 'cc_dismiss_welcome_notice', 'yes' );
-		}
-
-		wp_die();
-	}
-
-	/**
 	 * Dismiss the optin notice.
 	 */
 	public function cc_dismiss_optin_notice() {

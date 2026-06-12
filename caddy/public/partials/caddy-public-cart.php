@@ -30,9 +30,8 @@ foreach (WC()->cart->get_cart() as $cart_item) {
     $cart_total += floatval( wc_get_price_to_display( $product ) ) * $cart_item['quantity'];
 }
 
-// Calculate the remaining amount for free shipping
-$free_shipping_remaining_amount = floatval($cc_free_shipping_amount) - floatval($cart_total);
-$free_shipping_remaining_amount = !empty($free_shipping_remaining_amount) ? $free_shipping_remaining_amount : 0;
+// Calculate the remaining amount for free shipping (never negative)
+$free_shipping_remaining_amount = max(0, floatval($cc_free_shipping_amount) - floatval($cart_total));
 
 // Calculate the width of the free shipping bar as a percentage
 $cc_bar_amount = 100;
@@ -153,7 +152,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 
 							<div class="cc-cart-product">
 								<a data-wp-bind--href="context.item.permalink" class="cc-product-link cc-product-thumb" data-wp-bind--data-title="context.item.name">
-									<img data-wp-bind--src="context.item.image" data-wp-bind--alt="context.item.name" loading="lazy" />
+									<img data-wp-bind--src="context.item.image" data-wp-bind--alt="context.item.name" data-wp-on--error="actions.onImageError" loading="lazy" />
 								</a>
 
 								<div class="cc_item_content">
@@ -176,6 +175,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 												<input type="text"
 													readonly
 													class="cc_item_quantity"
+													aria-label="<?php esc_attr_e( 'Item quantity', 'caddy' ); ?>"
 													data-wp-bind--data-product_id="context.item.productId"
 													data-wp-bind--data-key="context.item.cartKey"
 													data-wp-bind--value="context.item.quantity"
@@ -296,6 +296,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 														<a data-wp-bind--href="context.rec.permalink">
 															<img data-wp-bind--src="context.rec.image"
 																 data-wp-bind--alt="context.rec.name"
+																 data-wp-on--error="actions.onImageError"
 																 loading="lazy"
 																 class="attachment-woocommerce_thumbnail" />
 														</a>
@@ -348,9 +349,6 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 							</div>
 						</div>
 						<?php
-					} else {
-						// Fallback to action hook for legacy system
-						do_action( 'caddy_product_upsells_slider', 0 );
 					}
 					?>
 				</div>

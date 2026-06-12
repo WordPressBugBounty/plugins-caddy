@@ -44,6 +44,7 @@ $account_url = trailingslashit( wc_get_account_endpoint_url( '' ) );
 								?>
 								<img data-wp-bind--src="context.item.thumbnailImage"
 								     data-wp-bind--alt="context.item.name"
+								     data-wp-on--error="actions.onImageError"
 								     width="<?php echo esc_attr( $thumbnail_size['width'] ); ?>"
 								     height="<?php echo esc_attr( $thumbnail_size['height'] ); ?>"
 								     class="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"

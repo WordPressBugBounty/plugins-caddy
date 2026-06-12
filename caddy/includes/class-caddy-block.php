@@ -169,6 +169,24 @@ class Caddy_Block {
 	}
 
 	/**
+	 * Ensure the cart script module and core styles are loaded.
+	 *
+	 * Used by secondary cart triggers (e.g. the Elementor widget) so the
+	 * Interactivity runtime and icons are present even on pages where the
+	 * floating launcher did not auto-insert.
+	 */
+	public static function ensure_frontend_assets() {
+		$plugin_url = plugin_dir_url( dirname( __FILE__ ) );
+
+		if ( function_exists( 'wp_enqueue_script_module' ) ) {
+			wp_enqueue_script_module( 'caddy/cart' );
+		}
+
+		wp_enqueue_style( 'caddy-block-style', $plugin_url . 'public/css/caddy-public.css', array(), CADDY_VERSION );
+		wp_enqueue_style( 'caddy-icons-style', $plugin_url . 'public/css/caddy-icons.css', array(), CADDY_VERSION );
+	}
+
+	/**
 	 * Enqueue block assets for frontend
 	 */
 	public static function enqueue_block_assets() {
@@ -210,6 +228,7 @@ class Caddy_Block {
 			echo '<meta name="caddy-nonce" content="' . wp_create_nonce('wp_rest') . '">' . "\n";
 			echo '<meta name="wc-store-api-nonce" content="' . wp_create_nonce('wc_store_api') . '">' . "\n";
 			echo '<meta name="caddy-rest-url" content="' . esc_url( rest_url('caddy/v1/') ) . '">' . "\n";
+			echo '<meta name="caddy-store-api-url" content="' . esc_url( rest_url('wc/store/v1/') ) . '">' . "\n";
 			echo '<meta name="wc-placeholder-image" content="' . esc_url(wc_placeholder_img_src('woocommerce_thumbnail')) . '">' . "\n";
 			echo '<meta name="wc-thumbnail-size" content="' . esc_attr($thumbnail_size['width']) . 'x' . esc_attr($thumbnail_size['height']) . '">' . "\n";
 			echo '<meta name="caddy-currency-symbol" content="' . esc_attr( $currency_symbol ) . '">' . "\n";
@@ -265,7 +284,12 @@ class Caddy_Block {
 		if ( $cached !== null ) {
 			return $cached;
 		}
-		$cached = ! is_admin() && ! has_block('caddy/cart');
+		$is_admin = is_admin();
+		$has_block = has_block('caddy/cart');
+		// Exclude WC checkout and cart pages — cart drawer is not useful there
+		$is_wc_page = function_exists( 'is_checkout' ) && ( is_checkout() || is_cart() );
+		$cached = ! $is_admin && ! $has_block && ! $is_wc_page;
+
 		return $cached;
 	}
 

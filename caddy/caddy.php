@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Caddy - Smart Side Cart for WooCommerce
+ * Plugin Name:       Caddy – WooCommerce Side Cart & Free Shipping Bar
  * Plugin URI:        https://usecaddy.com
  * Description:       A high performance, conversion-boosting side cart for your WooCommerce store that improves the shopping experience & helps grow your sales.
- * Version:           3.0.2
+ * Version:           3.1.0
  * Author:            Tribe Interactive
  * Author URI:        https://usecaddy.com
  * License:           GPL-2.0+
@@ -14,7 +14,7 @@
  * Requires PHP:      7.4
  *
  * WC requires at least: 7.0
- * WC tested up to: 10.2.4
+ * WC tested up to: 10.6.1
  */
 
 // If this file is called directly, abort.
@@ -26,7 +26,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Define all constants for the plugin
  */
 if ( ! defined( 'CADDY_VERSION' ) ) {
-    define( 'CADDY_VERSION', '3.0.2' );
+    define( 'CADDY_VERSION', '3.1.0' );
 }
 if ( ! defined( 'CADDY_PLUGIN_FILE' ) ) {
     define( 'CADDY_PLUGIN_FILE', __FILE__ );
@@ -123,6 +123,12 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-caddy-cart-widget.php';
  * The plugin class that is used to register and load the saved items widget.
  */
 require plugin_dir_path( __FILE__ ) . 'includes/class-caddy-saved-items-widget.php';
+
+/**
+ * Elementor integration (registers Caddy widgets when Elementor is active)
+ */
+require plugin_dir_path( __FILE__ ) . 'includes/integrations/elementor/class-caddy-elementor.php';
+add_action( 'init', array( 'Caddy_Elementor', 'init' ) );
 
 /**
  * Load notices

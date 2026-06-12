@@ -190,9 +190,6 @@ class Caddy {
 		// Add action to include tab screen files
 		$this->loader->add_action( 'caddy_admin_tab_screen', $caddy_admin_obj, 'cc_include_tab_screen_files' );
 
-		// Add action to dismiss the welcome notice
-		$this->loader->add_action( 'wp_ajax_dismiss_welcome_notice', $caddy_admin_obj, 'cc_dismiss_welcome_notice' );
-
 		// Add action to dismiss the optin notice
 		$this->loader->add_action( 'wp_ajax_dismiss_optin_notice', $caddy_admin_obj, 'cc_dismiss_optin_notice' );
 
@@ -254,6 +251,9 @@ class Caddy {
 		$this->loader->add_filter('woocommerce_cart_redirect_after_add', $caddy_public_obj, 'prevent_cart_redirect', 10, 1);
 		$this->loader->add_action('woocommerce_add_to_cart', $caddy_public_obj, 'after_add_to_cart', 10, 6);
 		$this->loader->add_filter('woocommerce_add_to_cart_validation', $caddy_public_obj, 'validate_add_to_cart', 10, 1);
+
+		// WP Rocket compatibility: keep Caddy scripts out of "Delay JavaScript execution"
+		$this->loader->add_filter('rocket_delay_js_exclusions', $caddy_public_obj, 'caddy_rocket_delay_js_exclusions');
 
 		// Enqueue scripts and styles
 		$this->loader->add_action('wp_enqueue_scripts', $caddy_public_obj, 'enqueue_styles');

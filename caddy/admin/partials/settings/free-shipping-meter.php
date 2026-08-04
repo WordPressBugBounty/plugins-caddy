@@ -19,8 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $cc_free_shipping_amount = get_option( 'cc_free_shipping_amount' );
  
-$cc_shipping_country = get_option( 'cc_shipping_country' );
-$cc_shipping_country = ! empty( $cc_shipping_country ) ? esc_attr( $cc_shipping_country ) : '';
+$cc_shipping_country = (string) get_option( 'cc_shipping_country', '' );
 
 $cc_free_shipping_tax = get_option( 'cc_free_shipping_tax' );
 $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
@@ -70,19 +69,10 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 					<label for="cc_shipping_country"><?php echo esc_html( __( 'Free shipping country', 'caddy' ) ); ?></label>
 				</th>
 				<td>
-					<?php
-					$wc_countries      = new WC_Countries();
-					$wc_base_country   = WC()->countries->get_base_country();
-					$wc_countries_list = $wc_countries->get_countries();
-
-					if ( ! empty( $wc_countries_list ) ) {
-						$selected_country = ! empty( $cc_shipping_country ) ? $cc_shipping_country : $wc_base_country; ?>
-						<select name="cc_shipping_country" id="cc_shipping_country">
-							<?php foreach ( $wc_countries_list as $key => $value ) { ?>
-								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $selected_country, $key ); ?>><?php echo esc_html( $value ); ?></option>
-							<?php } ?>
-						</select>
-					<?php } ?>
+					<input type="text" name="cc_shipping_country" id="cc_shipping_country" class="regular-text" value="<?php echo esc_attr( $cc_shipping_country ); ?>" placeholder="<?php echo esc_attr( WC()->countries->get_base_country() ); ?>" />
+					<p class="description">
+						<?php echo esc_html( __( 'Added to the free shipping message, as in "free US shipping". Enter anything you like, such as "US & Canada". Leave blank to leave it out of the message.', 'caddy' ) ); ?>
+					</p>
 				</td>
 			</tr>
 			<?php do_action( 'caddy_free_shipping_settings_end' ); ?>

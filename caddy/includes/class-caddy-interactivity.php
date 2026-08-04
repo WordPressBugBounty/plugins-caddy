@@ -509,13 +509,13 @@ class Caddy_Interactivity {
 			$is_grouped = $product_type === 'grouped';
 
 			// Get price information
-			$regular_price = $product->get_regular_price();
-			$sale_price = $product->get_sale_price();
-			$price = $product->get_price();
-			$is_on_sale = $product->is_on_sale() && $sale_price;
+			$price_data = self::get_recommendation_prices( $product );
+			$regular_price = $price_data['regular'];
+			$sale_price = $price_data['sale'];
+			$is_on_sale = $product->is_on_sale() && null !== $sale_price && null !== $regular_price && $sale_price < $regular_price;
 
 			// Format prices as plain text for Interactivity API using WooCommerce locale settings
-			$price_formatted = html_entity_decode( wp_strip_all_tags( wc_price($price) ) );
+			$price_formatted = self::format_recommendation_price_range( $price_data['min'], $price_data['max'] );
 			$regular_price_formatted = $is_on_sale ? html_entity_decode( wp_strip_all_tags( wc_price($regular_price) ) ) : '';
 
 			$formatted_products[] = array(
@@ -1147,18 +1147,23 @@ class Caddy_Interactivity {
 				}
 				$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
 
-				// Format product data with only essential fields
-				// Prices must be in cents (multiply by 100) to match Store API format
-				$regular_price = $product->get_regular_price();
-				$sale_price = $product->get_sale_price();
+				// Prices are sent in minor units to match the Store API format.
+				$price_data = self::get_recommendation_prices( $product );
 
 				$formatted_products[] = array(
 					'id' => $product->get_id(),
 					'name' => $product->get_name(),
 					'permalink' => $product->get_permalink(),
 					'prices' => array(
-						'regular_price' => $regular_price ? strval((float)$regular_price * 100) : '',
-						'sale_price' => $sale_price ? strval((float)$sale_price * 100) : ''
+						'price' => self::to_minor_units( $price_data['min'] ),
+						'regular_price' => self::to_minor_units( $price_data['regular'] ),
+						'sale_price' => self::to_minor_units( $price_data['sale'] ),
+						'price_range' => ( null !== $price_data['min'] && null !== $price_data['max'] && $price_data['max'] > $price_data['min'] )
+							? array(
+								'min_amount' => self::to_minor_units( $price_data['min'] ),
+								'max_amount' => self::to_minor_units( $price_data['max'] ),
+							)
+							: null,
 					),
 					'images' => array(
 						array('src' => $thumbnail_url)
@@ -1275,6 +1280,76 @@ class Caddy_Interactivity {
 		}
 
 		return $saved_items;
+	}
+
+	/**
+	 * Resolve the prices used to display a recommended product.
+	 *
+	 * Variable parents hold no price of their own, so the range is resolved
+	 * from their variations.
+	 *
+	 * @param WC_Product $product Product being recommended.
+	 * @return array Price data with min, max, regular and sale keys (null when unpriced).
+	 */
+	private static function get_recommendation_prices( $product ) {
+		$to_float = static function ( $value ) {
+			return ( '' === $value || null === $value ) ? null : (float) $value;
+		};
+
+		$prices = array(
+			'min'     => $to_float( $product->get_price() ),
+			'max'     => $to_float( $product->get_price() ),
+			'regular' => $to_float( $product->get_regular_price() ),
+			'sale'    => $to_float( $product->get_sale_price() ),
+		);
+
+		if ( $product->is_type( 'variable' ) ) {
+			$variation_prices = $product->get_variation_prices();
+			if ( ! empty( $variation_prices['price'] ) ) {
+				$prices['min'] = (float) min( $variation_prices['price'] );
+				$prices['max'] = (float) max( $variation_prices['price'] );
+			}
+
+			$prices['regular'] = null;
+			$prices['sale']    = null;
+		}
+
+		return $prices;
+	}
+
+	/**
+	 * Convert a price to minor units using the store's decimal setting.
+	 *
+	 * @param float|null $price Price in major units.
+	 * @return string Price in minor units, or an empty string when unpriced.
+	 */
+	private static function to_minor_units( $price ) {
+		if ( null === $price ) {
+			return '';
+		}
+
+		return strval( round( $price * pow( 10, wc_get_price_decimals() ) ) );
+	}
+
+	/**
+	 * Format a price range as plain text for the Interactivity API templates.
+	 *
+	 * @param float|null $min Lowest price.
+	 * @param float|null $max Highest price.
+	 * @return string Formatted price, or an empty string when unpriced.
+	 */
+	private static function format_recommendation_price_range( $min, $max ) {
+		if ( null === $min ) {
+			return '';
+		}
+
+		$formatted_min = html_entity_decode( wp_strip_all_tags( wc_price( $min ) ) );
+
+		if ( null === $max || $max <= $min ) {
+			return $formatted_min;
+		}
+
+		return $formatted_min . ' – ' . html_entity_decode( wp_strip_all_tags( wc_price( $max ) ) );
 	}
 
 	/**

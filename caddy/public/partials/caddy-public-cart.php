@@ -58,8 +58,8 @@ if (!is_array($cc_sfl_items_array)) {
 }
 $cc_sfl_items = array_reverse(array_unique($cc_sfl_items_array));
 
-// Get the shipping country and branding options
-$cc_shipping_country = get_option('cc_shipping_country');
+// Get the shipping destination and branding options
+$cc_shipping_country = Caddy_Public::get_free_shipping_destination();
 $cc_disable_branding = get_option('cc_disable_branding'); // Get disable branding option
 $cc_disable_branding_class = ('disabled' === $cc_disable_branding) ? ' cc-no-branding' : '';
 
@@ -103,24 +103,16 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M22.87,7.1A.24.24,0,0,0,23,6.86a.23.23,0,0,0-.15-.21L16,3.92a1.13,1.13,0,0,0-.9,0L13,4.94a.24.24,0,0,0-.14.23.24.24,0,0,0,.15.22l6.94,3.07a.52.52,0,0,0,.44,0Z" fill="currentColor"></path><path d="M16.61,19.85a.27.27,0,0,0,.12.22.26.26,0,0,0,.24,0l6.36-3.18a1.12,1.12,0,0,0,.62-1V8.06a.26.26,0,0,0-.13-.22.25.25,0,0,0-.24,0L16.74,11.5a.26.26,0,0,0-.13.22Z" fill="currentColor"></path><path d="M7.52,8.31a.24.24,0,0,0-.23,0,.23.23,0,0,0-.11.2c0,.56,0,2.22,0,7.41a1.11,1.11,0,0,0,.68,1l7.42,3.16a.21.21,0,0,0,.23,0,.24.24,0,0,0,.12-.21V11.78a.26.26,0,0,0-.16-.23Z" fill="currentColor"></path><path d="M15.87,10.65a.54.54,0,0,0,.43,0l2.3-1.23a.26.26,0,0,0,.13-.23.24.24,0,0,0-.15-.22L11.5,5.82a.48.48,0,0,0-.42,0L8.31,7.12a.24.24,0,0,0-.14.23.23.23,0,0,0,.15.22Z" fill="currentColor"></path><path d="M5,13.76,1.07,11.94a.72.72,0,0,0-1,.37.78.78,0,0,0,.39,1l3.9,1.8a.87.87,0,0,0,.31.07.73.73,0,0,0,.67-.43A.75.75,0,0,0,5,13.76Z" fill="currentColor"></path><path d="M5,10.31,2.68,9.23a.74.74,0,0,0-1,.36.75.75,0,0,0,.36,1L4.4,11.65a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,10.31Z" fill="currentColor"></path><path d="M5,6.86,3.91,6.35a.73.73,0,0,0-1,.36.74.74,0,0,0,.36,1L4.4,8.2a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,6.86Z" fill="currentColor"></path></g></svg>
 					</span>
 					<span data-wp-class--cc-hidden="state.freeShippingAchieved"<?php echo ($cart_total >= $cc_free_shipping_amount) ? ' class="cc-hidden"' : ''; ?>>
-						<?php esc_html_e( 'Spend', 'caddy' ); ?>
-						<strong>
-							<span class="cc-fs-amount"><?php echo wp_kses_post( wc_price( $free_shipping_remaining_amount ) ); ?></span>
-							<?php esc_html_e( 'more', 'caddy' ); ?>
-						</strong>
-						<?php esc_html_e( 'to get', 'caddy' ); ?>
-						<strong>
-							<?php esc_html_e( 'free', 'caddy' ); ?>
-							<?php esc_html_e( 'shipping', 'caddy' ); ?>
-						</strong>
+						<?php
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- message is escaped in get_free_shipping_message()
+						echo Caddy_Public::get_free_shipping_message( 'spend', wc_price( $free_shipping_remaining_amount ), $cc_shipping_country );
+						?>
 					</span>
 					<span data-wp-class--cc-hidden="!state.freeShippingAchieved"<?php echo ($cart_total < $cc_free_shipping_amount) ? ' class="cc-hidden"' : ''; ?>>
-						<?php esc_html_e( "Congrats, you've activated", 'caddy' ); ?>
-						<strong>
-							<?php esc_html_e( 'free', 'caddy' ); ?>
-							<?php esc_html_e( 'shipping', 'caddy' ); ?>
-						</strong>
-						!
+						<?php
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- message is escaped in get_free_shipping_message()
+						echo Caddy_Public::get_free_shipping_message( 'congrats', '', $cc_shipping_country );
+						?>
 					</span>
 				</span>
 				<div class="cc-fs-meter">

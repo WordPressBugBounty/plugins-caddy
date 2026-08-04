@@ -327,6 +327,50 @@ class Caddy_Public {
 	}
 
 	/**
+	 * Get the free shipping destination shown in the meter message.
+	 *
+	 * @return string Merchant defined destination, empty when not set.
+	 */
+	public static function get_free_shipping_destination() {
+		$destination = (string) get_option( 'cc_shipping_country', '' );
+
+		// Installs saved before the field accepted free text store a country code.
+		if ( 'GB' === $destination ) {
+			$destination = 'UK';
+		}
+
+		return trim( $destination );
+	}
+
+	/**
+	 * Build the free shipping meter message.
+	 *
+	 * @param string $type        Message to build, either 'spend' or 'congrats'.
+	 * @param string $amount_html Formatted amount remaining, used by the 'spend' message.
+	 * @param string $destination Free shipping destination, may be empty.
+	 * @return string Message HTML.
+	 */
+	public static function get_free_shipping_message( $type, $amount_html = '', $destination = '' ) {
+		$destination_html = '<span class="cc-fs-country">' . esc_html( $destination ) . '</span>';
+		$amount_html      = '<span class="cc-fs-amount">' . $amount_html . '</span>';
+
+		if ( 'congrats' === $type ) {
+			$message = '' !== $destination
+				/* translators: %s: free shipping destination, for example US. */
+				? sprintf( __( 'Congrats, you\'ve activated <strong>free %s shipping</strong>!', 'caddy' ), $destination_html )
+				: __( 'Congrats, you\'ve activated <strong>free shipping</strong>!', 'caddy' );
+		} else {
+			$message = '' !== $destination
+				/* translators: 1: amount left to spend, 2: free shipping destination, for example US. */
+				? sprintf( __( 'Spend <strong>%1$s more</strong> to get <strong>free %2$s shipping</strong>', 'caddy' ), $amount_html, $destination_html )
+				/* translators: %s: amount left to spend. */
+				: sprintf( __( 'Spend <strong>%s more</strong> to get <strong>free shipping</strong>', 'caddy' ), $amount_html );
+		}
+
+		return wp_kses_post( $message );
+	}
+
+	/**
 	 * Display free shipping congrats text
 	 *
 	 * @param string $cc_shipping_country Shipping country code
@@ -335,13 +379,11 @@ class Caddy_Public {
 		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M22.87,7.1A.24.24,0,0,0,23,6.86a.23.23,0,0,0-.15-.21L16,3.92a1.13,1.13,0,0,0-.9,0L13,4.94a.24.24,0,0,0-.14.23.24.24,0,0,0,.15.22l6.94,3.07a.52.52,0,0,0,.44,0Z" fill="currentColor"></path><path d="M16.61,19.85a.27.27,0,0,0,.12.22.26.26,0,0,0,.24,0l6.36-3.18a1.12,1.12,0,0,0,.62-1V8.06a.26.26,0,0,0-.13-.22.25.25,0,0,0-.24,0L16.74,11.5a.26.26,0,0,0-.13.22Z" fill="currentColor"></path><path d="M7.52,8.31a.24.24,0,0,0-.23,0,.23.23,0,0,0-.11.2c0,.56,0,2.22,0,7.41a1.11,1.11,0,0,0,.68,1l7.42,3.16a.21.21,0,0,0,.23,0,.24.24,0,0,0,.12-.21V11.78a.26.26,0,0,0-.16-.23Z" fill="currentColor"></path><path d="M15.87,10.65a.54.54,0,0,0,.43,0l2.3-1.23a.26.26,0,0,0,.13-.23.24.24,0,0,0-.15-.22L11.5,5.82a.48.48,0,0,0-.42,0L8.31,7.12a.24.24,0,0,0-.14.23.23.23,0,0,0,.15.22Z" fill="currentColor"></path><path d="M5,13.76,1.07,11.94a.72.72,0,0,0-1,.37.78.78,0,0,0,.39,1l3.9,1.8a.87.87,0,0,0,.31.07.73.73,0,0,0,.67-.43A.75.75,0,0,0,5,13.76Z" fill="currentColor"></path><path d="M5,10.31,2.68,9.23a.74.74,0,0,0-1,.36.75.75,0,0,0,.36,1L4.4,11.65a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,10.31Z" fill="currentColor"></path><path d="M5,6.86,3.91,6.35a.73.73,0,0,0-1,.36.74.74,0,0,0,.36,1L4.4,8.2a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,6.86Z" fill="currentColor"></path></g></svg>';
 
 		echo sprintf(
-			'<span class="cc-fs-icon">%1$s</span>%2$s<strong> %3$s <span class="cc-fs-country">%4$s</span> %5$s</strong>!',
+			'<span class="cc-fs-icon">%1$s</span>%2$s',
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
 			$svg,
-			esc_html__( 'Congrats, you\'ve activated', 'caddy' ),
-			esc_html__( 'free', 'caddy' ),
-			esc_html( $cc_shipping_country ),
-			esc_html__( 'shipping', 'caddy' )
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- message is escaped in get_free_shipping_message()
+			self::get_free_shipping_message( 'congrats', '', $cc_shipping_country )
 		);
 	}
 
@@ -353,22 +395,20 @@ class Caddy_Public {
 	 */
 	public function caddy_display_free_shipping_spend_text( $free_shipping_remaining_amount, $cc_shipping_country ) {
 		if ( empty( $cc_shipping_country ) ) {
-			$cc_shipping_country = get_option( 'cc_shipping_country' );
+			$cc_shipping_country = self::get_free_shipping_destination();
 		}
 		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M22.87,7.1A.24.24,0,0,0,23,6.86a.23.23,0,0,0-.15-.21L16,3.92a1.13,1.13,0,0,0-.9,0L13,4.94a.24.24,0,0,0-.14.23.24.24,0,0,0,.15.22l6.94,3.07a.52.52,0,0,0,.44,0Z" fill="currentColor"></path><path d="M16.61,19.85a.27.27,0,0,0,.12.22.26.26,0,0,0,.24,0l6.36-3.18a1.12,1.12,0,0,0,.62-1V8.06a.26.26,0,0,0-.13-.22.25.25,0,0,0-.24,0L16.74,11.5a.26.26,0,0,0-.13.22Z" fill="currentColor"></path><path d="M7.52,8.31a.24.24,0,0,0-.23,0,.23.23,0,0,0-.11.2c0,.56,0,2.22,0,7.41a1.11,1.11,0,0,0,.68,1l7.42,3.16a.21.21,0,0,0,.23,0,.24.24,0,0,0,.12-.21V11.78a.26.26,0,0,0-.16-.23Z" fill="currentColor"></path><path d="M15.87,10.65a.54.54,0,0,0,.43,0l2.3-1.23a.26.26,0,0,0,.13-.23.24.24,0,0,0-.15-.22L11.5,5.82a.48.48,0,0,0-.42,0L8.31,7.12a.24.24,0,0,0-.14.23.23.23,0,0,0,.15.22Z" fill="currentColor"></path><path d="M5,13.76,1.07,11.94a.72.72,0,0,0-1,.37.78.78,0,0,0,.39,1l3.9,1.8a.87.87,0,0,0,.31.07.73.73,0,0,0,.67-.43A.75.75,0,0,0,5,13.76Z" fill="currentColor"></path><path d="M5,10.31,2.68,9.23a.74.74,0,0,0-1,.36.75.75,0,0,0,.36,1L4.4,11.65a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,10.31Z" fill="currentColor"></path><path d="M5,6.86,3.91,6.35a.73.73,0,0,0-1,.36.74.74,0,0,0,.36,1L4.4,8.2a.7.7,0,0,0,.31.07A.74.74,0,0,0,5,6.86Z" fill="currentColor"></path></g></svg>';
 
 		echo sprintf(
-			'<span class="cc-fs-icon">%1$s</span>%2$s<strong> <span class="cc-fs-amount">%3$s</span> %4$s</strong> %5$s <strong>%6$s <span class="cc-fs-country">%7$s</span> %8$s</strong>',
+			'<span class="cc-fs-icon">%1$s</span>%2$s',
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
 			$svg,
-			esc_html__( 'Spend', 'caddy' ),
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_price returns escaped HTML
-			wc_price( $free_shipping_remaining_amount, array( 'currency' => get_woocommerce_currency() ) ),
-			esc_html__( 'more', 'caddy' ),
-			esc_html__( 'to get', 'caddy' ),
-			esc_html__( 'free', 'caddy' ),
-			esc_html( $cc_shipping_country ),
-			esc_html__( 'shipping', 'caddy' )
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- message is escaped in get_free_shipping_message()
+			self::get_free_shipping_message(
+				'spend',
+				wc_price( $free_shipping_remaining_amount, array( 'currency' => get_woocommerce_currency() ) ),
+				$cc_shipping_country
+			)
 		);
 	}
 
@@ -390,10 +430,7 @@ class Caddy_Public {
 				$cc_bar_amount = $final_cart_subtotal * 100 / $cc_free_shipping_amount;
 			}
 
-			$cc_shipping_country = get_option( 'cc_shipping_country' );
-			if ( 'GB' === $cc_shipping_country ) {
-				$cc_shipping_country = 'UK';
-			}
+			$cc_shipping_country = self::get_free_shipping_destination();
 
 			$cc_bar_active = ( $final_cart_subtotal >= $cc_free_shipping_amount ) ? ' cc-bar-active' : '';
 			?>

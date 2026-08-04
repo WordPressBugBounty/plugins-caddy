@@ -6,7 +6,7 @@ Tags: side cart, woocommerce side cart, floating cart, mini cart, free shipping 
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 3.1.1
+Stable tag: 3.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -200,6 +200,11 @@ Both are handled by us at [usecaddy.com](https://usecaddy.com), covered by our [
 4. The custom CSS styling screen for matching the cart drawer to your brand.
 
 == Changelog ==
+
+= 3.2.0 =
+* New: The free shipping country is now a free text field, so you can name any destination you ship to, such as "US & Canada". Leave it blank to keep it out of the message.
+* Improvement: The free shipping message now shows the destination you set, in both the "spend more" and "congrats" wording, and translates as a whole sentence.
+* Fix: Recommended variable products now show their price, or price range, instead of $0.00.
 
 = 3.1.1 =
 * New: Optional usage data sharing, off by default, with a one-time welcome screen. Change it anytime under Caddy > Settings > General. See the FAQ for what it includes.

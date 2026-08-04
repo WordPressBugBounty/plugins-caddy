@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Caddy\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/caddy\n"
-"POT-Creation-Date: 2026-08-03T19:38:47+00:00\n"
+"POT-Creation-Date: 2026-08-04T17:30:42+00:00\n"
 "PO-Revision-Date: 2021-03-16 00:34+0530\n"
 "Last-Translator: \n"
 "Language-Team: Nederlands\n"
@@ -40,7 +40,7 @@ msgstr ""
 #. Author of the plugin
 #: caddy.php admin/class-caddy-admin.php:108 admin/class-caddy-admin.php:109
 #: includes/integrations/elementor/class-caddy-elementor.php:39
-#: public/partials/caddy-public-cart.php:563
+#: public/partials/caddy-public-cart.php:555
 #: public/partials/caddy-public-saves.php:147
 msgid "Caddy"
 msgstr "Caddy"
@@ -63,7 +63,7 @@ msgstr ""
 
 #: admin/class-caddy-admin.php:209
 #: admin/partials/caddy-admin-styles-page.php:55
-#: admin/partials/settings/free-shipping-meter.php:96
+#: admin/partials/settings/free-shipping-meter.php:87
 #: admin/partials/settings/general.php:148
 #: admin/partials/settings/recommendations.php:70
 #: admin/partials/settings/save-for-later.php:55
@@ -530,7 +530,7 @@ msgstr ""
 #: admin/partials/caddy-admin-styles-page.php:62
 #: admin/partials/settings/announcement-bar.php:63
 #: admin/partials/settings/display.php:63
-#: admin/partials/settings/free-shipping-meter.php:102
+#: admin/partials/settings/free-shipping-meter.php:93
 #: admin/partials/settings/general.php:155
 #: admin/partials/settings/offers.php:63
 #: admin/partials/settings/recommendations.php:76
@@ -673,7 +673,14 @@ msgstr ""
 msgid "Free shipping country"
 msgstr "Gratisverzending"
 
-#: admin/partials/settings/free-shipping-meter.php:96
+#: admin/partials/settings/free-shipping-meter.php:75
+msgid ""
+"Added to the free shipping message, as in \"free US shipping\". Enter "
+"anything you like, such as \"US & Canada\". Leave blank to leave it out of "
+"the message."
+msgstr "Wordt toegevoegd aan het bericht over gratis verzending, zoals in \"gratis verzending naar US\". Vul in wat je wilt, bijvoorbeeld \"US en Canada\". Laat leeg om het weg te laten uit het bericht."
+
+#: admin/partials/settings/free-shipping-meter.php:87
 msgid "Unlock free shipping meter exclusions & more with "
 msgstr ""
 
@@ -890,7 +897,7 @@ msgstr "Help Caddy te verbeteren"
 #: includes/class-caddy-block.php:80 includes/class-caddy-interactivity.php:342
 #: includes/class-caddy-interactivity.php:533
 #: public/partials/caddy-public-cart.php:89
-#: public/partials/caddy-public-cart.php:338
+#: public/partials/caddy-public-cart.php:330
 #: public/partials/caddy-public-recommendations.php:91
 msgid "Add to cart"
 msgstr "Toevoegen aan winkelwagen"
@@ -898,7 +905,7 @@ msgstr "Toevoegen aan winkelwagen"
 #: includes/class-caddy-block.php:81 includes/class-caddy-interactivity.php:343
 #: includes/class-caddy-interactivity.php:533
 #: public/partials/caddy-public-cart.php:90
-#: public/partials/caddy-public-cart.php:327
+#: public/partials/caddy-public-cart.php:319
 #: public/partials/caddy-public-recommendations.php:80
 msgid "Select options"
 msgstr "Opties selecteren"
@@ -906,7 +913,7 @@ msgstr "Opties selecteren"
 #: includes/class-caddy-block.php:82 includes/class-caddy-interactivity.php:344
 #: includes/class-caddy-interactivity.php:533
 #: public/partials/caddy-public-cart.php:91
-#: public/partials/caddy-public-cart.php:332
+#: public/partials/caddy-public-cart.php:324
 #: public/partials/caddy-public-recommendations.php:85
 msgid "View products"
 msgstr "Producten bekijken"
@@ -915,8 +922,8 @@ msgstr "Producten bekijken"
 #: public/class-caddy-public.php:269 public/class-caddy-save-for-later.php:121
 #: public/partials/caddy-public-cart-item.php:143
 #: public/partials/caddy-public-cart-item.php:146
-#: public/partials/caddy-public-cart.php:226
-#: public/partials/caddy-public-cart.php:229
+#: public/partials/caddy-public-cart.php:218
+#: public/partials/caddy-public-cart.php:221
 msgid "Save for later"
 msgstr "Opslaan voor later"
 
@@ -956,42 +963,42 @@ msgstr ""
 
 #: includes/class-caddy-block.php:96 includes/class-caddy-interactivity.php:352
 #: public/partials/caddy-public-cart-item.php:156
-#: public/partials/caddy-public-cart.php:240
+#: public/partials/caddy-public-cart.php:232
 #: public/partials/caddy-public-saves.php:98
 msgid "Remove this item"
 msgstr "Verwijder dit item"
 
 #: includes/class-caddy-block.php:97 includes/class-caddy-interactivity.php:353
-#: public/partials/caddy-public-cart.php:526
+#: public/partials/caddy-public-cart.php:518
 msgid "Checkout Now"
 msgstr "Nu afrekenen"
 
 #: includes/class-caddy-block.php:98 includes/class-caddy-interactivity.php:354
-#: public/partials/caddy-public-cart.php:386
+#: public/partials/caddy-public-cart.php:378
 #: public/partials/caddy-public-saves.php:120
 msgid "Browse Products"
 msgstr "Producten bekijken"
 
 #: includes/class-caddy-block.php:99 includes/class-caddy-interactivity.php:355
-#: public/partials/caddy-public-cart.php:379
+#: public/partials/caddy-public-cart.php:371
 msgid "View Saved Items"
 msgstr "Bekijk opgeslagen producten"
 
 #: includes/class-caddy-block.php:102
 #: includes/class-caddy-interactivity.php:356
-#: public/partials/caddy-public-cart.php:425
+#: public/partials/caddy-public-cart.php:417
 msgid "Apply"
 msgstr "Toepassen"
 
 #: includes/class-caddy-block.php:103
 #: includes/class-caddy-interactivity.php:357
-#: public/partials/caddy-public-cart.php:424
+#: public/partials/caddy-public-cart.php:416
 msgid "Promo code"
 msgstr "Promotiecode"
 
 #: includes/class-caddy-block.php:104
 #: includes/class-caddy-interactivity.php:358
-#: public/partials/caddy-public-cart.php:479
+#: public/partials/caddy-public-cart.php:471
 msgid "Subtotal"
 msgstr "Subtotaal"
 
@@ -1433,7 +1440,7 @@ msgid "Caddy Saved Items"
 msgstr ""
 
 #: includes/integrations/elementor/class-caddy-elementor-saved-items-widget.php:62
-#: public/class-caddy-public.php:735
+#: public/class-caddy-public.php:772
 msgid "Saves"
 msgstr "Opgeslagen"
 
@@ -1626,40 +1633,35 @@ msgid ""
 "plugin. No customer or order data."
 msgstr ""
 
-#: public/class-caddy-public.php:341 public/partials/caddy-public-cart.php:118
-msgid "Congrats, you've activated"
-msgstr "Gefeliciteerd, je krijgt"
+#. translators: %s: free shipping destination, for example US.
+#: public/class-caddy-public.php:360
+#, php-format
+msgid "Congrats, you've activated <strong>free %s shipping</strong>!"
+msgstr "Gefeliciteerd, je krijgt <strong>gratis verzending naar %s</strong>!"
 
-#: public/class-caddy-public.php:342 public/class-caddy-public.php:369
-#: public/partials/caddy-public-cart.php:113
-#: public/partials/caddy-public-cart.php:120
-msgid "free"
-msgstr "gratis"
+#: public/class-caddy-public.php:361
+msgid "Congrats, you've activated <strong>free shipping</strong>!"
+msgstr "Gefeliciteerd, je krijgt <strong>gratis verzending</strong>!"
 
-#: public/class-caddy-public.php:344 public/class-caddy-public.php:371
-#: public/partials/caddy-public-cart.php:114
-#: public/partials/caddy-public-cart.php:121
-msgid "shipping"
-msgstr "verzending"
+#. translators: 1: amount left to spend, 2: free shipping destination, for example US.
+#: public/class-caddy-public.php:365
+#, php-format
+msgid ""
+"Spend <strong>%1$s more</strong> to get <strong>free %2$s shipping</strong>"
+msgstr "Besteed <strong>%1$s meer</strong> voor <strong>gratis verzending naar %2$s</strong>"
 
-#: public/class-caddy-public.php:364 public/partials/caddy-public-cart.php:106
-msgid "Spend"
-msgstr "Besteed"
+#. translators: %s: amount left to spend.
+#: public/class-caddy-public.php:367
+#, php-format
+msgid "Spend <strong>%s more</strong> to get <strong>free shipping</strong>"
+msgstr "Besteed <strong>%s meer</strong> voor <strong>gratis verzending</strong>"
 
-#: public/class-caddy-public.php:367 public/partials/caddy-public-cart.php:109
-msgid "more"
-msgstr "meer"
-
-#: public/class-caddy-public.php:368 public/partials/caddy-public-cart.php:111
-msgid "to get"
-msgstr "te krijgen"
-
-#: public/class-caddy-public.php:570
+#: public/class-caddy-public.php:607
 msgid "Free"
 msgstr "Gratis"
 
 #. translators: %s: discount amount as a percentage, e.g. "25%".
-#: public/class-caddy-public.php:649
+#: public/class-caddy-public.php:686
 #, php-format
 msgid "(Save %s)"
 msgstr "(Bespaar %s)"
@@ -1669,34 +1671,34 @@ msgid "Gift Reward"
 msgstr "Cadeaubeloning"
 
 #: public/partials/caddy-public-cart-item.php:102
-#: public/partials/caddy-public-cart.php:174
+#: public/partials/caddy-public-cart.php:166
 msgid "Decrease quantity"
 msgstr "Aantal verlagen"
 
 #: public/partials/caddy-public-cart-item.php:112
-#: public/partials/caddy-public-cart.php:191
+#: public/partials/caddy-public-cart.php:183
 msgid "Increase quantity"
 msgstr "Aantal verhogen"
 
-#: public/partials/caddy-public-cart.php:182
+#: public/partials/caddy-public-cart.php:174
 msgid "Item quantity"
 msgstr "Artikelaantal"
 
-#: public/partials/caddy-public-cart.php:209
+#: public/partials/caddy-public-cart.php:201
 #: public/partials/caddy-public-saves.php:73
 msgid "Save"
 msgstr "Bespaar"
 
-#: public/partials/caddy-public-cart.php:274
+#: public/partials/caddy-public-cart.php:266
 #: public/partials/caddy-public-recommendations.php:27
 msgid "We think you might also like..."
 msgstr "Dit vind je misschien ook leuk..."
 
-#: public/partials/caddy-public-cart.php:375
+#: public/partials/caddy-public-cart.php:367
 msgid "Your Cart is Empty!"
 msgstr "Je winkelwagen is leeg!"
 
-#: public/partials/caddy-public-cart.php:378
+#: public/partials/caddy-public-cart.php:370
 msgid ""
 "You haven't added any items to your cart yet, but you do have products in "
 "your saved list."
@@ -1704,28 +1706,28 @@ msgstr ""
 "Je hebt nog niets aan je winkelwagen toegevoegd, maar je hebt wel opgeslagen "
 "producten."
 
-#: public/partials/caddy-public-cart.php:385
+#: public/partials/caddy-public-cart.php:377
 msgid "It looks like you haven't added any items to your cart yet."
 msgstr "Het lijkt erop dat je nog niets in je winkelwagen hebt."
 
-#: public/partials/caddy-public-cart.php:416
+#: public/partials/caddy-public-cart.php:408
 msgid "Apply a promo code"
 msgstr "Promotiecode toepassen"
 
-#: public/partials/caddy-public-cart.php:469
+#: public/partials/caddy-public-cart.php:461
 msgid "-"
 msgstr "-"
 
-#: public/partials/caddy-public-cart.php:480
+#: public/partials/caddy-public-cart.php:472
 msgid "Shipping &amp; taxes calculated at checkout."
 msgstr "Verzendkosten &amp; btw worden berekend bij het afrekenen."
 
-#: public/partials/caddy-public-cart.php:560
+#: public/partials/caddy-public-cart.php:552
 #: public/partials/caddy-public-saves.php:144
 msgid "Powered"
 msgstr "Mogelijk gemaakt"
 
-#: public/partials/caddy-public-cart.php:561
+#: public/partials/caddy-public-cart.php:553
 #: public/partials/caddy-public-saves.php:145
 msgid "by"
 msgstr "door"
@@ -1833,6 +1835,24 @@ msgstr ""
 msgctxt "block keyword"
 msgid "ecommerce"
 msgstr ""
+
+#~ msgid "Congrats, you've activated"
+#~ msgstr "Gefeliciteerd, je krijgt"
+
+#~ msgid "free"
+#~ msgstr "gratis"
+
+#~ msgid "shipping"
+#~ msgstr "verzending"
+
+#~ msgid "Spend"
+#~ msgstr "Besteed"
+
+#~ msgid "more"
+#~ msgstr "meer"
+
+#~ msgid "to get"
+#~ msgstr "te krijgen"
 
 #~ msgid "Caddy Quick Links"
 #~ msgstr "Caddy Quick Links"

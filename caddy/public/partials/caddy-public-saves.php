@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 $cc_disable_branding = get_option( 'cc_disable_branding' ); // Get disable branding
 $cc_disable_branding_class = ( 'disabled' === $cc_disable_branding ) ? ' cc-no-branding' : '';
 
@@ -112,7 +114,6 @@ $account_url = trailingslashit( wc_get_account_endpoint_url( '' ) );
 			<!-- Empty state (shown when no items) -->
 			<div class="cc-empty-msg cc-text-center cc-hidden"
 			     id="cc-empty-saved-items">
-				<img class="cc-empty-saves-img" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/saves-empty.svg" alt="Empty Saves">
 				<span class="cc-title"><?php esc_html_e( 'You haven\'t saved any items yet!', 'caddy' ); ?></span>
 				<?php if ( is_user_logged_in() ) { ?>
 					<p><?php esc_html_e( 'You can save your shopping cart items for later here.', 'caddy' ); ?></p>

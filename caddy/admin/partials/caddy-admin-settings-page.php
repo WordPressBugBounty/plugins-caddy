@@ -8,11 +8,17 @@
  * @since      1.0.0
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 // Get the active tab from URL hash or default to general settings
 $active_tab = 'cc-general-settings'; // Default value, will be overridden by JavaScript
 
 // Add this line to define the license status variable in the main scope
-$caddy_license_status = get_option('caddy_premium_edd_license_status');
+$caddy_license_status = caddy_pro_is_active() ? 'valid' : '';
 
 /**
  * Helper function to display the Pro label
@@ -21,9 +27,7 @@ $caddy_license_status = get_option('caddy_premium_edd_license_status');
  */
 if ( ! function_exists( 'caddy_display_pro_label' ) ) {
 	function caddy_display_pro_label() {
-		$caddy_license_status = get_option('caddy_premium_edd_license_status');
-
-		if (!isset($caddy_license_status) || $caddy_license_status != 'valid') {
+		if ( ! caddy_pro_is_active() ) {
 			return '<span class="caddy-pro-label">' . esc_html__('Pro', 'caddy') . '</span>';
 		}
 

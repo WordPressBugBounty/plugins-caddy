@@ -10,6 +10,11 @@
  * @package    Caddy
  * @subpackage Caddy/admin/partials
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
  
 ?>
 <form name="caddy-form" id="caddy-welcome-message-form" method="post" action="">

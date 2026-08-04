@@ -71,9 +71,6 @@ class Caddy_Admin {
 				wp_enqueue_style( 'kt-admin-notice', plugin_dir_url( __FILE__ ) . 'css/caddy-admin-notices.css', array(), $this->version, 'all' );
 			}
 		}
-		if ( $pagenow == 'plugins.php' ) {
-			wp_enqueue_style( 'caddy-deactivation-popup', plugin_dir_url( __FILE__ ) . 'css/caddy-deactivation.min.css', array(), $this->version, 'all' );
-		}
 	}
 
 	/**
@@ -100,13 +97,6 @@ class Caddy_Admin {
 				);
 				wp_localize_script( $this->plugin_name, 'caddyAjaxObject', $params );
 			}
-		}
-		if ( $pagenow == 'plugins.php' ) {
-			wp_enqueue_script( 'caddy-deactivation-popup', plugin_dir_url( __FILE__ ) . 'js/caddy-deactivation.min.js', array( 'jquery' ), $this->version, true );
-			wp_localize_script( 'caddy-deactivation-popup', 'caddyAjaxObject', array(
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'cc_admin_nonce' ),
-			) );
 		}
 	}
 
@@ -174,26 +164,9 @@ class Caddy_Admin {
 	 * Check if Caddy Pro is active and licensed.
 	 */
 	private function is_pro_active() {
-		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
-		return class_exists( 'Caddy_Premium' ) && 'valid' === $caddy_license_status;
+		return caddy_pro_is_active();
 	}
 
-
-	/**
-	 * Dismiss the optin notice.
-	 */
-	public function cc_dismiss_optin_notice() {
-
-		$current_user_id = get_current_user_id();
-		//Check nonce
-		if ( isset($_POST['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['nonce'])), 'caddy' ) ) {
-			update_user_meta( $current_user_id, 'cc_dismiss_user_optin_notice', 'yes' );
-		}
-
-		wp_send_json_success();
-
-		wp_die();
-	}
 
 	/**
 	 * Include tab screen files
@@ -237,6 +210,7 @@ class Caddy_Admin {
 					'description' => __( 'Pro unlocks powerful customization features for Caddy including an in-cart "offers." tab, exclusion rules for recommendations and free shipping meter, color style management, positioning and more.', 'caddy' ),
 					'btn_title'   => __( 'Get Pro', 'caddy' ),
 					'btn_link'    => 'https://www.usecaddy.com/?utm_source=caddy-addons&utm_medium=plugin&utm_campaign=addon-links',
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core filter name.
 					'activated'   => in_array( 'caddy-premium/caddy-premium.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ? 'true' : 'false',
 					'license'     => ( 'valid' === $caddy_premium_license_status ) ? 'activated' : 'not_activated',
 				],
@@ -246,6 +220,7 @@ class Caddy_Admin {
 					'description' => __( 'Capture emails directly in the cart and track cart actions with Klaviyo.', 'caddy' ),
 					'btn_title'   => __( 'Get Add-on', 'caddy' ),
 					'btn_link'    => 'https://usecaddy.com/products/klaviyo-add-on/?utm_source=caddy-addons&utm_medium=plugin&utm_campaign=addon-links',
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core filter name.
 					'activated'   => in_array( 'caddy-klaviyo/caddy-klaviyo.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ? 'true' : 'false',
 					'license'     => ( 'valid' === $caddy_ann_license_status ) ? 'activated' : 'not_activated',
 				]
@@ -263,9 +238,9 @@ class Caddy_Admin {
 								<a class="button addon-button" href="<?php echo esc_url( $addon['btn_link'] ); ?>" target="_blank"><?php echo esc_html( $addon['btn_title'] ); ?></a>
 							<?php } else { ?>
 								<?php if ( 'activated' === $addon['license'] ) { ?>
-									<span class="active-addon-btn"><?php esc_html_e( 'Activated', 'caddy' ); ?></span>
+									<span class="button button-disabled active-addon-btn"><?php esc_html_e( 'Activated', 'caddy' ); ?></span>
 								<?php } else { ?>
-									<span class="installed-addon-btn"><?php esc_html_e( 'Installed', 'caddy' ); ?></span>
+									<span class="button button-disabled installed-addon-btn"><?php esc_html_e( 'Installed', 'caddy' ); ?></span>
 								<?php } ?>
 							<?php } ?>
 						</div>
@@ -288,17 +263,11 @@ class Caddy_Admin {
 			| <a href="?page=caddy-addons"><?php echo esc_html( __( 'Get Add-ons', 'caddy' ) ); ?></a>
 			| <a href="?page=caddy-resources"><?php echo esc_html( __( 'Resources', 'caddy' ) ); ?></a>
 			<?php
-			$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
-
-			if ( isset( $caddy_license_status ) && 'valid' === $caddy_license_status ) {
+			if ( caddy_pro_is_active() ) {
 				?>
 				| <a href="?page=caddy-licenses"><?php echo esc_html( __( 'Licenses', 'caddy' ) ); ?></a>
 				<?php
-			} ?>
-			<?php
-			$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
-
-			if ( ! isset( $caddy_license_status ) || 'valid' !== $caddy_license_status ) {
+			} else {
 				?>
 				| <a href="https://www.usecaddy.com" target="_blank"><?php echo esc_html( __( 'Upgrade to Pro', 'caddy' ) ); ?></a>
 				<?php
@@ -307,154 +276,6 @@ class Caddy_Admin {
 		<?php
 	}
 
-	/**
-	 * Renders the Caddy Deactivation Survey HTML
-	 * Note: only for internal use
-	 *
-	 * @since 1.8.3
-	 */
-	public function caddy_load_deactivation_html() {
-		$current_user       = wp_get_current_user();
-		$current_user_email = $current_user->user_email;
-		?>
-		<div id="caddy-deactivation-survey-wrap" style="display:none;">
-			<div class="cc-survey-header">
-				<h2 id="deactivation-survey-title">
-					<?php esc_html_e( 'We are sad to see you go :( If you have a moment, please let us know how we can improve', 'caddy' ); ?>
-				</h2>
-			</div>
-			<form class="deactivation-survey-form" method="POST">
-				<div class="cc-survey-reasons-wrap">
-
-					<div>
-						<label class="caddy-field-description">
-							<input type="radio" name="caddy-survey-radios" value="1" required>
-							<span><?php esc_html_e( "It's missing a specific feature", 'caddy' ); ?></span>
-						</label>
-					</div>
-
-					<div>
-						<label class="caddy-field-description">
-							<input type="radio" name="caddy-survey-radios" value="2" required>
-							<span><?php esc_html_e( "It's not working", 'caddy' ); ?></span>
-						</label>
-					</div>
-
-					<div>
-						<label class="caddy-field-description">
-							<input type="radio" name="caddy-survey-radios" value="3" required>
-							<span><?php esc_html_e( "It's not what I was looking for", 'caddy' ); ?></span>
-						</label>
-					</div>
-
-					<div>
-						<label class="caddy-field-description">
-							<input type="radio" name="caddy-survey-radios" value="4" required>
-							<span><?php esc_html_e( 'It did not work as I expected', 'caddy' ); ?></span>
-						</label>
-					</div>
-
-					<div>
-						<label class="caddy-field-description">
-							<input type="radio" name="caddy-survey-radios" value="5" required>
-							<span><?php esc_html_e( 'I found a better plugin', 'caddy' ); ?></span>
-						</label>
-					</div>
-					
-					<div>
-						<label class="caddy-field-description">
-							<input type="radio" name="caddy-survey-radios" value="6" required>
-							<span><?php esc_html_e( "It's a temporary deactivation", 'caddy' ); ?></span>
-						</label>
-					</div>
-					
-					<div>
-						<label class="caddy-field-description">
-							<input type="radio" name="caddy-survey-radios" value="7" required>
-							<span><?php esc_html_e( 'Something else', 'caddy' ); ?></span>
-						</label>
-					</div>
-				</div>
-				<div class="cc-survey-extra-wrap">
-					<div class="caddy-survey-extra-field" style="display: none;">
-						<textarea name="user-reason" class="widefat user-reason" rows="6" placeholder="<?php esc_html_e( "Please explain", 'caddy' ); ?>"></textarea>
-						<p><input type="checkbox" name="caddy-contact-for-issue" class="caddy-contact-for-issue"
-						          value="cc-contact-me"><?php esc_html_e( "I would like someone to contact me and help resolve my issue", 'caddy' ); ?></p>
-						<p><?php
-							printf(
-								'%1$s %2$s %3$s',
-								esc_html__( "By submitting this you're allowing Caddy to collect and send some basic site data to troubleshoot problems & make product improvements. Read our ", 'caddy' ),
-								'<a href="https://usecaddy.com/privacy-policy" target="_blank">privacy policy</a>.',
-								esc_html__( ' for more info.', 'caddy' )
-							);
-							?></p>
-					</div>
-					<input type="hidden" name="current-user-email" value="<?php echo esc_attr( $current_user_email ); ?>">
-					<input type="hidden" name="current-site-url" value="<?php echo esc_url( get_bloginfo( 'url' ) ); ?>">
-					<input type="hidden" name="caddy-export-class" value="Caddy_Tools_Reset_Stats">
-				</div>
-				<div class="cc-survey-footer">
-					<a class="cc-skip-deactivate-button" href="#"><?php esc_html_e( 'Skip and Deactivate', 'caddy' ); ?></a>
-					<div class="cc-deactivate-buttons">
-						<a class="button-secondary cc-cancel-survey"><?php esc_html_e( 'Cancel', 'caddy' ); ?></a>
-						<input type="submit" class="button button-primary" value="<?php esc_html_e( 'Submit and Deactivate', 'caddy' ); ?>">
-					</div>
-				</div>
-			</form>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Submit Deactivation Form Data
-	 * Note: only for internal use
-	 *
-	 * @since 1.8.3
-	 */
-	public function caddy_submit_deactivation_form_data() {
-		//Check nonce
-		if ( !isset($_POST['nonce']) || ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['nonce'])), 'cc_admin_nonce' ) ) {
-			return;
-		}
-
-		global $wp_version;
-		$current_user = wp_get_current_user();
-		
-		// Get and sanitize POST parameters
-		$popup_selected_reason = sanitize_text_field(filter_input(INPUT_POST, 'popUpSelectedReason', FILTER_DEFAULT));
-		$deactivation_reason = sanitize_text_field(filter_input(INPUT_POST, 'deactivationReason', FILTER_DEFAULT));
-		$contact_me_checkbox = sanitize_text_field(filter_input(INPUT_POST, 'contactMeCheckbox', FILTER_DEFAULT));
-
-		$mail_to = 'success@usecaddy.com';
-		$mail_subject = __( 'Caddy Deactivation Survey Response', 'caddy' );
-		
-		/* translators: %s: Website URL */
-		$mail_body = sprintf( __( 'WordPress website URL: %s', 'caddy' ), esc_url( site_url() ) ) . '<br>';
-		/* translators: %s: WordPress version number */
-		$mail_body .= sprintf( __( 'WordPress version: %s', 'caddy' ), esc_html( $wp_version ) ) . '<br>';
-		/* translators: %s: Plugin version number */
-		$mail_body .= sprintf( __( 'The plugin version: %s', 'caddy' ), esc_html( CADDY_VERSION ) ) . '<br>';
-		/* translators: %s: Selected reason from deactivation survey */
-		$mail_body .= sprintf( __( 'Selected Deactivation Reason: %s', 'caddy' ), esc_html( $popup_selected_reason ) ) . '<br>';
-		/* translators: %s: Detailed reason text from deactivation survey */
-		$mail_body .= sprintf( __( 'Deactivation Reason Text: %s', 'caddy' ), esc_html( $deactivation_reason ) ) . '<br>';
-
-		if ( 'yes' === $contact_me_checkbox ) {
-			$first_name = $current_user->first_name;
-			$last_name = $current_user->last_name;
-			$full_name = $first_name . ' ' . $last_name;
-			/* translators: %s: User's full name */
-			$mail_body .= sprintf( __( 'User display name: %s', 'caddy' ), esc_html( $full_name ) ) . '<br>';
-			/* translators: %s: User's email address */
-			$mail_body .= sprintf( __( 'User email: %s', 'caddy' ), esc_html( $current_user->user_email ) );
-		}
-
-		$mail_headers = array( 'Content-Type: text/html; charset=UTF-8' );
-
-		wp_mail( $mail_to, $mail_subject, $mail_body, $mail_headers );
-
-		wp_die();
-	}
 
 	/**
 	 * Include header
@@ -687,9 +508,9 @@ class Caddy_Admin {
 	private function process_sfl_settings() {
 
 		// Only save the enable/disable setting if Pro is not active
-		$caddy_license_status = get_option('caddy_premium_edd_license_status');
-		if (!isset($caddy_license_status) || $caddy_license_status !== 'valid') {
+		if ( ! caddy_pro_is_active() ) {
 			// Save the enable/disable save for later setting
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by the caller before dispatching to this handler.
 			if (isset($_POST['cc_enable_sfl_options'])) {
 				update_option('cc_enable_sfl_options', 'enabled');
 			} else {

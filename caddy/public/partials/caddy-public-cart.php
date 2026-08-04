@@ -4,6 +4,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 if ( ! is_object( WC()->cart ) ) {
 	return;
 }
@@ -168,6 +170,8 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 											     data-wp-class--cc-hidden="context.item.hideQuantity"
 											     data-wp-class--cc-sold-individually="context.item.soldIndividually">
 												<div class="cc_item_quantity_update cc_item_quantity_minus"
+												     role="button" tabindex="0"
+												     aria-label="<?php esc_attr_e( 'Decrease quantity', 'caddy' ); ?>"
 												     data-wp-class--cc-hidden="context.item.soldIndividually || context.item.hideQuantityButtons"
 												     data-wp-class--cc-qty-disabled="context.item.isAtMinQty"
 												     data-wp-on--click="actions.decreaseQuantity">−</div>
@@ -183,6 +187,8 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 													min="1">
 
 												<div class="cc_item_quantity_update cc_item_quantity_plus"
+												     role="button" tabindex="0"
+												     aria-label="<?php esc_attr_e( 'Increase quantity', 'caddy' ); ?>"
 												     data-wp-class--cc-hidden="context.item.soldIndividually || context.item.hideQuantityButtons"
 												     data-wp-class--cc-qty-disabled="context.item.isAtMaxQty"
 												     data-wp-on--click="actions.increaseQuantity">+</div>
@@ -266,7 +272,12 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 						<div class="cc-pl-info-wrapper" data-wp-class--cc-hidden="!state.showRecommendations">
 							<div class="cc-pl-upsells">
 								<label><?php esc_html_e( 'We think you might also like...', 'caddy' ); ?></label>
-								<div class="cc-pl-upsells-wrapper">
+								<div class="cc-pl-upsells-wrapper"
+									 data-wp-on--pointerdown="actions.onSliderPointerDown"
+									 data-wp-on--pointermove="actions.onSliderPointerMove"
+									 data-wp-on--pointerup="actions.onSliderPointerUp"
+									 data-wp-on--pointerleave="actions.onSliderPointerUp"
+									 style="touch-action: pan-y;">
 									<!-- Loading skeleton - shown while loading -->
 									<div class="cc-pl-recommendations cc-recommendations-loading"
 										 data-wp-class--cc-hidden="!state.recommendationsLoading">
@@ -290,7 +301,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 											 data-wp-style--transform="state.recommendationTransform"
 											 data-wp-style--width="state.recommendationSliderWidth">
 										<template data-wp-each--rec="state.recommendations" data-wp-each-key="context.rec.id">
-											<div class="cc-slide" data-wp-key="context.rec.id">
+											<div class="cc-slide" data-wp-key="context.rec.id" data-wp-bind--data-product-id="context.rec.id">
 												<div class="up-sells-product">
 													<div class="cc-up-sells-image">
 														<a data-wp-bind--href="context.rec.permalink">
@@ -361,7 +372,6 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 			<!-- Reactive empty cart state (shown when cart is empty) -->
 			<div data-wp-class--cc-hidden="state.cartCount">
 				<div class="cc-empty-msg">
-					<img class="cc-empty-cart-img" src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/cart-empty.svg" alt="Empty Cart">
 					<span class="cc-title"><?php esc_html_e( 'Your Cart is Empty!', 'caddy' ); ?></span>
 
 					<?php if ( ! empty( $cc_sfl_items ) ) { ?>
@@ -501,7 +511,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					}
 					?>
 					<div class="cc-total-amount">
-						<span class="woocommerce-Price-amount amount" data-wp-text="state.cartSubtotalFormatted"><?php echo esc_html( html_entity_decode( strip_tags( wc_price($cart_total) ) ) ); ?></span>
+						<span class="woocommerce-Price-amount amount" data-wp-text="state.cartSubtotalFormatted"><?php echo esc_html( html_entity_decode( wp_strip_all_tags( wc_price($cart_total) ) ) ); ?></span>
 					</div>
 				</div>
 			</div>

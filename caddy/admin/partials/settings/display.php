@@ -10,6 +10,11 @@
  * @package    Caddy
  * @subpackage Caddy/admin/partials
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
  
 ?>
 <form name="caddy-form" id="caddy-display-form" method="post" action="">
@@ -21,7 +26,7 @@
 		<?php if ( $caddy_license_status !== 'valid' ) { ?>
 			<div class="cc-box cc-box-cta cc-upgrade">
 				<img src="<?php echo esc_url( plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-lock.svg' ); ?>" />
-				<h3><?php echo esc_html( __( 'Unlock a Display Settings with Caddy Pro', 'caddy' ) ); ?></h3>
+				<h3><?php echo esc_html( __( 'Unlock Display Settings with Caddy Pro', 'caddy' ) ); ?></h3>
 				<p><?php echo esc_html( __( 'Change the location of the cart bubble, cart drawer behaviour, and more. Plus:', 'caddy' ) ); ?></p>
 				<ul>
 					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Analytics dashboard.', 'caddy' ) ); ?></li>

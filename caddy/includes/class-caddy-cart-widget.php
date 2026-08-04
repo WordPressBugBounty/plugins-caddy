@@ -7,6 +7,11 @@
  * @package    Caddy
  * @subpackage Caddy/includes
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
 if ( ! class_exists( 'caddy_cart_widget' ) ) {
 	class caddy_cart_widget extends WP_Widget {
 

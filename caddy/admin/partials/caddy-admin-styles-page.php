@@ -10,6 +10,13 @@
  * @package    Caddy
  * @subpackage Caddy/admin/partials
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 ?>
 
 <?php
@@ -41,8 +48,7 @@ $cc_custom_css = ! empty( $cc_custom_css ) ? esc_html( stripslashes( $cc_custom_
 			</table>
 			<?php do_action( 'caddy_after_custom_css_row' ); ?>
 			<?php
-			$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
-			if ( ! isset( $caddy_license_status ) || 'valid' !== $caddy_license_status ) {
+			if ( ! caddy_pro_is_active() ) {
 				?>
 				<div class="cc-unlock-msg">
 					<div><span class="dashicons dashicons-unlock"></span><?php echo esc_html( __( 'Unlock 7 different cart icons, change bubble position, set 15+ custom color options & more with ', 'caddy' ) ); ?><a

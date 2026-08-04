@@ -842,6 +842,7 @@ body.cc-window-open .cc-window {
 
 .cc-window .cc-empty-msg a.cc-button {
   margin: 0 auto;
+  width: auto;
 }
 
 .cc-window a.cc-button:hover {
@@ -1276,11 +1277,6 @@ body.cc-window-open {
   margin-bottom: 10px;
   color: var(--cc-icon-color) !important;
   display: block;
-}
-
-.cc-no-products-msg img,
-.cc-empty-msg img {
-  margin: 0 auto 10px;
 }
 
 /** Up-sells CSS */
@@ -2880,4 +2876,23 @@ i.ccicon-left-arrow {
 /* Hide cart only when saved list is explicitly active */
 .cc-cart.cc-tab-inactive {
 	display: none !important;
+}
+/* Screen-reader-only live region for cart state announcements */
+.cc-sr-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Keyboard focus indicator for the role="button" quantity controls */
+.cc_item_quantity_update:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }

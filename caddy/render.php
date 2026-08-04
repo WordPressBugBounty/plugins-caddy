@@ -12,6 +12,8 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 // Get block attributes with defaults
 $auto_open = $attributes['autoOpen'] ?? true;
 
@@ -67,12 +69,14 @@ if (!class_exists('Caddy_Premium')) {
 		</div>
 
 		<!-- Cart window -->
-		<div class="cc-window disable-scrollbars" data-wp-class--cc-show="state.isOpen">
+		<div class="cc-window disable-scrollbars" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Shopping cart', 'caddy' ); ?>" data-wp-class--cc-show="state.isOpen">
 			<div class="cc-window-wrapper">
 				<?php
 					include(plugin_dir_path(__FILE__) . 'public/partials/caddy-public-window.php');
 				?>
 			</div>
+			<!-- Screen-reader live region announcing cart state changes -->
+			<div class="cc-sr-announce" aria-live="polite" aria-atomic="true"></div>
 		</div>
 
 		<!-- Overlay -->

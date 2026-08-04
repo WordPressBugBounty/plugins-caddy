@@ -12,6 +12,12 @@
  * @subpackage Caddy/admin/partials
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'caddy' ) );
 }
@@ -22,11 +28,11 @@ $current_section = ( ! empty( $_GET['section'] ) ) ? sanitize_text_field( wp_uns
 $sections = array(
 	'docs'     => array(
 		'name' => __( 'Help Docs', 'caddy' ),
-		'icon' => 'dashicons dashicons-book',
+		'icon' => 'dashicons dashicons-book-alt',
 	),
 	'playbooks' => array(
 		'name' => __( 'Playbooks', 'caddy' ),
-		'icon' => 'dashicons dashicons-media-document',
+		'icon' => 'dashicons dashicons-book-alt',
 	),
 	'plugins'  => array(
 		'name' => __( 'Recommended Plugins', 'caddy' ),
@@ -276,6 +282,8 @@ $plugins = apply_filters( 'caddy_resources_plugins', array(
 			</a>
 		<?php endforeach; ?>
 	</h2>
+
+	<?php do_action( 'caddy_admin_notices' ); ?>
 
 	<?php if ( 'playbooks' === $current_section ) : ?>
 

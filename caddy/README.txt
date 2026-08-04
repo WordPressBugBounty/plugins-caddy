@@ -1,12 +1,12 @@
 === Caddy – WooCommerce Side Cart & Free Shipping Bar ===
-Author: Tribe Interactive
-Author URI: https://www.usecaddy.com
+Author: Caddy
+Author URI: https://usecaddy.com
 Contributors: tribeinteractive, kakshak, mvalera
 Tags: side cart, woocommerce side cart, floating cart, mini cart, free shipping bar
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 3.1.0
+Stable tag: 3.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -183,6 +183,15 @@ You can find full instructions [here](https://usecaddy.com/docs/developers/how-t
 
 No. We've built Caddy with performance in mind and have fine tuned it for speed.
 
+= What data does Caddy send, and where? =
+
+Caddy sends nothing to us unless you choose to share it. Two optional features connect to usecaddy.com:
+
+* **Usage data (opt in, off by default).** If you accept the prompt in your admin, Caddy sends a weekly snapshot: your site URL, an anonymous install ID, WordPress, PHP and WooCommerce versions, active theme, locale, multisite status, the Caddy version, how long Caddy has been installed, and which Caddy features are switched on. No customer, order, or product data is ever included. Turn it on or off anytime under Caddy > Settings > General > Help Improve Caddy.
+* **Deactivation feedback (optional).** If you fill in the short form shown when deactivating Caddy, your answer is sent along with your site URL and the same environment details. Skipping the form sends nothing.
+
+Both are handled by us at [usecaddy.com](https://usecaddy.com), covered by our [privacy policy](https://usecaddy.com/privacy-policy). If you enter your email in the welcome prompt to receive Caddy tips, that address is sent to our mailing list provider so we can email you, and you can unsubscribe at any time.
+
 == Screenshots ==
 
 1. The Caddy WooCommerce side cart drawer open, with the free shipping bar and live cart subtotal.
@@ -191,6 +200,17 @@ No. We've built Caddy with performance in mind and have fine tuned it for speed.
 4. The custom CSS styling screen for matching the cart drawer to your brand.
 
 == Changelog ==
+
+= 3.1.1 =
+* New: Optional usage data sharing, off by default, with a one-time welcome screen. Change it anytime under Caddy > Settings > General. See the FAQ for what it includes.
+* Improvement: Accessibility. The cart opens as a labelled dialog, quantity controls are keyboard operable, and cart changes are announced to screen readers.
+* Improvement: Hardened the codebase against the WordPress Plugin Check standards.
+* Improvement: Custom CSS now loads with the Caddy stylesheet instead of separately in the page head.
+* Improvement: The empty cart and saved items screens no longer show an illustration.
+* Fix: Products with custom fields or add-ons now appear in the cart straight away instead of after a page reload.
+* Fix: The recommendations slider can be swiped or dragged on touch screens again.
+* Fix: WordPress no longer reports that Caddy loads its translations too early.
+* Improvement: Compatibility. Tested up to WooCommerce 10.9.4 and WordPress 7.0.
 
 = 3.1.0 =
 * New: Elementor "Caddy Cart" and "Caddy Saved Items" widgets for your header and layouts.

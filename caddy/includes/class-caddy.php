@@ -184,14 +184,8 @@ class Caddy {
 		// Add action to register menu page
 		$this->loader->add_action( 'admin_menu', $caddy_admin_obj, 'cc_register_menu_page' );
 
-		// Add action to add caddy deactivation popup HTML
-		$this->loader->add_action( 'admin_footer', $caddy_admin_obj, 'caddy_load_deactivation_html' );
-
 		// Add action to include tab screen files
 		$this->loader->add_action( 'caddy_admin_tab_screen', $caddy_admin_obj, 'cc_include_tab_screen_files' );
-
-		// Add action to dismiss the optin notice
-		$this->loader->add_action( 'wp_ajax_dismiss_optin_notice', $caddy_admin_obj, 'cc_dismiss_optin_notice' );
 
 		// Add action to display addons html
 		$this->loader->add_action( 'cc_addons_html', $caddy_admin_obj, 'cc_addons_html_display' );
@@ -199,9 +193,6 @@ class Caddy {
 		// Add action to display header links html
 		$this->loader->add_action( 'caddy_header_links', $caddy_admin_obj, 'caddy_header_links_html' );
 
-		// Add action to display submit deactivation form data
-		$this->loader->add_action( 'wp_ajax_cc_submit_deactivation_form_data', $caddy_admin_obj, 'caddy_submit_deactivation_form_data' );
-	
 		// Add action to include header
 		$this->loader->add_action( 'caddy_admin_header', $caddy_admin_obj, 'caddy_load_admin_header' );
 
@@ -263,8 +254,8 @@ class Caddy {
 		$this->loader->add_action('wp_footer', $caddy_public_obj, 'cc_load_widget');
 		$this->loader->add_action('wp_footer', 'Caddy_Block', 'auto_insert_block', 5);
 
-		// Load custom CSS
-		$this->loader->add_action('wp_head', $caddy_public_obj, 'cc_load_custom_css');
+		// Load custom CSS (attached to the front-end stylesheet, so it must run after enqueue_styles)
+		$this->loader->add_action('wp_enqueue_scripts', $caddy_public_obj, 'cc_load_custom_css', 20);
 
 		// Exclude cart AJAX endpoints from caching (WP Rocket only)
 		if ( defined( 'WP_ROCKET_VERSION' ) ) {
@@ -330,18 +321,7 @@ class Caddy {
 	 * @return bool
 	 */
 	public function cc_check_premium_license_activation() {
-		// First check if premium plugin class exists
-		if ( ! class_exists( 'Caddy_Premium' ) ) {
-			return false;
-		}
-
-		$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
-		// Return if the license key is valid
-		if ( 'valid' === $caddy_license_status ) {
-			return true;
-		}
-
-		return false;
+		return caddy_pro_is_active();
 	}
 
 	/**

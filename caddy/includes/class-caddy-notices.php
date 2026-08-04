@@ -7,6 +7,11 @@
  * @subpackage caddy/includes
  * @author     Tribe Interactive <hello@madebytribe.com>
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
 class Caddy_Admin_Notices {
 	
 	private $install_date;
@@ -67,9 +72,9 @@ class Caddy_Admin_Notices {
 		// Display review request
 		add_action( 'admin_notices', array( $this, 'display_review_notice' ) );
 		// Display upgrade notice
-		add_action( 'admin_notices', array( $this, 'display_upgrade_notice' ) );
+		add_action( 'caddy_admin_notices', array( $this, 'display_upgrade_notice' ) );
 		// Display opt-in notice
-		add_action( 'admin_notices', array( $this, 'display_optin_notice' ) );
+		add_action( 'caddy_admin_notices', array( $this, 'display_optin_notice' ) );
 		
 		// ConvertKit email subscribe AJAX handler
 		add_action( 'wp_ajax_caddy_subscribe_email', array( $this, 'handle_email_subscribe' ) );
@@ -99,10 +104,14 @@ class Caddy_Admin_Notices {
 		// Ensure WooCommerce is active
 		if (!function_exists('WC')) return;
 		
+		// Shared with Klaviyo Toolkit, which uses the same flag, so that only one
+		// promo notice renders when both plugins are installed. The name must stay
+		// in sync across both plugins.
 		global $rk_promo_notice_called;
 		if (isset($rk_promo_notice_called) && $rk_promo_notice_called) {
 			return; // Don't execute if the notice has already been called
 		}
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Cross-plugin coordination flag; renaming would show the notice twice.
 		$rk_promo_notice_called = true;
 		
 		// Get the current URL
@@ -147,7 +156,7 @@ class Caddy_Admin_Notices {
 				});
 			</script>
 	
-			<div data-dismissible="notice-rk-promo-forever" class="notice is-dismissible caddy-notice rk-promo">
+			<div data-dismissible="notice-rk-promo-forever" class="notice notice-info is-dismissible caddy-notice rk-promo">
 				<div class="kt-left"><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-cancel-promo.svg' ); ?>" width="145" height="145" alt="kt Promo"></div>
 				<div class="kt-right">
 					<div class="welcome-heading">
@@ -170,7 +179,7 @@ class Caddy_Admin_Notices {
 						?>
 					</p>
 					<p class="caddy-notice-ctas">
-						<a class="button" href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'Enable Cancellation Protection', 'caddy' ) ); ?><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-arrow-right.svg' ); ?>" width="20" height="20"></a>
+						<a class="button button-primary" href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'Enable Cancellation Protection', 'caddy' ) ); ?><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-arrow-right.svg' ); ?>" width="20" height="20"></a>
 					</p>
 				</div>
 			</div>
@@ -225,7 +234,7 @@ class Caddy_Admin_Notices {
 		// Skip on specific admin pages
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
 		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
-		if ('caddy' == $page_name || 'caddy-addons' === $page_name) {
+		if ('caddy' == $page_name || 'caddy-addons' === $page_name || 'caddy-resources' === $page_name) {
 			return;
 		}
 
@@ -252,7 +261,7 @@ class Caddy_Admin_Notices {
 			});
 		</script>
 
-		<div data-dismissible="notice-caddy-review-forever" class="notice is-dismissible caddy-notice review-notice">
+		<div data-dismissible="notice-caddy-review-forever" class="notice notice-info is-dismissible caddy-notice review-notice">
 			<div class="kt-right" style="padding:0;">
 				<div class="welcome-heading">
 					<?php 
@@ -268,7 +277,7 @@ class Caddy_Admin_Notices {
 					<?php echo esc_html__('Hope Caddy\'s been helping you boost conversions and create a better cart experience! Quick favor — if it\'s been useful, would you mind leaving a short review on WordPress.org? Your feedback helps others discover Caddy and gives us fuel to keep improving it. Thanks so much for your support!', 'caddy'); ?>
 				</p>
 				<p class="caddy-notice-ctas">
-					<a class="button caddy-review-button" href="<?php echo esc_url('https://wordpress.org/support/plugin/caddy/reviews/?filter=5#new-post'); ?>" target="_blank">
+					<a class="button button-primary caddy-review-button" href="<?php echo esc_url('https://wordpress.org/support/plugin/caddy/reviews/'); ?>" target="_blank">
 						<?php echo esc_html__('OK, you deserve it', 'caddy'); ?>
 					</a>
 					<a href="#" class="caddy-review-later">
@@ -439,10 +448,10 @@ class Caddy_Admin_Notices {
 			return;
 		}
 
-		// Only show on Caddy settings and add-ons pages
+		// Only show on the Caddy settings, add-ons and resources pages
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
 		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
-		if ('caddy' !== $page_name && 'caddy-addons' !== $page_name) {
+		if ('caddy' !== $page_name && 'caddy-addons' !== $page_name && 'caddy-resources' !== $page_name) {
 			return;
 		}
 
@@ -469,7 +478,7 @@ class Caddy_Admin_Notices {
 			});
 		</script>
 		
-		<div data-dismissible="notice-caddy-upgrade-forever" class="notice is-dismissible caddy-notice upgrade-notice">
+		<div data-dismissible="notice-caddy-upgrade-forever" class="notice notice-info is-dismissible inline caddy-notice upgrade-notice">
 			<div class="kt-left">
 				<img src="<?php echo esc_url( plugin_dir_url(__DIR__) . 'admin/img/caddy-mascot.svg' ); ?>" width="145" height="145" alt="Caddy Mascot">
 			</div>
@@ -500,7 +509,7 @@ class Caddy_Admin_Notices {
 			?>
 
 				<p class="caddy-notice-ctas">
-					<a class="button caddy-upgrade-button" href="<?php echo esc_url('https://usecaddy.com/pricing/?utm_source=caddy-plugin&utm_medium=plugin&utm_campaign=upgrade-notice'); ?>" target="_blank">
+					<a class="button button-primary caddy-upgrade-button" href="<?php echo esc_url('https://usecaddy.com/pricing/?utm_source=caddy-plugin&utm_medium=plugin&utm_campaign=upgrade-notice'); ?>" target="_blank">
 						<?php echo esc_html__('Upgrade Now', 'caddy'); ?>
 					</a>
 					<a href="#" class="caddy-upgrade-later">
@@ -516,7 +525,9 @@ class Caddy_Admin_Notices {
 	}
 
 	/**
-	 * Display opt-in notice
+	 * Offer a free, hand-written CSS pass so the cart matches the store, in
+	 * exchange for an email address. The request itself is what the merchant
+	 * asked for; marketing consent is a separate, optional checkbox.
 	 */
 	public function display_optin_notice() {
 		// Don't show if the notice has been dismissed permanently or temporarily
@@ -524,68 +535,74 @@ class Caddy_Admin_Notices {
 			return;
 		}
 
-		// Show immediately for all installs (no delay)
-
 		// Check if Caddy Premium is not active
 		if (class_exists('Caddy_Premium')) {
 			return;
 		}
 
-		
+		// Already requested from this site, by any admin.
+		if ( get_option( 'caddy_css_offer_requested' ) ) {
+			return;
+		}
+
 		// Only show on specific admin pages
-		$screen = get_current_screen();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
 		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
-		if ( 'caddy' != $page_name && 'caddy-addons' !== $page_name ) {
+		if ( 'caddy' != $page_name && 'caddy-addons' !== $page_name && 'caddy-resources' !== $page_name ) {
 			return;
 		}
 
 		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
 
-		// Get user info
 		$current_user = wp_get_current_user();
-		$first_name = $current_user->first_name;
-		$username = $current_user->user_login;
 
 		?>
-		<div data-dismissible="notice-caddy-optin-forever" class="notice is-dismissible caddy-notice caddy-optin-notice">
-			<div class="kt-left">
-				<img src="<?php echo esc_url( plugin_dir_url(__DIR__) . 'admin/img/airplane.svg' ); ?>" width="145" height="145" alt="Join our VIP email list">
+		<div data-dismissible="notice-caddy-optin-forever" class="notice notice-info is-dismissible inline caddy-notice caddy-optin-notice">
+			<div class="cc-offer__icon" aria-hidden="true">
+				<span class="dashicons dashicons-admin-customizer"></span>
 			</div>
-			<div class="kt-right">
-				<div class="welcome-heading">
-					<?php echo esc_html( __( 'Get WooCommerce cart tips that actually increase revenue', 'caddy' ) ); ?>
-				</div>
-				<p>
-					<?php echo esc_html( __( 'Short, actionable emails on cart optimization, conversion tactics, and WooCommerce growth. No fluff. Unsubscribe anytime.', 'caddy' ) ); ?>
+			<div class="cc-offer__body">
+				<h3 class="cc-offer__title"><?php esc_html_e( 'Claim Your Free Custom Cart Styling', 'caddy' ); ?></h3>
+				<p class="cc-offer__lede">
+					<?php esc_html_e( 'Enter your email and we’ll customize Caddy to match your store’s branding. We’ll deliver it within 1 to 2 business days.', 'caddy' ); ?>
 				</p>
-				<form id="caddy-email-signup" class="cc-klaviyo-default-styling" method="post">
-					<div class="cc-klaviyo-field-group">
-						<input type="text" value="" name="first_name" id="ck_first_name" placeholder="<?php echo esc_attr__( 'Your First Name', 'caddy' ); ?>">
-						<input type="email" value="" name="email_address" id="ck_email" placeholder="<?php echo esc_attr__( 'Your email', 'caddy' ); ?>" required>
-						<div class="cc-klaviyo-field-group cc-klaviyo-form-actions cc-klaviyo-opt-in">
-							<input type="checkbox" name="consent" id="cc-consent-email" required>
-							<label for="cc-consent-email">
-								<?php
-								echo sprintf(
-									'%1$s <a href="%2$s" target="_blank">%3$s</a> %4$s <a href="%5$s" target="_blank">%6$s</a>.',
-									esc_html__( 'By signing up, you agree to receive marketing emails and agree to our ', 'caddy' ),
-									esc_url( 'https://www.usecaddy.com/terms-and-conditions/' ),
-									esc_html__( 'Terms', 'caddy' ),
-									esc_html__( ' &amp; ', 'caddy' ),
-									esc_url( 'https://www.usecaddy.com/privacy-policy/' ),
-									esc_html__( 'Privacy Policy', 'caddy' )
-								);
-								?>
-							</label>
-						</div>
+				<form id="caddy-email-signup" class="cc-offer__form" method="post">
+					<div class="cc-offer__row">
+						<label class="screen-reader-text" for="cc-offer-email"><?php esc_html_e( 'Your email address', 'caddy' ); ?></label>
+						<input type="email" id="cc-offer-email" name="email_address" value="<?php echo esc_attr( $current_user->user_email ); ?>" required>
+						<button type="submit" class="button button-primary cc-offer__submit"><?php esc_html_e( 'Claim My Free Customization', 'caddy' ); ?></button>
 					</div>
-					<div class="cc-klaviyo-messages">
-						<div class="success_message" style="display:none;"><?php echo esc_html__( "You're in! Check your inbox.", 'caddy' ); ?></div>
-						<div class="error_message" style="display:none;"><?php echo esc_html__( 'Something went wrong. Please try again.', 'caddy' ); ?></div>
-					</div>
-					<div class="cc-klaviyo-form-actions">
-						<button type="submit" class="cc-klaviyo-submit-button button button-primary"><?php echo esc_html( __( 'Subscribe', 'caddy' ) ); ?></button>
+					<label class="cc-offer__consent" for="cc-offer-consent">
+						<input type="checkbox" id="cc-offer-consent" name="consent" required>
+						<span>
+							<?php
+							echo wp_kses(
+								sprintf(
+									/* translators: %s: link reading "Privacy Policy" */
+									__( 'Yes, send me my custom cart and I agree to occasional Caddy tips, product updates, and offers. Unsubscribe anytime. %s', 'caddy' ),
+									sprintf(
+										'<a href="%1$s" target="_blank" rel="noopener">%2$s</a>',
+										esc_url( 'https://www.usecaddy.com/privacy-policy/' ),
+										esc_html__( 'Privacy Policy', 'caddy' )
+									)
+								),
+								array(
+									'a' => array(
+										'href'   => array(),
+										'target' => array(),
+										'rel'    => array(),
+									),
+								)
+							);
+							?>
+						</span>
+					</label>
+					<p class="cc-offer__fine">
+						<?php esc_html_e( 'Includes colors, type, spacing, buttons. Ask about anything bigger and the team will tell you what it takes.', 'caddy' ); ?>
+					</p>
+					<div class="cc-offer__messages">
+						<div class="success_message" style="display:none;"><?php esc_html_e( "Got it. Your CSS will land in your inbox in a day or two.", 'caddy' ); ?></div>
+						<div class="error_message" style="display:none;"><?php esc_html_e( 'Something went wrong. Please try again.', 'caddy' ); ?></div>
 					</div>
 				</form>
 				<script type="text/javascript">
@@ -593,12 +610,12 @@ class Caddy_Admin_Notices {
 						$('#caddy-email-signup').on('submit', function(e) {
 							e.preventDefault();
 							var $form = $(this);
-							var $button = $form.find('.cc-klaviyo-submit-button');
+							var $button = $form.find('.cc-offer__submit');
 							var $success = $form.find('.success_message');
 							var $error = $form.find('.error_message');
 							var buttonText = $button.text();
 
-							$button.prop('disabled', true).text('<?php echo esc_js( __( 'Subscribing...', 'caddy' ) ); ?>');
+							$button.prop('disabled', true).text('<?php echo esc_js( __( 'Sending...', 'caddy' ) ); ?>');
 							$error.hide();
 
 							$.ajax({
@@ -609,11 +626,11 @@ class Caddy_Admin_Notices {
 									action: 'caddy_subscribe_email',
 									nonce: '<?php echo esc_js( wp_create_nonce( 'caddy_subscribe_nonce' ) ); ?>',
 									email_address: $form.find('[name="email_address"]').val(),
-									first_name: $form.find('[name="first_name"]').val()
+									consent: $form.find('[name="consent"]').is(':checked') ? 'true' : ''
 								},
 								success: function(response) {
 									if (response.success) {
-										$form.find('.cc-klaviyo-field-group, .cc-klaviyo-form-actions').slideUp(200);
+										$form.find('.cc-offer__row, .cc-offer__consent, .cc-offer__fine').slideUp(200);
 										$success.slideDown(200);
 									} else {
 										$error.slideDown(200);
@@ -634,23 +651,51 @@ class Caddy_Admin_Notices {
 	}
 
 	/**
-	 * Handle ConvertKit email subscription via admin AJAX
+	 * Handle email subscription via admin AJAX.
+	 *
+	 * Sends the request to the "Caddy Plugin Signup" Helm form (gethelm.ai),
+	 * which stores the lead, records email consent, and runs any enrollment
+	 * workflow. Request body keys must match the Helm form field labels.
+	 *
+	 * Email consent is required, so the request is rejected without it. The name
+	 * comes from their WP profile and the site URL from this install, so neither
+	 * has to be typed in.
 	 */
 	public function handle_email_subscribe() {
 		check_ajax_referer( 'caddy_subscribe_nonce', 'nonce' );
 
-		$email = isset( $_POST['email_address'] ) ? sanitize_email( wp_unslash( $_POST['email_address'] ) ) : '';
-		$first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) : '';
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Not allowed.', 403 );
+		}
+
+		$email   = isset( $_POST['email_address'] ) ? sanitize_email( wp_unslash( $_POST['email_address'] ) ) : '';
+		$consent = isset( $_POST['consent'] ) && 'true' === $_POST['consent'];
 
 		if ( empty( $email ) || ! is_email( $email ) ) {
 			wp_send_json_error( 'Invalid email address.' );
 		}
 
-		$response = wp_remote_post( 'https://app.convertkit.com/forms/6803459/subscriptions', array(
-			'body'    => array(
-				'email_address' => $email,
-				'first_name'    => $first_name,
-			),
+		if ( ! $consent ) {
+			wp_send_json_error( 'Please agree to receive emails.' );
+		}
+
+		$current_user = wp_get_current_user();
+
+		// Most admins never fill in a first name, so fall back to the display
+		// name, which WordPress always populates.
+		$first_name = $current_user->first_name ? $current_user->first_name : $current_user->display_name;
+
+		$helm_form_id  = '55f9f498-0842-43c9-b49b-53d7b82a3aff';
+		$consent_label = 'I agree to receive email from Caddy. Unsubscribe anytime.';
+
+		$response = wp_remote_post( 'https://api.gethelm.ai/functions/v1/forms/' . $helm_form_id, array(
+			'headers' => array( 'Content-Type' => 'application/json' ),
+			'body'    => wp_json_encode( array(
+				'First name'   => $first_name,
+				'Email'        => $email,
+				'Site URL'     => home_url(),
+				$consent_label => 'true',
+			) ),
 			'timeout' => 15,
 		) );
 
@@ -660,6 +705,9 @@ class Caddy_Admin_Notices {
 
 		$code = wp_remote_retrieve_response_code( $response );
 		if ( $code >= 200 && $code < 300 ) {
+			// Retire the notice for the whole site: the request is per store, not
+			// per admin, and it should not come back on the next page load.
+			update_option( 'caddy_css_offer_requested', time(), false );
 			wp_send_json_success();
 		} else {
 			wp_send_json_error( 'Subscription failed.' );

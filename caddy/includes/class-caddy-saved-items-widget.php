@@ -7,6 +7,11 @@
  * @package    Caddy
  * @subpackage Caddy/includes
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
 if ( ! class_exists( 'caddy_saved_items_widget' ) ) {
 	class caddy_saved_items_widget extends WP_Widget {
 

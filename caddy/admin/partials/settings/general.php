@@ -7,6 +7,13 @@
  * @see        https://www.madebytribe.com
  * @since      1.0.0
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 ?>
 
 <?php
@@ -22,7 +29,7 @@ $cc_saves_selected_menu = get_option('cc_menu_saves_widget');
 
 $cc_browse_products_url = get_option('cc_browse_products_url', '');
 
-$caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
+$caddy_license_status = caddy_pro_is_active() ? 'valid' : '';
 
 ?>
 <form name="caddy-form" id="caddy-general-form" method="post" action="">
@@ -138,7 +145,7 @@ $caddy_license_status = get_option( 'caddy_premium_edd_license_status' );
 			if ( ! isset( $caddy_license_status ) || 'valid' !== $caddy_license_status ) {
 			?>
 			<div class="cc-unlock-msg">
-				<div><span class="dashicons dashicons-unlock"></span><?php echo esc_html( __( 'Unlock custom messaging, bubble positioning, free shipping meter exlusions, notices & more with ', 'caddy' ) ); ?><a href="<?php echo esc_url( 'https://www.usecaddy.com' ); ?>" target="_blank"><?php echo esc_html( __( 'Caddy Pro', 'caddy' ) ); ?></a></div>
+				<div><span class="dashicons dashicons-unlock"></span><?php echo esc_html( __( 'Unlock custom messaging, bubble positioning, free shipping meter exclusions, notices & more with ', 'caddy' ) ); ?><a href="<?php echo esc_url( 'https://www.usecaddy.com' ); ?>" target="_blank"><?php echo esc_html( __( 'Caddy Pro', 'caddy' ) ); ?></a></div>
 			</div>
 			<?php
 		}?>

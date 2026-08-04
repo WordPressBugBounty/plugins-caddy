@@ -30,6 +30,8 @@
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
 	exit;
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Template partial; variables are scoped to the including method. Hook names are WooCommerce's own filters, required for template compatibility.
 }
 
 // Assign variables explicitly (WPCS: extract() prohibited)
@@ -97,7 +99,7 @@ if (isset($is_server_rendered) && $is_server_rendered) {
 
 					<div class="cc_item_quantity_wrap">
 						<?php if (!$_product->is_sold_individually() && strpos($quantity_args['input_value'], 'type="hidden"') === false && !$is_free_gift && !$is_bundled_item): ?>
-							<div class="cc_item_quantity_update cc_item_quantity_minus" data-type="minus">−</div>
+							<div class="cc_item_quantity_update cc_item_quantity_minus" role="button" tabindex="0" aria-label="<?php esc_attr_e( 'Decrease quantity', 'caddy' ); ?>" data-type="minus">−</div>
 							<input type="text"
 								readonly
 								class="cc_item_quantity"
@@ -107,7 +109,7 @@ if (isset($is_server_rendered) && $is_server_rendered) {
 								step="<?php echo esc_attr(apply_filters('woocommerce_quantity_input_step', 1, $_product)); ?>"
 								min="<?php echo esc_attr($quantity_args['min_value']); ?>"
 								max="<?php echo esc_attr($quantity_args['max_value']); ?>">
-							<div class="cc_item_quantity_update cc_item_quantity_plus<?php echo esc_attr($plus_disable); ?>" data-type="plus">+</div>
+							<div class="cc_item_quantity_update cc_item_quantity_plus<?php echo esc_attr($plus_disable); ?>" role="button" tabindex="0" aria-label="<?php esc_attr_e( 'Increase quantity', 'caddy' ); ?>" data-type="plus">+</div>
 							<?php do_action('caddy_after_quantity_input', $product_id); ?>
 						<?php endif; ?>
 					</div>

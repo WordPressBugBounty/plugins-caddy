@@ -11,6 +11,12 @@
  * @subpackage Caddy/admin/partials
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 $cc_product_recommendation = get_option( 'cc_product_recommendation' );
 $cc_product_recommendation = ( 'disabled' !== $cc_product_recommendation ) ? 'checked' : '';
 

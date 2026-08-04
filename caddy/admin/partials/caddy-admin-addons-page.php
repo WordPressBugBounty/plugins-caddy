@@ -12,6 +12,12 @@
  * @subpackage Caddy/admin/partials
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Template partial; variables are scoped to the including method. The cc_ hooks are Caddy's published extension API, consumed by add-ons.
+
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'caddy' ) );
 }
@@ -52,5 +58,6 @@ $caddy_addon_sections = apply_filters( 'caddy_get_addons_sections', $addon_secti
 			<a class="nav-tab<?php echo esc_attr( $active_tab_class ); ?>" href="?page=caddy-addons&amp;tab=<?php echo esc_attr( $key ); ?>"><i class="<?php echo esc_attr( $value['tab_icon'] ); ?>"></i>&nbsp;<?php echo esc_html( $value['tab_name'] ); ?></a>
 		<?php } ?>
 	</h2>
+	<?php do_action( 'caddy_admin_notices' ); ?>
 	<?php do_action( 'cc_addons_html' ); // Display add-ons html ?>
 </div>

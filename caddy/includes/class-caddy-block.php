@@ -88,6 +88,10 @@ class Caddy_Block {
 			'error' => __('Error', 'caddy'),
 			'errorTryAgain' => __('Error - Try Again', 'caddy'),
 
+			// Screen-reader announcements (aria-live)
+			'srAddedToCart' => __('added to cart', 'caddy'),
+			'srRemovedFromCart' => __('removed from cart', 'caddy'),
+
 			// Cart actions
 			'removeItem' => __('Remove this item', 'caddy'),
 			'checkout' => __('Checkout Now', 'caddy'),
@@ -121,6 +125,7 @@ class Caddy_Block {
 			'recommendationsEmpty' => __('No recommendations available', 'caddy'),
 			'recommendationsLoadError' => __('Unable to load recommendations', 'caddy'),
 			'priceFrom' => __('From', 'caddy'),
+			/* translators: %s: product attribute name, e.g. "Size". */
 			'selectAttribute' => __('Select %s', 'caddy'),
 
 			// Rewards meter
@@ -216,8 +221,9 @@ class Caddy_Block {
 			$meta_output = true;
 			$thumbnail_size = wc_get_image_size('woocommerce_thumbnail');
 			$price_decimal_separator = wc_get_price_decimal_separator();
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter name.
 			$price_trim_zeros = apply_filters( 'woocommerce_price_trim_zeros', false );
-			$sample_whole_price = html_entity_decode( strip_tags( wc_price( 1 ) ) );
+			$sample_whole_price = html_entity_decode( wp_strip_all_tags( wc_price( 1 ) ) );
 			if ( ! $price_trim_zeros && false === strpos( $sample_whole_price, $price_decimal_separator ) ) {
 				$price_trim_zeros = true;
 			}
@@ -225,8 +231,8 @@ class Caddy_Block {
 			$currency_decimals = wc_get_price_decimals();
 			$currency_thousand_separator = wc_get_price_thousand_separator();
 			$currency_position = get_option( 'woocommerce_currency_pos', 'left' );
-			echo '<meta name="caddy-nonce" content="' . wp_create_nonce('wp_rest') . '">' . "\n";
-			echo '<meta name="wc-store-api-nonce" content="' . wp_create_nonce('wc_store_api') . '">' . "\n";
+			echo '<meta name="caddy-nonce" content="' . esc_attr( wp_create_nonce('wp_rest') ) . '">' . "\n";
+			echo '<meta name="wc-store-api-nonce" content="' . esc_attr( wp_create_nonce('wc_store_api') ) . '">' . "\n";
 			echo '<meta name="caddy-rest-url" content="' . esc_url( rest_url('caddy/v1/') ) . '">' . "\n";
 			echo '<meta name="caddy-store-api-url" content="' . esc_url( rest_url('wc/store/v1/') ) . '">' . "\n";
 			echo '<meta name="wc-placeholder-image" content="' . esc_url(wc_placeholder_img_src('woocommerce_thumbnail')) . '">' . "\n";
@@ -305,6 +311,7 @@ class Caddy_Block {
 				'autoOpen' => true
 			);
 
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Block markup built by render_block(); escaping here would strip the Interactivity API directives.
 			echo self::render_block($attributes, '', null);
 		} else {
 		}

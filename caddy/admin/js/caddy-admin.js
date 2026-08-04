@@ -48,31 +48,6 @@
 		});
 	});
 
-	// Dismiss the opt-in notice
-	$( document ).on( 'click', '.cc-optin-notice .notice-dismiss', function() {
-		cc_dismiss_optin_notice();
-	} );
-
-	// Dismiss the opt-in notice when form submitted
-	$( '#caddy-email-signup' ).submit( function( e ) {
-		cc_dismiss_optin_notice();
-	} );
-
-	/* Dismiss the opt-in notice */
-	function cc_dismiss_optin_notice() {
-		var data = {
-			action: 'dismiss_optin_notice',
-			nonce: caddyAjaxObject.nonce,
-		};
-		$.ajax( {
-			type: 'post',
-			url: caddyAjaxObject.ajaxurl,
-			data: data,
-			success: function( response ) {
-			}
-		} );
-	}
-
 	// Copy shortcode to clipboard
 	$(document).ready(function() {
 		$('.copy-shortcode-button').click(function() {

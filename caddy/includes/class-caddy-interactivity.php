@@ -243,18 +243,18 @@ class Caddy_Interactivity {
 					'name' => $product->get_name(),
 					'variationText' => $variation_text,
 					'price' => $format_price_smart($line_total),
-					'priceHtml' => html_entity_decode( strip_tags( wc_price($line_total) ) ),
+					'priceHtml' => html_entity_decode( wp_strip_all_tags( wc_price($line_total) ) ),
 					'regularPrice' => $regular_unit_price,
 					'regularLineTotal' => $regular_line_total,
 					'regularPriceFormatted' => $format_price_smart($regular_line_total),
-					'regularPriceHtml' => $is_on_sale ? html_entity_decode( strip_tags( wc_price($regular_line_total) ) ) : '',
+					'regularPriceHtml' => $is_on_sale ? html_entity_decode( wp_strip_all_tags( wc_price($regular_line_total) ) ) : '',
 					'salePrice' => $format_price_smart($sale_line_total),
 					'unitPrice' => $unit_price,
 					'hasCustomPricing' => self::cart_item_has_custom_pricing( $cart_item, $product ),
 					'isOnSale' => $is_on_sale,
 					'savingsPercentage' => $savings_percentage,
 					'lineTotal' => $line_total,
-					'lineTotalFormatted' => html_entity_decode( strip_tags( wc_price($line_total) ) ),
+					'lineTotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($line_total) ) ),
 					'image' => $thumbnail_url,
 					'permalink' => $product->get_permalink(),
 					'isBundleContainer' => $is_bundle_container,
@@ -301,8 +301,9 @@ class Caddy_Interactivity {
 		}
 
 		$price_decimal_separator = wc_get_price_decimal_separator();
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter name.
 		$price_trim_zeros = apply_filters( 'woocommerce_price_trim_zeros', false );
-		$sample_whole_price = html_entity_decode( strip_tags( wc_price( 1 ) ) );
+		$sample_whole_price = html_entity_decode( wp_strip_all_tags( wc_price( 1 ) ) );
 		if ( ! $price_trim_zeros && false === strpos( $sample_whole_price, $price_decimal_separator ) ) {
 			$price_trim_zeros = true;
 		}
@@ -311,12 +312,12 @@ class Caddy_Interactivity {
 			'items' => $cart_items,
 			'cartCount' => $cart_count,
 			'cartTotal' => floatval($cart_total),
-			'cartTotalFormatted' => html_entity_decode( strip_tags( wc_price($cart_total) ) ),
+			'cartTotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($cart_total) ) ),
 			'cartSubtotal' => floatval($cart_subtotal),
-			'cartSubtotalFormatted' => html_entity_decode( strip_tags( wc_price($cart_subtotal) ) ),
+			'cartSubtotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($cart_subtotal) ) ),
 			'cartSubtotalDisplay' => number_format(floatval($cart_subtotal), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
 			'originalTotal' => floatval($original_total),
-			'originalTotalFormatted' => html_entity_decode( strip_tags( wc_price($original_total) ) ),
+			'originalTotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($original_total) ) ),
 			'originalTotalDisplay' => number_format(floatval($original_total), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
 			'hasDiscount' => $has_discount,
 			'cartHash' => $cart ? $cart->get_cart_hash() : '',
@@ -514,8 +515,8 @@ class Caddy_Interactivity {
 			$is_on_sale = $product->is_on_sale() && $sale_price;
 
 			// Format prices as plain text for Interactivity API using WooCommerce locale settings
-			$price_formatted = html_entity_decode( strip_tags( wc_price($price) ) );
-			$regular_price_formatted = $is_on_sale ? html_entity_decode( strip_tags( wc_price($regular_price) ) ) : '';
+			$price_formatted = html_entity_decode( wp_strip_all_tags( wc_price($price) ) );
+			$regular_price_formatted = $is_on_sale ? html_entity_decode( wp_strip_all_tags( wc_price($regular_price) ) ) : '';
 
 			$formatted_products[] = array(
 				'id' => $product->get_id(),
@@ -611,6 +612,7 @@ class Caddy_Interactivity {
 						return is_numeric($param) && $param > 0;
 					}
 				),
+				// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- REST argument name, not a query parameter.
 				'exclude' => array(
 					'required' => false,
 					'type' => 'string',
@@ -781,8 +783,11 @@ class Caddy_Interactivity {
 	 */
 	private static function get_client_ip() {
 		// Only trust REMOTE_ADDR — proxy headers (X-Forwarded-For etc.) are trivially spoofable
-		if ( ! empty( $_SERVER['REMOTE_ADDR'] ) && filter_var( $_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP ) ) {
-			return $_SERVER['REMOTE_ADDR'];
+		$remote_addr = isset( $_SERVER['REMOTE_ADDR'] )
+			? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+			: '';
+		if ( '' !== $remote_addr && filter_var( $remote_addr, FILTER_VALIDATE_IP ) ) {
+			return $remote_addr;
 		}
 
 		return '0.0.0.0';
@@ -1194,11 +1199,22 @@ class Caddy_Interactivity {
 	 * @return int Variation ID or 0
 	 */
 	private static function get_variation_bundle_source($bundle_product_id) {
+		$cache_key = 'caddy_vb_source_' . (int) $bundle_product_id;
+		$cached    = wp_cache_get($cache_key, 'caddy');
+		if (false !== $cached) {
+			return (int) $cached;
+		}
+
 		global $wpdb;
-		return (int) $wpdb->get_var($wpdb->prepare(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Reverse meta_value lookup has no core API; result is cached below.
+		$variation_id = (int) $wpdb->get_var($wpdb->prepare(
 			"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wc_pb_variable_bundle' AND meta_value = %s LIMIT 1",
 			(string) $bundle_product_id
 		));
+
+		wp_cache_set($cache_key, $variation_id, 'caddy', HOUR_IN_SECONDS);
+
+		return $variation_id;
 	}
 
 	/**
@@ -1243,8 +1259,8 @@ class Caddy_Interactivity {
 			$saved_items[] = array(
 				'productId' => $product_id,
 				'name' => wp_specialchars_decode( $product->get_name(), ENT_QUOTES ),
-				'price' => html_entity_decode( strip_tags( wc_price( $price ) ) ),
-				'regularPrice' => $is_on_sale ? html_entity_decode( strip_tags( wc_price( (float) $regular_price ) ) ) : '',
+				'price' => html_entity_decode( wp_strip_all_tags( wc_price( $price ) ) ),
+				'regularPrice' => $is_on_sale ? html_entity_decode( wp_strip_all_tags( wc_price( (float) $regular_price ) ) ) : '',
 				'salePrice' => wc_format_decimal($sale_price, 2),
 				'priceFormatted' => $product->get_price_html(),
 				'image' => ($img_src = wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_single')) ? $img_src : wc_placeholder_img_src('woocommerce_single'),

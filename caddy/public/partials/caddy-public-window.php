@@ -4,6 +4,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 $current_user          = wp_get_current_user();
 $display_name          = ! empty( $current_user->first_name ) ? $current_user->first_name : $current_user->display_name;
 $cart_contents_count   = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;

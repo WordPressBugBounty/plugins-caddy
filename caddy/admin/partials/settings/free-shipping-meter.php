@@ -10,6 +10,13 @@
  * @package    Caddy
  * @subpackage Caddy/admin/partials
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
+
 $cc_free_shipping_amount = get_option( 'cc_free_shipping_amount' );
  
 $cc_shipping_country = get_option( 'cc_shipping_country' );
@@ -86,7 +93,7 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 			if ( ! isset( $caddy_license_status ) || 'valid' !== $caddy_license_status ) {
 			?>
 			<div class="cc-unlock-msg">
-				<div><span class="dashicons dashicons-unlock"></span><?php echo esc_html( __( 'Unlock free shipping meter exlusions & more with ', 'caddy' ) ); ?><a href="<?php echo esc_url( 'https://www.usecaddy.com' ); ?>" target="_blank"><?php echo esc_html( __( 'Caddy Pro', 'caddy' ) ); ?></a></div>
+				<div><span class="dashicons dashicons-unlock"></span><?php echo esc_html( __( 'Unlock free shipping meter exclusions & more with ', 'caddy' ) ); ?><a href="<?php echo esc_url( 'https://www.usecaddy.com' ); ?>" target="_blank"><?php echo esc_html( __( 'Caddy Pro', 'caddy' ) ); ?></a></div>
 			</div>
 			<?php
 		}?>

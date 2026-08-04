@@ -7,6 +7,8 @@
  * @subpackage Caddy/public
  * @author     Tribe Interactive <success@madebytribe.co>
  */
+
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter names, required for template compatibility.
 class Caddy_Public {
 
 	/**
@@ -288,7 +290,7 @@ class Caddy_Public {
 
 		$cc_custom_css = get_option( 'cc_custom_css' );
 		if ( ! empty( $cc_custom_css ) ) {
-			echo '<style>' . wp_strip_all_tags( stripslashes( $cc_custom_css ) ) . '</style>';
+			wp_add_inline_style( 'caddy-public', wp_strip_all_tags( wp_unslash( $cc_custom_css ) ) );
 		}
 	}
 
@@ -643,6 +645,7 @@ class Caddy_Public {
 		if ($savings > 0 && $regular_price > 0) {
 			$savings_percentage = round(($savings / $regular_price) * 100);
 			return '<div class="cc_saved_amount">' .
+				   /* translators: %s: discount amount as a percentage, e.g. "25%". */
 				   sprintf(esc_html__('(Save %s)', 'caddy'), $savings_percentage . '%') .
 				   '</div>';
 		}

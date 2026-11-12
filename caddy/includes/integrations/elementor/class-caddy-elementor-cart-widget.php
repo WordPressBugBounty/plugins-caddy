@@ -41,7 +41,7 @@ class Caddy_Elementor_Cart_Widget extends \Elementor\Widget_Base {
 		if ( class_exists( 'Caddy_Block' ) ) {
 			Caddy_Block::ensure_frontend_assets();
 		}
-		return array( 'caddy-block-style', 'caddy-icons-style' );
+		return array( 'caddy-public', 'caddy-icons' );
 	}
 
 	/**
@@ -242,10 +242,10 @@ class Caddy_Elementor_Cart_Widget extends \Elementor\Widget_Base {
 		$show_count = ( 'yes' === ( $settings['show_count'] ?? 'yes' ) );
 		$label      = isset( $settings['label'] ) ? $settings['label'] : '';
 
-		$cart_count = ( ! is_admin() && function_exists( 'WC' ) && is_object( WC()->cart ) )
-			? WC()->cart->get_cart_contents_count()
-			: 0;
-		$count_class = ( 0 === (int) $cart_count ) ? 'cc_cart_count cc_cart_zero' : 'cc_cart_count';
+		// Rendered at zero so a cached page cannot carry one shopper's count to
+		// another visitor. updateCartWidgetCount() fills it in from the cookie.
+		$cart_count  = 0;
+		$count_class = 'cc_cart_count cc_cart_zero';
 
 		$icon_html = '';
 		if ( $show_icon ) {

@@ -18,8 +18,8 @@ class Caddy_Block {
 	public static function init() {
 		add_action('init', array(__CLASS__, 'register_script_modules'));
 		add_action('init', array(__CLASS__, 'register_block'));
+		add_action('wp_enqueue_scripts', array(__CLASS__, 'register_styles'), 5);
 		add_action('wp_enqueue_scripts', array(__CLASS__, 'enqueue_block_assets'));
-		add_action('enqueue_block_editor_assets', array(__CLASS__, 'enqueue_editor_assets'));
 	}
 
 	/**
@@ -60,6 +60,12 @@ class Caddy_Block {
 			array(
 				'render_callback' => array(__CLASS__, 'render_block'),
 			)
+		);
+
+		wp_set_script_translations(
+			generate_block_asset_handle('caddy/cart', 'editorScript'),
+			'caddy',
+			plugin_dir_path(dirname(__FILE__)) . 'languages'
 		);
 
 	}
@@ -136,7 +142,6 @@ class Caddy_Block {
 
 		if (function_exists('wp_interactivity_state')) {
 			wp_interactivity_state('caddy/cart', $cart_state);
-		} else {
 		}
 
 		ob_start();
@@ -146,7 +151,6 @@ class Caddy_Block {
 
 		if (function_exists('wp_interactivity_process_directives')) {
 			$template_content = wp_interactivity_process_directives($template_content);
-		} else {
 		}
 
 		return $template_content;
@@ -161,7 +165,7 @@ class Caddy_Block {
 	 */
 	public static function get_cart_state() {
 		// Use the full cart state from Caddy_Interactivity
-		$state = Caddy_Interactivity::get_initial_cart_state();
+		$state = Caddy_Interactivity::get_cache_safe_cart_state();
 
 		// Add block-specific state
 		$is_logged_in = is_user_logged_in();
@@ -181,14 +185,11 @@ class Caddy_Block {
 	 * floating launcher did not auto-insert.
 	 */
 	public static function ensure_frontend_assets() {
-		$plugin_url = plugin_dir_url( dirname( __FILE__ ) );
-
 		if ( function_exists( 'wp_enqueue_script_module' ) ) {
 			wp_enqueue_script_module( 'caddy/cart' );
 		}
 
-		wp_enqueue_style( 'caddy-block-style', $plugin_url . 'public/css/caddy-public.css', array(), CADDY_VERSION );
-		wp_enqueue_style( 'caddy-icons-style', $plugin_url . 'public/css/caddy-icons.css', array(), CADDY_VERSION );
+		self::enqueue_styles();
 	}
 
 	/**
@@ -208,9 +209,7 @@ class Caddy_Block {
 				wp_enqueue_script_module('caddy/cart');
 			}
 
-			$plugin_url = plugin_dir_url(dirname(__FILE__));
-			wp_enqueue_style('caddy-block-style', $plugin_url . 'public/css/caddy-public.css', array(), CADDY_VERSION);
-			wp_enqueue_style('caddy-icons-style', $plugin_url . 'public/css/caddy-icons.css', array(), CADDY_VERSION);
+			self::enqueue_styles();
 		}
 
 		add_action('wp_head', function() {
@@ -259,23 +258,34 @@ class Caddy_Block {
 	}
 
 	/**
-	 * Enqueue editor assets
+	 * Register the shared front-end stylesheets and attach the merchant's custom CSS.
+	 *
+	 * Registered on every front-end page so other integrations (such as the
+	 * Elementor widgets) can depend on the handles; they print only when enqueued.
 	 */
-	public static function enqueue_editor_assets() {
-		wp_enqueue_script(
-			'caddy-cart-editor',
-			plugin_dir_url(dirname(__FILE__)) . 'editor.js',
-			array('wp-blocks', 'wp-element', 'wp-editor'),
-			CADDY_VERSION,
-			true
-		);
+	public static function register_styles() {
+		if ( wp_style_is( 'caddy-public', 'registered' ) ) {
+			return;
+		}
 
-		wp_enqueue_style(
-			'caddy-cart-editor-style',
-			plugin_dir_url(dirname(__FILE__)) . 'editor.css',
-			array('wp-edit-blocks'),
-			CADDY_VERSION
-		);
+		$plugin_url = plugin_dir_url( dirname( __FILE__ ) );
+		wp_register_style( 'caddy-public', $plugin_url . 'public/css/caddy-public.css', array(), CADDY_VERSION, 'all' );
+		wp_register_style( 'caddy-icons', $plugin_url . 'public/css/caddy-icons.css', array(), CADDY_VERSION, 'all' );
+
+		// Saved values are already unslashed, so only tags are stripped here.
+		$custom_css = get_option( 'cc_custom_css' );
+		if ( ! empty( $custom_css ) ) {
+			wp_add_inline_style( 'caddy-public', wp_strip_all_tags( $custom_css ) );
+		}
+	}
+
+	/**
+	 * Enqueue the shared front-end stylesheets.
+	 */
+	public static function enqueue_styles() {
+		self::register_styles();
+		wp_enqueue_style( 'caddy-public' );
+		wp_enqueue_style( 'caddy-icons' );
 	}
 
 
@@ -306,14 +316,11 @@ class Caddy_Block {
 	public static function auto_insert_block() {
 		if (self::should_auto_insert()) {
 			$attributes = array(
-				'cartText' => 'Cart',
-				'showIcon' => true,
 				'autoOpen' => true
 			);
 
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Block markup built by render_block(); escaping here would strip the Interactivity API directives.
 			echo self::render_block($attributes, '', null);
-		} else {
 		}
 	}
 }

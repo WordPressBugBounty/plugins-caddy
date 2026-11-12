@@ -134,20 +134,21 @@ class Caddy_Save_For_Later {
 			return '';
 		}
 
+		Caddy_Block::enqueue_styles();
+
 		$default = array(
 			'text' => '',
 			'icon' => '',
 		);
 		$atts = shortcode_atts( $default, $atts );
 
-		$saved_items = $this->get_saved_items();
-		$count = count( $saved_items );
+		$count = Caddy_Interactivity::count_visible_saved_items( get_current_user_id() );
 
 		ob_start();
 		?>
 		<a href="javascript:void(0);" class="cc_saved_items_list">
 			<?php if ( ! empty( $atts['icon'] ) ) : ?>
-				<i class="<?php echo esc_attr( $atts['icon'] ); ?>"></i>
+				<i class="<?php echo esc_attr( 'yes' === $atts['icon'] ? 'ccicon-heart-empty' : $atts['icon'] ); ?>"></i>
 			<?php endif; ?>
 			<span class="cc-saved-count"><?php echo esc_html( $count ); ?></span>
 			<?php if ( ! empty( $atts['text'] ) ) : ?>

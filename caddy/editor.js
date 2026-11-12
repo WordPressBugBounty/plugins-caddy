@@ -8,13 +8,13 @@
 
 const { registerBlockType } = wp.blocks;
 const { InspectorControls } = wp.blockEditor;
-const { PanelBody, ToggleControl, TextControl } = wp.components;
+const { PanelBody, ToggleControl } = wp.components;
 const { __ } = wp.i18n;
 
 registerBlockType('caddy/cart', {
 	edit: function(props) {
 		const { attributes, setAttributes } = props;
-		const { cartText, showIcon, autoOpen } = attributes;
+		const { autoOpen } = attributes;
 
 		return [
 			// Inspector Controls (Block Settings Sidebar)
@@ -23,18 +23,6 @@ registerBlockType('caddy/cart', {
 					title: __('Cart Settings', 'caddy'),
 					initialOpen: true
 				},
-					wp.element.createElement(TextControl, {
-						label: __('Cart Button Text', 'caddy'),
-						value: cartText,
-						onChange: (value) => setAttributes({ cartText: value }),
-						help: __('Text displayed on the cart trigger button', 'caddy')
-					}),
-					wp.element.createElement(ToggleControl, {
-						label: __('Show Cart Icon', 'caddy'),
-						checked: showIcon,
-						onChange: (value) => setAttributes({ showIcon: value }),
-						help: __('Display cart icon next to the button text', 'caddy')
-					}),
 					wp.element.createElement(ToggleControl, {
 						label: __('Auto-open Cart', 'caddy'),
 						checked: autoOpen,
@@ -68,10 +56,9 @@ registerBlockType('caddy/cart', {
 						fontSize: '14px'
 					}
 				},
-					showIcon && wp.element.createElement('span', {
+					wp.element.createElement('span', {
 						style: { fontSize: '16px' }
 					}, '🛒'),
-					cartText && wp.element.createElement('span', null, cartText),
 					wp.element.createElement('span', {
 						style: {
 							backgroundColor: 'rgba(255,255,255,0.2)',

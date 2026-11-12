@@ -58,7 +58,7 @@ $cc_free_shipping_tax = ( 'enabled' == $cc_free_shipping_tax ) ? 'checked' : '';
 					<div class="cc-toggle cc-toggle--size-small">
 						<input type="checkbox" name="cc_free_shipping_tax" id="cc_free_shipping_tax" value="enabled" <?php echo esc_attr( $cc_free_shipping_tax ); ?>>
 						<label for="cc_free_shipping_tax">
-							<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
+							<div class="cc-toggle__switch" data-checked="<?php echo esc_attr__( 'On', 'caddy' ); ?>" data-unchecked="<?php echo esc_attr__( 'Off', 'caddy' ); ?>"></div>
 						</label>
 					</div>
 				</td>

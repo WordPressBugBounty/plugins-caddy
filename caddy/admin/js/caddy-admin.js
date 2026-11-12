@@ -53,7 +53,7 @@
 		$('.copy-shortcode-button').click(function() {
 			var $button = $(this);
 			navigator.clipboard.writeText($('#cc_cart_widget_shortcode').val()).then(function() {
-				$button.text('Copied!').addClass('button-copied');
+				$button.text((window.caddyAjaxObject && caddyAjaxObject.i18n && caddyAjaxObject.i18n.copied) || 'Copied!').addClass('button-copied');
 				setTimeout(function() {
 					$button.html('<span class="dashicons dashicons-admin-page"></span>').removeClass('button-copied');
 				}, 2000);

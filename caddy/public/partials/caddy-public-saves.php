@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
 
 $cc_disable_branding = get_option( 'cc_disable_branding' ); // Get disable branding
-$cc_disable_branding_class = ( 'disabled' === $cc_disable_branding ) ? ' cc-no-branding' : '';
+$cc_disable_branding_class = ( 'enabled' !== $cc_disable_branding ) ? ' cc-no-branding' : '';
 
 // Get custom browse products URL or default to shop page
 $custom_browse_url = get_option('cc_browse_products_url', '');
@@ -127,7 +127,7 @@ $account_url = trailingslashit( wc_get_account_endpoint_url( '' ) );
 		</div>
 	</div>
 	<?php
-	if ( 'disabled' !== $cc_disable_branding ) {
+	if ( 'enabled' === $cc_disable_branding ) {
 		$cc_affiliate_id = get_option( 'cc_affiliate_id' );
 		$powered_by_link = ! empty( $cc_affiliate_id ) ? 'https://www.usecaddy.com?ref=' . esc_attr( $cc_affiliate_id ) : 'https://www.usecaddy.com';
 		?>
@@ -137,14 +137,12 @@ $account_url = trailingslashit( wc_get_account_endpoint_url( '' ) );
 			// SVG code
 			$powered_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.44,9.27A.48.48,0,0,0,20,9H12.62L14.49.61A.51.51,0,0,0,14.2,0a.5.5,0,0,0-.61.17l-10,14a.49.49,0,0,0,0,.52A.49.49,0,0,0,4,15h7.38L9.51,23.39A.51.51,0,0,0,9.8,24a.52.52,0,0,0,.61-.17l10-14A.49.49,0,0,0,20.44,9.27Z" fill="currentColor"></path></svg>';
 
-			echo sprintf(
-				'%1$s %2$s %3$s <a href="%4$s" rel="noopener noreferrer" target="_blank">%5$s</a>',
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
-				$powered_svg,
-				esc_html__( 'Powered', 'caddy' ),
-				esc_html__( 'by', 'caddy' ),
-				esc_url( $powered_by_link ),
-				esc_html__( 'Caddy', 'caddy' )
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
+			echo $powered_svg . ' ';
+			printf(
+				/* translators: %s: link to Caddy */
+				esc_html__( 'Powered by %s', 'caddy' ),
+				'<a href="' . esc_url( $powered_by_link ) . '" rel="noopener noreferrer" target="_blank">' . esc_html__( 'Caddy', 'caddy' ) . '</a>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			);
 			?>
 		</div>

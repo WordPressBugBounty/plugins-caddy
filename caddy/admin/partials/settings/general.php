@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // GET SETTINGS OPTIONS
 
 $cc_disable_branding = get_option( 'cc_disable_branding' );
-$cc_disable_branding = ( 'disabled' !== $cc_disable_branding ) ? 'checked' : '';
+$cc_disable_branding = ( 'enabled' === $cc_disable_branding ) ? 'checked' : '';
 
 $cc_affiliate_id = get_option( 'cc_affiliate_id' );
 
@@ -48,10 +48,15 @@ $caddy_license_status = caddy_pro_is_active() ? 'valid' : '';
 					<div class="cc-toggle cc-toggle--size-small">
 						<input type="checkbox" name="cc_disable_branding" id="cc_disable_branding" value="enabled" <?php echo esc_attr( $cc_disable_branding ); ?>>
 						<label for="cc_disable_branding">
-							<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
-							<div class="cc-toggle__label-text"><?php echo esc_html( __( 'We appreciate the ', 'caddy' ) ); ?>
-								<span class="cc-love">♥</span>
-								<?php echo esc_html( __( ' and support!', 'caddy' ) ); ?>
+							<div class="cc-toggle__switch" data-checked="<?php echo esc_attr__( 'On', 'caddy' ); ?>" data-unchecked="<?php echo esc_attr__( 'Off', 'caddy' ); ?>"></div>
+							<div class="cc-toggle__label-text">
+								<?php
+								printf(
+									/* translators: %s: heart symbol */
+									esc_html__( 'We appreciate the %s and support!', 'caddy' ),
+									'<span class="cc-love">♥</span>'
+								);
+								?>
 							</div>
 						</label>
 					</div>
@@ -63,7 +68,16 @@ $caddy_license_status = caddy_pro_is_active() ? 'valid' : '';
 				</th>
 				<td>
 					<input type="text" name="cc_affiliate_id" id="cc_affiliate_id" value="<?php echo esc_attr( $cc_affiliate_id ); ?>">
-					<p class="description"><?php echo esc_html( __( 'Enter money from our Caddy branding link!', 'caddy' ) ); ?> <a href="<?php echo esc_url( 'https://usecaddy.com/become-an-affiliate' ); ?>" target="_blank"><?php echo esc_html__( 'Click here', 'caddy' ); ?></a> <?php echo esc_html( __( 'to sign up', 'caddy' ) ); ?></p>
+					<p class="description">
+						<?php
+						printf(
+							/* translators: 1: opening link tag, 2: closing link tag */
+							esc_html__( 'Earn money from our Caddy branding link! %1$sClick here%2$s to sign up.', 'caddy' ),
+							'<a href="' . esc_url( 'https://usecaddy.com/become-an-affiliate' ) . '" target="_blank">',
+							'</a>'
+						);
+						?>
+					</p>
 				</td>
 			</tr>
 			<tr>
@@ -92,7 +106,7 @@ $caddy_license_status = caddy_pro_is_active() ? 'valid' : '';
 							$menus = get_terms(array('taxonomy' => 'nav_menu', 'hide_empty' => true));
 							
 							echo '<select name="cc_menu_cart_widget">';
-							echo '<option value="">Select a Menu</option>';
+							echo '<option value="">' . esc_html__( 'Select a Menu', 'caddy' ) . '</option>';
 							foreach ($menus as $menu) {
 								echo '<option value="' . esc_attr($menu->slug) . '"' . selected($cc_cart_selected_menu, $menu->slug, false) . '>' . esc_html($menu->name) . '</option>';
 							}
@@ -119,7 +133,7 @@ $caddy_license_status = caddy_pro_is_active() ? 'valid' : '';
 					<td>
 						<?php
 							echo '<select name="cc_menu_saves_widget">';
-							echo '<option value="">Select a Menu</option>';
+							echo '<option value="">' . esc_html__( 'Select a Menu', 'caddy' ) . '</option>';
 							foreach ($menus as $menu) {
 								echo '<option value="' . esc_attr($menu->slug) . '"' . selected($cc_saves_selected_menu, $menu->slug, false) . '>' . esc_html($menu->name) . '</option>';
 							}

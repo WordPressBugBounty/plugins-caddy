@@ -24,11 +24,9 @@ class Caddy_Interactivity {
 		// Register REST API endpoints for Save for Later functionality
 		add_action('rest_api_init', array(__CLASS__, 'register_cart_endpoints'));
 
-		// Add interactivity directives to cart templates
-		add_filter('caddy_cart_template_context', array(__CLASS__, 'add_interactivity_context'));
-
-		// Clear recommendations cache when products are updated
-		add_action('woocommerce_update_product', array(__CLASS__, 'clear_recommendations_cache'));
+		// Clear recommendations cache when products are updated (stock-only saves are skipped)
+		add_action('woocommerce_before_product_object_save', array(__CLASS__, 'capture_product_changes'));
+		add_action('woocommerce_update_product', array(__CLASS__, 'maybe_clear_recommendations_cache'));
 		add_action('woocommerce_delete_product', array(__CLASS__, 'clear_recommendations_cache'));
 
 		// Clear recommendations cache when recommendation settings change —
@@ -63,12 +61,116 @@ class Caddy_Interactivity {
 		// Switching to custom reactive implementation
 
 		// Initialize cart state from server
-		$initial_state = self::get_initial_cart_state();
+		$initial_state = self::get_cache_safe_cart_state();
 
 
 		// Pass cart state to JavaScript using wp_interactivity_state for script modules
 		// Note: Nonces are now handled via meta tags in class-caddy-block.php for better reliability
 		wp_interactivity_state('caddy/cart', $initial_state);
+	}
+
+	/**
+	 * Cart state with every personal value stripped, for use in page markup.
+	 *
+	 * The rendered page has to be identical for every visitor: a full-page cache
+	 * that stored a shopper's markup would otherwise serve their cart to the next
+	 * visitor. The drawer hydrates from the Store API instead, and the badge is
+	 * primed from the cart count cookie.
+	 *
+	 * @return array Cart state safe to embed in a cacheable response.
+	 */
+	public static function get_cache_safe_cart_state() {
+		$zero_formatted = html_entity_decode( wp_strip_all_tags( wc_price( 0 ) ) );
+		$zero_display   = number_format( 0, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator() );
+
+		return array_merge(
+			array(
+				'items'                  => array(),
+				'cartCount'              => 0,
+				'cartTotal'              => 0.0,
+				'cartTotalFormatted'     => $zero_formatted,
+				'cartSubtotal'           => 0.0,
+				'cartSubtotalFormatted'  => $zero_formatted,
+				'cartSubtotalDisplay'    => $zero_display,
+				'originalTotal'          => 0.0,
+				'originalTotalFormatted' => $zero_formatted,
+				'originalTotalDisplay'   => $zero_display,
+				'hasDiscount'            => false,
+				'cartHash'               => '',
+				'isItemSingular'         => false,
+				'savedItems'             => array(),
+			),
+			self::get_cart_settings_state()
+		);
+	}
+
+	/**
+	 * Store settings, UI flags and strings shared by every cart state.
+	 *
+	 * Holds nothing specific to the current cart or user.
+	 *
+	 * @return array Settings part of the cart state.
+	 */
+	public static function get_cart_settings_state() {
+		$price_decimal_separator = wc_get_price_decimal_separator();
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter name.
+		$price_trim_zeros = apply_filters( 'woocommerce_price_trim_zeros', false );
+		$sample_whole_price = html_entity_decode( wp_strip_all_tags( wc_price( 1 ) ) );
+		if ( ! $price_trim_zeros && false === strpos( $sample_whole_price, $price_decimal_separator ) ) {
+			$price_trim_zeros = true;
+		}
+
+		return array(
+			'isOpen' => false,
+			'isLoading' => false,
+			'needsRefresh' => false, // Flag for background refresh
+			'recommendations' => array(), // Loaded after the cart has items, to avoid blocking page render
+			'recommendationIndex' => 0,
+			'recommendationsLoading' => true, // Show skeleton until the first fetch completes
+			'showRecommendations' => true, // Controls container visibility (true while loading or has items)
+			'recommendationsEnabled' => 'enabled' === get_option( 'cc_product_recommendation' ),
+			'currencySymbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
+			'currencyCode' => get_woocommerce_currency(),
+			'currencyDecimals' => wc_get_price_decimals(),
+			'currencyDecimalSep' => $price_decimal_separator,
+			'currencyThousandSep' => wc_get_price_thousand_separator(),
+			'currencyPosition' => get_option( 'woocommerce_currency_pos', 'left' ),
+			'taxDisplayCart' => get_option( 'woocommerce_tax_display_cart', 'excl' ),
+			'priceTrimZeros' => $price_trim_zeros,
+			'i18n' => array(
+				'addToCart' => __('Add to cart', 'caddy'),
+				'seeOptions' => __('Select options', 'caddy'),
+				'viewProducts' => __('View products', 'caddy'),
+				'saveForLater' => __('Save for later', 'caddy'),
+				'saved' => __('Saved', 'caddy'),
+				'adding' => __('Adding...', 'caddy'),
+				'added' => __('Added!', 'caddy'),
+				'addedCheckmark' => __('Added ✓', 'caddy'),
+				'error' => __('Error', 'caddy'),
+				'errorTryAgain' => __('Error - Try Again', 'caddy'),
+				'removeItem' => __('Remove this item', 'caddy'),
+				'checkout' => __('Checkout Now', 'caddy'),
+				'browseProducts' => __('Browse Products', 'caddy'),
+				'viewSavedItems' => __('View Saved Items', 'caddy'),
+				'apply' => __('Apply', 'caddy'),
+				'promoCode' => __('Promo code', 'caddy'),
+				'subtotal' => __('Subtotal', 'caddy'),
+				'errorSaveItemFailed' => __('Failed to save item', 'caddy'),
+				'errorRemoveSavedItemFailed' => __('Failed to remove saved item', 'caddy'),
+				'errorAddToCartFailed' => __('Failed to add item to cart', 'caddy'),
+				'errorUpdateFailed' => __('Failed to update quantity', 'caddy'),
+				'errorRemoveFailed' => __('Failed to remove item', 'caddy'),
+				'errorMoveToCartFailed' => __('Failed to move item to cart', 'caddy'),
+				'errorApplyCouponFailed' => __('Failed to apply coupon', 'caddy'),
+				'errorRemoveCouponFailed' => __('Failed to remove coupon', 'caddy'),
+				'errorApplyCouponTryAgain' => __('Failed to apply coupon. Please try again.', 'caddy'),
+				'errorRemoveCouponTryAgain' => __('Failed to remove coupon. Please try again.', 'caddy'),
+				'alertSaveForLaterFailed' => __('Failed to save item for later. Please try again.', 'caddy'),
+				'recommendationsEmpty' => __('No recommendations available', 'caddy'),
+				'recommendationsLoadError' => __('Unable to load recommendations', 'caddy'),
+				'discountCode' => __('Discount code', 'caddy'),
+			),
+		);
 	}
 
 	/**
@@ -300,242 +402,25 @@ class Caddy_Interactivity {
 			$has_discount = $original_total > floatval( $cart_subtotal );
 		}
 
-		$price_decimal_separator = wc_get_price_decimal_separator();
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter name.
-		$price_trim_zeros = apply_filters( 'woocommerce_price_trim_zeros', false );
-		$sample_whole_price = html_entity_decode( wp_strip_all_tags( wc_price( 1 ) ) );
-		if ( ! $price_trim_zeros && false === strpos( $sample_whole_price, $price_decimal_separator ) ) {
-			$price_trim_zeros = true;
-		}
-
-		return array(
-			'items' => $cart_items,
-			'cartCount' => $cart_count,
-			'cartTotal' => floatval($cart_total),
-			'cartTotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($cart_total) ) ),
-			'cartSubtotal' => floatval($cart_subtotal),
-			'cartSubtotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($cart_subtotal) ) ),
-			'cartSubtotalDisplay' => number_format(floatval($cart_subtotal), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
-			'originalTotal' => floatval($original_total),
-			'originalTotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($original_total) ) ),
-			'originalTotalDisplay' => number_format(floatval($original_total), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
-			'hasDiscount' => $has_discount,
-			'cartHash' => $cart ? $cart->get_cart_hash() : '',
-			'isOpen' => false,
-			'isLoading' => false,
-			'needsRefresh' => false, // Flag for background refresh
-			'isItemSingular' => $cart_count === 1,
-			'savedItems' => $saved_items,
-			'recommendations' => array(), // Loaded via background prefetch to avoid blocking page render
-			'recommendationIndex' => 0,
-			'recommendationsLoading' => true, // Show skeleton until prefetch completes
-			'showRecommendations' => true, // Controls container visibility (true while loading or has items)
-			'currencySymbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
-			'currencyCode' => get_woocommerce_currency(),
-			'currencyDecimals' => wc_get_price_decimals(),
-			'currencyDecimalSep' => $price_decimal_separator,
-			'currencyThousandSep' => wc_get_price_thousand_separator(),
-			'currencyPosition' => get_option( 'woocommerce_currency_pos', 'left' ),
-			'taxDisplayCart' => get_option( 'woocommerce_tax_display_cart', 'excl' ),
-			'priceTrimZeros' => $price_trim_zeros,
-			'i18n' => array(
-				'addToCart' => __('Add to cart', 'caddy'),
-				'seeOptions' => __('Select options', 'caddy'),
-				'viewProducts' => __('View products', 'caddy'),
-				'saveForLater' => __('Save for later', 'caddy'),
-				'saved' => __('Saved', 'caddy'),
-				'adding' => __('Adding...', 'caddy'),
-				'added' => __('Added!', 'caddy'),
-				'addedCheckmark' => __('Added ✓', 'caddy'),
-				'error' => __('Error', 'caddy'),
-				'errorTryAgain' => __('Error - Try Again', 'caddy'),
-				'removeItem' => __('Remove this item', 'caddy'),
-				'checkout' => __('Checkout Now', 'caddy'),
-				'browseProducts' => __('Browse Products', 'caddy'),
-				'viewSavedItems' => __('View Saved Items', 'caddy'),
-				'apply' => __('Apply', 'caddy'),
-				'promoCode' => __('Promo code', 'caddy'),
-				'subtotal' => __('Subtotal', 'caddy'),
-				'errorSaveItemFailed' => __('Failed to save item', 'caddy'),
-				'errorRemoveSavedItemFailed' => __('Failed to remove saved item', 'caddy'),
-				'errorAddToCartFailed' => __('Failed to add item to cart', 'caddy'),
-				'errorUpdateFailed' => __('Failed to update quantity', 'caddy'),
-				'errorRemoveFailed' => __('Failed to remove item', 'caddy'),
-				'errorMoveToCartFailed' => __('Failed to move item to cart', 'caddy'),
-				'errorApplyCouponFailed' => __('Failed to apply coupon', 'caddy'),
-				'errorRemoveCouponFailed' => __('Failed to remove coupon', 'caddy'),
-				'errorApplyCouponTryAgain' => __('Failed to apply coupon. Please try again.', 'caddy'),
-				'errorRemoveCouponTryAgain' => __('Failed to remove coupon. Please try again.', 'caddy'),
-				'alertSaveForLaterFailed' => __('Failed to save item for later. Please try again.', 'caddy'),
-				'recommendationsEmpty' => __('No recommendations available', 'caddy'),
-				'recommendationsLoadError' => __('Unable to load recommendations', 'caddy'),
+		return array_merge(
+			array(
+				'items' => $cart_items,
+				'cartCount' => $cart_count,
+				'cartTotal' => floatval($cart_total),
+				'cartTotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($cart_total) ) ),
+				'cartSubtotal' => floatval($cart_subtotal),
+				'cartSubtotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($cart_subtotal) ) ),
+				'cartSubtotalDisplay' => number_format(floatval($cart_subtotal), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
+				'originalTotal' => floatval($original_total),
+				'originalTotalFormatted' => html_entity_decode( wp_strip_all_tags( wc_price($original_total) ) ),
+				'originalTotalDisplay' => number_format(floatval($original_total), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()),
+				'hasDiscount' => $has_discount,
+				'cartHash' => $cart ? $cart->get_cart_hash() : '',
+				'isItemSingular' => $cart_count === 1,
+				'savedItems' => $saved_items,
 			),
+			self::get_cart_settings_state()
 		);
-	}
-
-	/**
-	 * Get initial recommendations based on cart items (for server-side rendering)
-	 *
-	 * @param array $cart_items Current cart items
-	 * @return array Recommendations data
-	 */
-	private static function get_initial_recommendations($cart_items) {
-		// Check if recommendations are enabled
-		$cc_product_recommendation = get_option('cc_product_recommendation');
-		if ('enabled' !== $cc_product_recommendation) {
-			return array();
-		}
-
-		// Get the last product in cart for recommendations
-		if (empty($cart_items)) {
-			// No cart items - get best sellers
-			$product_id = 0;
-		} else {
-			$last_item = end($cart_items);
-			$product_id = $last_item['productId'];
-		}
-
-		// Get cart product IDs to exclude (resolve variation IDs to parent product IDs too)
-		$cart_product_ids = array();
-		foreach ($cart_items as $item) {
-			$cart_product_ids[] = $item['productId'];
-			$product_obj = wc_get_product($item['productId']);
-			if ($product_obj && $product_obj->get_parent_id()) {
-				$cart_product_ids[] = $product_obj->get_parent_id();
-			}
-		}
-		$cart_product_ids = array_unique($cart_product_ids);
-
-		// Get the recommendation type setting
-		$cc_product_recommendation_type = get_option('cc_product_recommendation_type');
-		$recommended_products = array();
-
-		// Get recommendations based on type (only if we have a valid product)
-		if ($product_id > 0) {
-			$product = wc_get_product($product_id);
-			if ($product && !empty($cc_product_recommendation_type)) {
-				// For variations, look up recommendations on the parent product
-				$lookup_id = $product_id;
-				$lookup_product = $product;
-				if ($product->is_type('variation')) {
-					$lookup_id = $product->get_parent_id();
-					$lookup_product = wc_get_product($lookup_id) ?: $product;
-				} else {
-					// For Variation Bundles: trace mapped bundle back to original variable product
-					$variation_id = self::get_variation_bundle_source($product_id);
-					if ($variation_id) {
-						$parent_id = wp_get_post_parent_id($variation_id);
-						if ($parent_id) {
-							$parent_product = wc_get_product($parent_id);
-							if ($parent_product) {
-								$lookup_id = $parent_id;
-								$lookup_product = $parent_product;
-							}
-						}
-					}
-				}
-				switch ($cc_product_recommendation_type) {
-					case 'caddy-recommendations':
-						$recommended_products = get_post_meta($lookup_id, '_caddy_recommendations', true);
-						break;
-					case 'cross-sells':
-						$recommended_products = $lookup_product->get_cross_sell_ids();
-						break;
-					case 'upsells':
-						$recommended_products = $lookup_product->get_upsell_ids();
-						break;
-				}
-			}
-		}
-
-		// Filter visible products and exclude products already in cart
-		$limit = 3;
-		$final_recommended_products = array();
-		if (!empty($recommended_products) && is_array($recommended_products)) {
-			foreach ($recommended_products as $recommended_id) {
-				if (count($final_recommended_products) >= $limit) {
-					break;
-				}
-				if (in_array($recommended_id, $cart_product_ids)) {
-					continue;
-				}
-				$recommended_product = wc_get_product($recommended_id);
-				// Only recommend products that can actually be added to the cart —
-				// out-of-stock items render an Add to Cart button that fails silently.
-				if ($recommended_product && 'publish' === $recommended_product->get_status()
-					&& $recommended_product->is_in_stock() && $recommended_product->is_purchasable()) {
-					$final_recommended_products[] = $recommended_id;
-				}
-			}
-		}
-
-		// Fallback to best sellers if no recommendations found
-		if (empty($final_recommended_products)) {
-			$best_sellers = wc_get_products(array(
-				'limit' => $limit * 2,
-				'orderby' => 'popularity',
-				'order' => 'DESC',
-				'return' => 'ids',
-				'status' => 'publish',
-				'stock_status' => 'instock'
-			));
-
-			if (!empty($best_sellers)) {
-				foreach ($best_sellers as $rec_id) {
-					if ($rec_id != $product_id && !in_array($rec_id, $cart_product_ids) && count($final_recommended_products) < $limit) {
-						$final_recommended_products[] = $rec_id;
-					}
-				}
-			}
-		}
-
-		// Format products for JS
-		$formatted_products = array();
-		foreach ($final_recommended_products as $product_id_to_load) {
-			$product = wc_get_product($product_id_to_load);
-			if (!$product) {
-				continue;
-			}
-
-			$thumbnail_id = $product->get_image_id();
-			$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url($thumbnail_id, 'woocommerce_thumbnail') : false;
-			if (!$thumbnail_url) {
-				$thumbnail_url = wc_placeholder_img_src('woocommerce_thumbnail');
-			}
-			$thumbnail_url = preg_replace('#(?<!:)//+#', '/', $thumbnail_url);
-
-			$product_type = $product->get_type();
-			$is_variable = $product_type === 'variable';
-			$is_grouped = $product_type === 'grouped';
-
-			// Get price information
-			$price_data = self::get_recommendation_prices( $product );
-			$regular_price = $price_data['regular'];
-			$sale_price = $price_data['sale'];
-			$is_on_sale = $product->is_on_sale() && null !== $sale_price && null !== $regular_price && $sale_price < $regular_price;
-
-			// Format prices as plain text for Interactivity API using WooCommerce locale settings
-			$price_formatted = self::format_recommendation_price_range( $price_data['min'], $price_data['max'] );
-			$regular_price_formatted = $is_on_sale ? html_entity_decode( wp_strip_all_tags( wc_price($regular_price) ) ) : '';
-
-			$formatted_products[] = array(
-				'id' => $product->get_id(),
-				'name' => $product->get_name(),
-				'permalink' => $product->get_permalink(),
-				'price' => $price_formatted,
-				'regularPrice' => $regular_price_formatted,
-				'isOnSale' => $is_on_sale,
-				'image' => $thumbnail_url,
-				'type' => $product_type,
-				'isVariable' => $is_variable,
-				'isGrouped' => $is_grouped,
-				'isSimple' => !$is_variable && !$is_grouped,
-				'buttonText' => $is_variable ? __('Select options', 'caddy') : ($is_grouped ? __('View products', 'caddy') : __('Add to cart', 'caddy')),
-				'isAdding' => false
-			);
-		}
-
-		return $formatted_products;
 	}
 
 	/**
@@ -634,52 +519,6 @@ class Caddy_Interactivity {
 	}
 
 	/**
-	 * Handle quantity update via Store API
-	 *
-	 * @param WP_REST_Request $request Request object
-	 * @return WP_REST_Response
-	 */
-	/**
-	 * Add interactivity context to cart templates
-	 *
-	 * @param array $context Template context
-	 * @return array Enhanced context with interactivity directives
-	 */
-	public static function add_interactivity_context($context) {
-		$context['interactivity'] = array(
-			'namespace' => 'caddy/cart',
-			'directives' => array(
-				'cart_wrapper' => 'data-wp-interactive="caddy/cart"',
-				'cart_count' => 'data-wp-text="state.cartCount"',
-				'cart_total' => 'data-wp-text="state.cartTotal"',
-				'cart_items' => 'data-wp-each--item="state.items"',
-				'item_quantity' => 'data-wp-text="context.item.quantity"',
-				'item_total' => 'data-wp-text="context.item.lineTotal"',
-				'toggle_cart' => 'data-wp-on--click="actions.toggleCart"',
-				'update_quantity' => 'data-wp-on--click="actions.updateQuantity"',
-				'remove_item' => 'data-wp-on--click="actions.removeItem"'
-			)
-		);
-
-		return $context;
-	}
-
-	/**
-	 * Get cart response for legacy AJAX handlers
-	 *
-	 * This provides a compatibility layer while we transition to Interactivity API
-	 *
-	 * @return array Cart response in JSON format
-	 */
-	public static function get_json_response() {
-		return array(
-			'success' => true,
-			'data' => self::get_initial_cart_state(),
-			'optimization' => 'interactivity_api'
-		);
-	}
-
-	/**
 	 * Check permissions for Save for Later POST operations (add, remove, move)
 	 * Requires user to be logged in and valid nonce
 	 *
@@ -747,8 +586,8 @@ class Caddy_Interactivity {
 		$user_id = get_current_user_id();
 		$identifier = $user_id ? 'user_' . $user_id : 'ip_' . self::get_client_ip();
 
-		// Get endpoint from request
-		$route = $request->get_route();
+		// Key on the endpoint, not the resolved URL, so per-product routes share one bucket
+		$route = preg_replace('#/\d+(?=/|$)#', '/{id}', (string) $request->get_route());
 		$transient_key = 'caddy_rate_limit_' . md5($identifier . $route);
 
 		// Get current request count
@@ -786,11 +625,18 @@ class Caddy_Interactivity {
 		$remote_addr = isset( $_SERVER['REMOTE_ADDR'] )
 			? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
 			: '';
-		if ( '' !== $remote_addr && filter_var( $remote_addr, FILTER_VALIDATE_IP ) ) {
-			return $remote_addr;
-		}
+		$ip = ( '' !== $remote_addr && filter_var( $remote_addr, FILTER_VALIDATE_IP ) ) ? $remote_addr : '0.0.0.0';
 
-		return '0.0.0.0';
+		/**
+		 * Filters the client IP used for REST rate limiting.
+		 *
+		 * Sites behind a trusted reverse proxy can resolve the real client IP here.
+		 *
+		 * @param string $ip Client IP from REMOTE_ADDR.
+		 */
+		$filtered = apply_filters( 'caddy_rest_client_ip', $ip );
+
+		return ( is_string( $filtered ) && filter_var( $filtered, FILTER_VALIDATE_IP ) ) ? $filtered : $ip;
 	}
 
 	/**
@@ -804,7 +650,7 @@ class Caddy_Interactivity {
 		if (!is_user_logged_in()) {
 			return new WP_REST_Response(array(
 				'success' => false,
-				'message' => 'You must be logged in to save items'
+				'message' => __('You must be logged in to save items.', 'caddy')
 			), 401);
 		}
 
@@ -821,24 +667,148 @@ class Caddy_Interactivity {
 		$product_id = (int) $request->get_param('product_id');
 		$user_id = get_current_user_id();
 
-		// Get saved items list
-		$saved_items = get_user_meta($user_id, 'cc_save_for_later_items', true);
-		if (!is_array($saved_items)) {
-			$saved_items = array();
+		if ($product_id <= 0 || !self::is_publicly_viewable_product(wc_get_product($product_id))) {
+			return new WP_REST_Response(array(
+				'success' => false,
+				'message' => __('This product cannot be saved.', 'caddy')
+			), 400);
 		}
 
+		$saved_items = self::get_saved_item_ids($user_id);
+
 		// Add item to saved list if not already there
-		if (!in_array($product_id, $saved_items)) {
+		if (!in_array($product_id, $saved_items, true)) {
+			$max_items = (int) apply_filters('caddy_saved_items_max', 100);
+			if ($max_items > 0 && count($saved_items) >= $max_items) {
+				return new WP_REST_Response(array(
+					'success' => false,
+					/* translators: %d: maximum number of saved items */
+					'message' => sprintf(__('You can save up to %d items. Remove a saved item to add another.', 'caddy'), $max_items)
+				), 400);
+			}
+
 			$saved_items[] = $product_id;
 			update_user_meta($user_id, 'cc_save_for_later_items', $saved_items);
-		} else {
 		}
 
 		return new WP_REST_Response(array(
 			'success' => true,
-			'message' => 'Item saved for later',
+			'message' => __('Item saved for later.', 'caddy'),
 			'saved_items' => self::get_saved_items_data($saved_items)
 		), 200);
+	}
+
+	/**
+	 * Get the current saved item IDs for a user as integers.
+	 *
+	 * @param int $user_id User ID.
+	 * @return int[] Saved product IDs.
+	 */
+	private static function get_saved_item_ids($user_id) {
+		$saved_items = get_user_meta($user_id, 'cc_save_for_later_items', true);
+		if (!is_array($saved_items)) {
+			return array();
+		}
+
+		return array_values(array_unique(array_filter(array_map('intval', $saved_items))));
+	}
+
+	/**
+	 * Count a user's saved items that are publicly viewable.
+	 *
+	 * @param int $user_id User ID.
+	 * @return int Number of saved items shown in the saved list.
+	 */
+	public static function count_visible_saved_items($user_id) {
+		static $counts = array();
+
+		$user_id = (int) $user_id;
+		if (isset($counts[$user_id])) {
+			return $counts[$user_id];
+		}
+
+		$saved_items = self::get_saved_item_ids($user_id);
+		$count = 0;
+
+		if (!empty($saved_items)) {
+			_prime_post_caches($saved_items, true, true);
+
+			foreach ($saved_items as $product_id) {
+				if (self::is_publicly_viewable_product(wc_get_product($product_id))) {
+					++$count;
+				}
+			}
+		}
+
+		$counts[$user_id] = $count;
+
+		return $count;
+	}
+
+	/**
+	 * Check whether a product can be shown to the public.
+	 *
+	 * Variations are checked against their parent product.
+	 *
+	 * @param WC_Product|false|null $product Product object.
+	 * @return bool True when the product is published, visible and not password protected.
+	 */
+	public static function is_publicly_viewable_product($product) {
+		if (!$product instanceof WC_Product) {
+			return false;
+		}
+
+		$check = $product;
+		if ($product->is_type('variation')) {
+			if ('publish' !== get_post_status($product->get_id())) {
+				return false;
+			}
+			$check = wc_get_product($product->get_parent_id());
+			if (!$check instanceof WC_Product) {
+				return false;
+			}
+		}
+
+		if ('publish' !== $check->get_status()) {
+			return false;
+		}
+
+		if ('hidden' === $check->get_catalog_visibility()) {
+			return false;
+		}
+
+		if (post_password_required($check->get_id())) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check whether a product can be shown as a recommendation.
+	 *
+	 * Out-of-stock and unpurchasable products would render an Add to Cart button
+	 * that fails silently.
+	 *
+	 * @param WC_Product|false|null $product Product object.
+	 * @return bool
+	 */
+	private static function is_recommendable_product($product) {
+		return self::is_publicly_viewable_product($product)
+			&& $product->is_in_stock()
+			&& $product->is_purchasable();
+	}
+
+	/**
+	 * Check whether a product type can be moved from saved items straight to the cart.
+	 *
+	 * Variable, bundle, grouped and external products need the product page.
+	 *
+	 * @param WC_Product $product Product object.
+	 * @return bool
+	 */
+	private static function can_add_saved_product_to_cart($product) {
+		return !in_array($product->get_type(), array('variable', 'bundle', 'grouped', 'external'), true);
 	}
 
 	/**
@@ -851,14 +821,10 @@ class Caddy_Interactivity {
 		$product_id = (int) $request->get_param('product_id');
 		$user_id = get_current_user_id();
 
-		// Get saved items list
-		$saved_items = get_user_meta($user_id, 'cc_save_for_later_items', true);
-		if (!is_array($saved_items)) {
-			$saved_items = array();
-		}
+		$saved_items = self::get_saved_item_ids($user_id);
 
 		// Remove item from saved list
-		$key = array_search($product_id, $saved_items);
+		$key = array_search($product_id, $saved_items, true);
 		if ($key !== false) {
 			unset($saved_items[$key]);
 			$saved_items = array_values($saved_items); // Reindex array
@@ -867,7 +833,7 @@ class Caddy_Interactivity {
 
 		return new WP_REST_Response(array(
 			'success' => true,
-			'message' => 'Item removed from saved list',
+			'message' => __('Item removed from saved list.', 'caddy'),
 			'saved_items' => self::get_saved_items_data($saved_items)
 		), 200);
 	}
@@ -897,33 +863,48 @@ class Caddy_Interactivity {
 		$product_id = (int) $request->get_param('product_id');
 		$user_id = get_current_user_id();
 
-		// Validate product exists
+		$saved_items = self::get_saved_item_ids($user_id);
+		$key = array_search($product_id, $saved_items, true);
 		$product = wc_get_product($product_id);
-		if (!$product) {
+
+		if (false === $key || !self::is_publicly_viewable_product($product)) {
 			return new WP_REST_Response(array(
 				'success' => false,
-				'message' => 'Product not found'
+				'code' => 'caddy_saved_item_not_found',
+				'message' => __('This item is not in your saved list.', 'caddy')
 			), 404);
+		}
+
+		if (!self::can_add_saved_product_to_cart($product)) {
+			return new WP_REST_Response(array(
+				'success' => false,
+				'message' => __('Please choose options for this product on its product page.', 'caddy')
+			), 400);
+		}
+
+		if ($product->is_type('variation')) {
+			$passed = apply_filters('woocommerce_add_to_cart_validation', true, $product->get_parent_id(), 1, $product_id, $product->get_variation_attributes());
+		} else {
+			$passed = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, 1);
+		}
+		if (!$passed) {
+			return new WP_REST_Response(array(
+				'success' => false,
+				'message' => self::consume_error_notices(__('This item could not be added to your cart.', 'caddy'))
+			), 400);
 		}
 
 		// Add to cart
 		$cart_item_key = WC()->cart->add_to_cart($product_id, 1);
 
-
 		if (!$cart_item_key) {
 			return new WP_REST_Response(array(
 				'success' => false,
-				'message' => 'Could not add item to cart'
+				'message' => self::consume_error_notices(__('This item could not be added to your cart.', 'caddy'))
 			), 400);
 		}
 
 		// Remove from saved items
-		$saved_items = get_user_meta($user_id, 'cc_save_for_later_items', true);
-		if (!is_array($saved_items)) {
-			$saved_items = array();
-		}
-
-		$key = array_search($product_id, $saved_items);
 		if ($key !== false) {
 			unset($saved_items[$key]);
 			$saved_items = array_values($saved_items);
@@ -940,9 +921,31 @@ class Caddy_Interactivity {
 
 		return new WP_REST_Response(array(
 			'success' => true,
-			'message' => 'Item moved to cart',
+			'message' => __('Item moved to cart.', 'caddy'),
 			'saved_items' => self::get_saved_items_data($saved_items)
 		), 200);
+	}
+
+	/**
+	 * Collect queued WooCommerce error notices as plain text and clear all notices.
+	 *
+	 * @param string $fallback Message used when no error notice is queued.
+	 * @return string Error message.
+	 */
+	private static function consume_error_notices($fallback) {
+		$messages = array();
+		if (function_exists('wc_get_notices')) {
+			foreach (wc_get_notices('error') as $notice) {
+				$text = is_array($notice) && isset($notice['notice']) ? $notice['notice'] : $notice;
+				$text = trim(wp_strip_all_tags(html_entity_decode((string) $text, ENT_QUOTES, get_bloginfo('charset'))));
+				if ('' !== $text) {
+					$messages[] = $text;
+				}
+			}
+			wc_clear_notices();
+		}
+
+		return $messages ? implode(' ', $messages) : $fallback;
 	}
 
 	/**
@@ -975,13 +978,7 @@ class Caddy_Interactivity {
 	 * @return WP_REST_Response
 	 */
 	public static function handle_get_recommendations($request) {
-		// Rate limit: 30 requests per minute per IP
-		$rate_limit_check = self::check_rate_limit( $request );
-		if ( is_wp_error( $rate_limit_check ) ) {
-			return $rate_limit_check;
-		}
-
-		$product_id = $request->get_param('product_id');
+		$product_id = (int) $request->get_param('product_id');
 		$exclude_param = $request->get_param('exclude');
 		$limit = $request->get_param('limit');
 
@@ -992,29 +989,40 @@ class Caddy_Interactivity {
 			$limit = min(max(1, intval($limit)), 10); // Between 1-10
 		}
 
-		// Get product IDs to exclude from query parameter
-		// Also resolve variation IDs to their parent product IDs so variable products in cart
-		// are properly excluded from recommendations
-		$cart_product_ids = array();
+		// Sanitize the exclude list: positive unique IDs, sorted, at most 50
+		$exclude_ids = array();
 		if (!empty($exclude_param)) {
-			$raw_ids = array_map('intval', explode(',', $exclude_param));
-			foreach ($raw_ids as $id) {
-				$cart_product_ids[] = $id;
-				$product_obj = wc_get_product($id);
-				if ($product_obj && $product_obj->get_parent_id()) {
-					$cart_product_ids[] = $product_obj->get_parent_id();
-				}
-			}
-			$cart_product_ids = array_unique($cart_product_ids);
+			$exclude_ids = array_values(array_unique(array_filter(array_map('intval', explode(',', (string) $exclude_param)), static function ($id) { return $id > 0; })));
+			sort($exclude_ids);
+			$exclude_ids = array_slice($exclude_ids, 0, 50);
 		}
 
-		// Check cache first (cache key includes version, product_id, resolved excluded items, and limit)
+		// Cached responses are served before the rate limiter and without loading any products
 		$recs_version = (int) get_option( 'caddy_recs_cache_version', 0 );
-		$resolved_exclude = implode(',', $cart_product_ids);
-		$cache_key = 'caddy_recs_v' . $recs_version . '_' . $product_id . '_' . md5($resolved_exclude . '_' . $limit);
+		$cache_key = 'caddy_recs_v' . $recs_version . '_' . $product_id . '_' . md5(implode(',', $exclude_ids) . '_' . $limit);
 		$cached = get_transient($cache_key);
 		if (false !== $cached) {
 			return new WP_REST_Response($cached, 200);
+		}
+
+		$rate_limit_check = self::check_rate_limit( $request );
+		if ( is_wp_error( $rate_limit_check ) ) {
+			return $rate_limit_check;
+		}
+
+		// Resolve variation IDs to their parent product IDs so variable products in cart
+		// are properly excluded from recommendations
+		$cart_product_ids = array();
+		if (!empty($exclude_ids)) {
+			_prime_post_caches($exclude_ids, false, false);
+			foreach ($exclude_ids as $id) {
+				$cart_product_ids[] = $id;
+				$parent_id = wp_get_post_parent_id($id);
+				if ($parent_id) {
+					$cart_product_ids[] = $parent_id;
+				}
+			}
+			$cart_product_ids = array_values(array_unique($cart_product_ids));
 		}
 
 		// Check if recommendations are enabled
@@ -1022,7 +1030,7 @@ class Caddy_Interactivity {
 		if ('enabled' !== $cc_product_recommendation) {
 			return new WP_REST_Response(array(
 				'success' => false,
-				'message' => 'Recommendations are disabled',
+				'message' => __('Recommendations are disabled.', 'caddy'),
 				'products' => array()
 			), 200);
 		}
@@ -1031,12 +1039,12 @@ class Caddy_Interactivity {
 		$cc_product_recommendation_type = get_option('cc_product_recommendation_type');
 		$recommended_products = array();
 
-		// Get product object
+		// Unpublished, hidden and password-protected products look the same as missing ones
 		$product = wc_get_product($product_id);
-		if (!$product) {
+		if (!self::is_publicly_viewable_product($product)) {
 			return new WP_REST_Response(array(
 				'success' => false,
-				'message' => 'Product not found',
+				'message' => __('Product not found.', 'caddy'),
 				'products' => array()
 			), 404);
 		}
@@ -1097,8 +1105,7 @@ class Caddy_Interactivity {
 				$recommended_product = wc_get_product($recommended_id);
 				// Only recommend products that can actually be added to the cart —
 				// out-of-stock items render an Add to Cart button that fails silently.
-				if ($recommended_product && 'publish' === $recommended_product->get_status()
-					&& $recommended_product->is_in_stock() && $recommended_product->is_purchasable()) {
+				if (self::is_recommendable_product($recommended_product)) {
 					$final_recommended_products[] = $recommended_id;
 				}
 			}
@@ -1113,14 +1120,22 @@ class Caddy_Interactivity {
 				'order' => 'DESC',
 				'return' => 'ids',
 				'status' => 'publish',
-				'stock_status' => 'instock'
+				'stock_status' => 'instock',
+				'visibility' => 'catalog'
 			));
 
 			if (!empty($best_sellers)) {
+				_prime_post_caches($best_sellers, false, true);
 				// Filter out current product and products already in cart
 				foreach ($best_sellers as $rec_id) {
+					if (count($final_recommended_products) >= $limit) {
+						break;
+					}
 					// Skip if it's the current product or already in cart
-					if ($rec_id != $product_id && !in_array($rec_id, $cart_product_ids) && count($final_recommended_products) < $limit) {
+					if ($rec_id == $product_id || in_array($rec_id, $cart_product_ids)) {
+						continue;
+					}
+					if (self::is_recommendable_product(wc_get_product($rec_id))) {
 						$final_recommended_products[] = $rec_id;
 					}
 				}
@@ -1190,10 +1205,49 @@ class Caddy_Interactivity {
 	 *
 	 * @param int $product_id Product ID that was updated/deleted
 	 */
-	public static function clear_recommendations_cache($product_id) {
+	public static function clear_recommendations_cache($product_id = 0) {
 		// Bump the cache version — all old transients become stale and expire naturally
 		$version = (int) get_option( 'caddy_recs_cache_version', 0 );
-		update_option( 'caddy_recs_cache_version', $version + 1, true );
+		update_option( 'caddy_recs_cache_version', $version + 1, false );
+	}
+
+	/**
+	 * Product changes captured before save, keyed by product ID.
+	 *
+	 * @var array<int, string[]>
+	 */
+	private static $pending_product_changes = array();
+
+	/**
+	 * Remember which props a product save changes.
+	 *
+	 * @param WC_Product $product Product about to be saved.
+	 */
+	public static function capture_product_changes($product) {
+		if ($product instanceof WC_Product && $product->get_id()) {
+			self::$pending_product_changes[$product->get_id()] = array_keys($product->get_changes());
+		}
+	}
+
+	/**
+	 * Clear the recommendations cache after a product update, unless only stock counts changed.
+	 *
+	 * Orders reduce stock on every purchase; those saves change no other props, so the
+	 * recommended products stay the same unless the stock status changes too.
+	 *
+	 * @param int $product_id Updated product ID.
+	 */
+	public static function maybe_clear_recommendations_cache($product_id) {
+		$product_id = (int) $product_id;
+		$changes = isset(self::$pending_product_changes[$product_id]) ? self::$pending_product_changes[$product_id] : null;
+		unset(self::$pending_product_changes[$product_id]);
+
+		$stock_only_props = array('stock_quantity', 'total_sales', 'date_modified');
+		if (is_array($changes) && !array_diff($changes, $stock_only_props)) {
+			return;
+		}
+
+		self::clear_recommendations_cache($product_id);
 	}
 
 	/**
@@ -1239,8 +1293,9 @@ class Caddy_Interactivity {
 		_prime_post_caches( $saved_item_ids, true, true );
 
 		foreach ($saved_item_ids as $product_id) {
+			$product_id = (int) $product_id;
 			$product = wc_get_product($product_id);
-			if (!$product) {
+			if (!self::is_publicly_viewable_product($product)) {
 				continue;
 			}
 
@@ -1256,16 +1311,16 @@ class Caddy_Interactivity {
 
 			$product_type = $product->get_type();
 
-			// Determine if product can be added directly to cart
-			// Variable, bundle, and grouped products need to go to product page to select options
-			$can_add_to_cart = !in_array($product_type, array('variable', 'bundle', 'grouped'));
+			$can_add_to_cart = self::can_add_saved_product_to_cart($product);
 
-			$price = (float) $product->get_price();
+			// Displayed prices follow the store's tax display setting.
+			$price = (float) wc_get_price_to_display($product);
+			$display_regular = $is_on_sale ? (float) wc_get_price_to_display($product, array('price' => (float) $regular_price)) : 0;
 			$saved_items[] = array(
 				'productId' => $product_id,
 				'name' => wp_specialchars_decode( $product->get_name(), ENT_QUOTES ),
 				'price' => html_entity_decode( wp_strip_all_tags( wc_price( $price ) ) ),
-				'regularPrice' => $is_on_sale ? html_entity_decode( wp_strip_all_tags( wc_price( (float) $regular_price ) ) ) : '',
+				'regularPrice' => $is_on_sale ? html_entity_decode( wp_strip_all_tags( wc_price( $display_regular ) ) ) : '',
 				'salePrice' => wc_format_decimal($sale_price, 2),
 				'priceFormatted' => $product->get_price_html(),
 				'image' => ($img_src = wp_get_attachment_image_url($product->get_image_id(), 'woocommerce_single')) ? $img_src : wc_placeholder_img_src('woocommerce_single'),
@@ -1292,22 +1347,26 @@ class Caddy_Interactivity {
 	 * @return array Price data with min, max, regular and sale keys (null when unpriced).
 	 */
 	private static function get_recommendation_prices( $product ) {
-		$to_float = static function ( $value ) {
-			return ( '' === $value || null === $value ) ? null : (float) $value;
+		$to_display = static function ( $value ) use ( $product ) {
+			if ( '' === $value || null === $value ) {
+				return null;
+			}
+
+			return (float) wc_get_price_to_display( $product, array( 'qty' => 1, 'price' => $value ) );
 		};
 
 		$prices = array(
-			'min'     => $to_float( $product->get_price() ),
-			'max'     => $to_float( $product->get_price() ),
-			'regular' => $to_float( $product->get_regular_price() ),
-			'sale'    => $to_float( $product->get_sale_price() ),
+			'min'     => $to_display( $product->get_price() ),
+			'max'     => $to_display( $product->get_price() ),
+			'regular' => $to_display( $product->get_regular_price() ),
+			'sale'    => $to_display( $product->get_sale_price() ),
 		);
 
 		if ( $product->is_type( 'variable' ) ) {
 			$variation_prices = $product->get_variation_prices();
 			if ( ! empty( $variation_prices['price'] ) ) {
-				$prices['min'] = (float) min( $variation_prices['price'] );
-				$prices['max'] = (float) max( $variation_prices['price'] );
+				$prices['min'] = $to_display( min( $variation_prices['price'] ) );
+				$prices['max'] = $to_display( max( $variation_prices['price'] ) );
 			}
 
 			$prices['regular'] = null;
@@ -1329,27 +1388,6 @@ class Caddy_Interactivity {
 		}
 
 		return strval( round( $price * pow( 10, wc_get_price_decimals() ) ) );
-	}
-
-	/**
-	 * Format a price range as plain text for the Interactivity API templates.
-	 *
-	 * @param float|null $min Lowest price.
-	 * @param float|null $max Highest price.
-	 * @return string Formatted price, or an empty string when unpriced.
-	 */
-	private static function format_recommendation_price_range( $min, $max ) {
-		if ( null === $min ) {
-			return '';
-		}
-
-		$formatted_min = html_entity_decode( wp_strip_all_tags( wc_price( $min ) ) );
-
-		if ( null === $max || $max <= $min ) {
-			return $formatted_min;
-		}
-
-		return $formatted_min . ' – ' . html_entity_decode( wp_strip_all_tags( wc_price( $max ) ) );
 	}
 
 	/**

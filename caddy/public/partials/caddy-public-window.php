@@ -8,7 +8,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $current_user          = wp_get_current_user();
 $display_name          = ! empty( $current_user->first_name ) ? $current_user->first_name : $current_user->display_name;
-$cart_contents_count   = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
+// Rendered at zero to keep the markup cache-safe; hydrated client-side.
+$cart_contents_count   = 0;
 
 // Get custom browse products URL or default to shop page
 $custom_browse_url = get_option('cc_browse_products_url', '');

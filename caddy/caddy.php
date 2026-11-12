@@ -3,7 +3,7 @@
  * Plugin Name:       Caddy – WooCommerce Side Cart & Free Shipping Bar
  * Plugin URI:        https://usecaddy.com
  * Description:       A high performance, conversion-boosting side cart for your WooCommerce store that improves the shopping experience & helps grow your sales.
- * Version:           3.2.0
+ * Version:           3.2.1
  * Author:            Caddy
  * Author URI:        https://usecaddy.com
  * License:           GPL-2.0+
@@ -12,9 +12,10 @@
  * Domain Path:       /languages
  * Requires at least: 6.5
  * Requires PHP:      7.4
+ * Requires Plugins:  woocommerce
  *
  * WC requires at least: 7.0
- * WC tested up to: 10.9.4
+ * WC tested up to: 11.3.0
  */
 
 // If this file is called directly, abort.
@@ -26,7 +27,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Define all constants for the plugin
  */
 if ( ! defined( 'CADDY_VERSION' ) ) {
-    define( 'CADDY_VERSION', '3.2.0' );
+    define( 'CADDY_VERSION', '3.2.1' );
 }
 if ( ! defined( 'CADDY_PLUGIN_FILE' ) ) {
     define( 'CADDY_PLUGIN_FILE', __FILE__ );
@@ -237,7 +238,7 @@ function caddy_pulse_toggle_control( $html, $enabled, $id ) {
     <div class="cc-toggle cc-toggle--size-small">
         <input type="checkbox" id="<?php echo esc_attr( $id ); ?>" class="pulse-tel-toggle" value="enabled" <?php checked( $enabled ); ?> />
         <label for="<?php echo esc_attr( $id ); ?>">
-            <div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
+            <div class="cc-toggle__switch" data-checked="<?php echo esc_attr__( 'On', 'caddy' ); ?>" data-unchecked="<?php echo esc_attr__( 'Off', 'caddy' ); ?>"></div>
         </label>
     </div>
     <?php
@@ -265,7 +266,7 @@ function caddy_pulse_feature_snapshot() {
     // would read 'disabled' as true.
     return array(
         'free_shipping_meter' => (float) get_option( 'cc_free_shipping_amount', 0 ) > 0,
-        'save_for_later'      => 'enabled' === get_option( 'cc_enable_sfl_options', 'disabled' ),
+        'save_for_later'      => 'enabled' === get_option( 'cc_enable_sfl_options', 'enabled' ),
         'recommendations'     => 'enabled' === get_option( 'cc_product_recommendation', 'disabled' ),
     );
 }
@@ -320,12 +321,12 @@ $caddy_plugin = plugin_basename( __FILE__ );
 add_filter( "plugin_action_links_$caddy_plugin", 'caddy_add_settings_link' );
 
 /**
- * Declaring WooCommerce HPOS support
- *
+ * Declare compatibility with WooCommerce HPOS and the cart and checkout blocks.
  */
 add_action( 'before_woocommerce_init', function() {
     if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
         \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
     }
 } );
 

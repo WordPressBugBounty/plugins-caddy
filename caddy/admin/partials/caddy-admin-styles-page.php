@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <?php
 // GET STYLE OPTIONS
 $cc_custom_css = get_option( 'cc_custom_css' );
-$cc_custom_css = ! empty( $cc_custom_css ) ? esc_html( stripslashes( $cc_custom_css ) ) : '';
+$cc_custom_css = is_string( $cc_custom_css ) ? $cc_custom_css : '';
 ?>
 <form method="post" action="" id="cc-styles-settings-form">
 	<?php wp_nonce_field('caddy-styles-settings-save', 'caddy_styles_settings_nonce'); ?>

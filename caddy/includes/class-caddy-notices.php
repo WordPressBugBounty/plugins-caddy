@@ -73,12 +73,7 @@ class Caddy_Admin_Notices {
 		add_action( 'admin_notices', array( $this, 'display_review_notice' ) );
 		// Display upgrade notice
 		add_action( 'caddy_admin_notices', array( $this, 'display_upgrade_notice' ) );
-		// Display opt-in notice
-		add_action( 'caddy_admin_notices', array( $this, 'display_optin_notice' ) );
-		
-		// ConvertKit email subscribe AJAX handler
-		add_action( 'wp_ajax_caddy_subscribe_email', array( $this, 'handle_email_subscribe' ) );
-		
+
 		// Update version on plugin updates
 		add_action( 'upgrader_process_complete', array( $this, 'update_version_on_upgrade' ), 10, 2 );
 	}
@@ -100,7 +95,11 @@ class Caddy_Admin_Notices {
 	 * Display RK promo notice
 	 */
 	public function display_rk_promo_notice() {
-		
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		// Ensure WooCommerce is active
 		if (!function_exists('WC')) return;
 		
@@ -129,9 +128,24 @@ class Caddy_Admin_Notices {
 			if (!PAnD::is_admin_notice_active('notice-rk-promo-forever')) {
 				return;
 			}
+
+			$cancel_span  = '<span class="cancel-count"></span>';
+			$pending_span = '<span class="pending-cancel-count"></span>';
+			$rk_messages  = array(
+				/* translators: 1: number of cancellations, 2: number of pending cancellations */
+				'both'    => sprintf( esc_html__( 'You have %1$s cancellations and %2$s pending-cancels!', 'caddy' ), $cancel_span, $pending_span ),
+				'none'    => esc_html__( 'Put a stop to subscription cancellations!', 'caddy' ),
+				/* translators: %s: number of pending cancellations */
+				'pending' => sprintf( esc_html__( 'You have %s pending-cancels!', 'caddy' ), $pending_span ),
+				/* translators: %s: number of cancellations */
+				'cancel'  => sprintf( esc_html__( 'You have %s cancellations!', 'caddy' ), $cancel_span ),
+			);
+			$rk_url = 'https://www.getretentionkit.com/?utm_source=caddy-plugin&utm_medium=plugin&utm_campaign=sub-promo-15';
 		?>
 			<script type="text/javascript">
 				jQuery(document).ready(function($) {
+					var messages = <?php echo wp_json_encode( $rk_messages ); ?>;
+
 					// Parse numbers without commas
 					var cancelledCount = parseInt($('.wc-cancelled span.count').text().replace(/\(|\)|,/g, "") || 0);
 					var pendingCancelCount = parseInt($('.wc-pending-cancel span.count').text().replace(/\(|\)|,/g, "") || 0);
@@ -143,11 +157,11 @@ class Caddy_Admin_Notices {
 				
 					// Update the message first
 					if (cancelledCount === 0 && pendingCancelCount === 0) {
-						$('.dynamic-message').html("put a stop subscription cancellations!");
+						$('.dynamic-message').html(messages.none);
 					} else if (cancelledCount === 0) {
-						$('.dynamic-message').html("You have <span class='pending-cancel-count'></span> pending-cancels!");
+						$('.dynamic-message').html(messages.pending);
 					} else if (pendingCancelCount === 0) {
-						$('.dynamic-message').html("You have <span class='cancel-count'></span> cancellations!");
+						$('.dynamic-message').html(messages.cancel);
 					}
 				
 					// Then update the counts using formatted numbers with commas
@@ -157,16 +171,20 @@ class Caddy_Admin_Notices {
 			</script>
 	
 			<div data-dismissible="notice-rk-promo-forever" class="notice notice-info is-dismissible caddy-notice rk-promo">
-				<div class="kt-left"><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-cancel-promo.svg' ); ?>" width="145" height="145" alt="kt Promo"></div>
+				<div class="kt-left"><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-cancel-promo.svg' ); ?>" width="145" height="145" alt="<?php echo esc_attr__( 'RetentionKit promotion', 'caddy' ); ?>"></div>
 				<div class="kt-right">
 					<div class="welcome-heading">
-						<span class="dynamic-message"><?php echo esc_html( __( 'You have ', 'caddy' ) ); ?> <span class="cancel-count"></span> <?php echo esc_html( __( 'cancellations and ', 'caddy' ) ); ?> <span class="pending-cancel-count"></span> <?php echo esc_html( __( 'pending-cancels!', 'caddy' ) ); ?></span>
+						<span class="dynamic-message"><?php echo $rk_messages['both']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped when built above. ?></span>
 					</div>
 	
 					<p class="rk-message">
-						<?php echo esc_html( __( 'That\'s potential revenue slipping away. Let ', 'caddy' ) ); ?>
-						<a href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'RetentionKit', 'caddy' ) ); ?></a>
-						<?php echo esc_html( __( ' step in! We\'ll not only reveal why they\'re stepping back but also weave in offers that can transform those exits into profit boosts. In the subscription game, every comeback is a win for your bottom line. 💰', 'caddy' ) ); ?>
+						<?php
+						printf(
+							/* translators: %s: link to RetentionKit */
+							esc_html__( 'That\'s potential revenue slipping away. Let %s step in! We\'ll not only reveal why they\'re stepping back but also weave in offers that can transform those exits into profit boosts. In the subscription game, every comeback is a win for your bottom line. 💰', 'caddy' ),
+							'<a href="' . esc_url( $rk_url ) . '">' . esc_html__( 'RetentionKit', 'caddy' ) . '</a>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						);
+						?>
 					</p>
 					<p>
 						<?php 
@@ -179,7 +197,7 @@ class Caddy_Admin_Notices {
 						?>
 					</p>
 					<p class="caddy-notice-ctas">
-						<a class="button button-primary" href="<?php echo esc_url( 'https://www.getretentionkit.com/?utm_source=caddy-plugin&amp;utm_medium=plugin&amp;utm_campaign=sub-promo-15' ); ?>"><?php echo esc_html( __( 'Enable Cancellation Protection', 'caddy' ) ); ?><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-arrow-right.svg' ); ?>" width="20" height="20"></a>
+						<a class="button button-primary" href="<?php echo esc_url( $rk_url ); ?>"><?php echo esc_html( __( 'Enable Cancellation Protection', 'caddy' ) ); ?><img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) . 'admin/img/rk-arrow-right.svg' ); ?>" width="20" height="20"></a>
 					</p>
 				</div>
 			</div>
@@ -216,6 +234,10 @@ class Caddy_Admin_Notices {
 	 * Display review request notice
 	 */
 	public function display_review_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		// Don't show if the notice has been dismissed permanently or temporarily
 		if (!PAnD::is_admin_notice_active('notice-caddy-review-forever') || !PAnD::is_admin_notice_active('notice-caddy-review-30')) {
 			return;
@@ -293,18 +315,36 @@ class Caddy_Admin_Notices {
 	}
 
 	/**
-	 * Get the limited-time offer content with countdown timer
-	 * 
-	 * @param string $coupon_code The coupon code to display
-	 * @param string $discount_text The discount text to display
-	 * @param string $container_class Additional class for the container (optional)
-	 * @param string $unique_id Unique identifier for this countdown instance (optional)
-	 * @return string HTML content for the limited-time offer
+	 * Get the limited-time offer content with countdown timer.
+	 *
+	 * The offer runs for 48 hours from the first time it is displayed on this
+	 * site and is never shown again after that.
+	 *
+	 * @param string $coupon_code     The coupon code to display.
+	 * @param string $discount_text   The discount text to display. Defaults to a translated "25% off Caddy Pro".
+	 * @param string $container_class Additional class for the container (optional).
+	 * @param string $unique_id       Unique identifier for this countdown instance (optional).
+	 * @return string HTML content for the limited-time offer, or an empty string when the offer is not live.
 	 */
-	public function get_limited_time_offer($coupon_code = '1E479230A6', $discount_text = '25% off Caddy Pro', $container_class = '', $unique_id = '') {
+	public function get_limited_time_offer($coupon_code = '1E479230A6', $discount_text = '', $container_class = '', $unique_id = '') {
 		// Don't show countdown offers for recent installs (less than 14 days old)
 		if ($this->is_recent_install(14)) {
 			return '';
+		}
+
+		$started_at = (int) get_option( 'cc_offer_started_at', 0 );
+		if ( $started_at <= 0 ) {
+			$started_at = time();
+			update_option( 'cc_offer_started_at', $started_at, false );
+		}
+
+		$remaining = ( $started_at + 48 * HOUR_IN_SECONDS ) - time();
+		if ( $remaining <= 0 ) {
+			return '';
+		}
+
+		if ( '' === $discount_text ) {
+			$discount_text = __( '25% off Caddy Pro', 'caddy' );
 		}
 
 		// Generate a unique ID if not provided
@@ -314,34 +354,44 @@ class Caddy_Admin_Notices {
 			// Ensure unique_id is safe for use in HTML and JS
 			$unique_id = preg_replace('/[^a-z0-9-_]/i', '', $unique_id);
 		}
-		
+
 		// Create unique element IDs
 		$countdown_id = 'caddy-countdown-' . $unique_id;
 		$timer_id = 'caddy-countdown-time-' . $unique_id;
-		
-		// Use a SHARED storage key for ALL countdown timers
-		$storage_key = 'caddy_global_promo_end_time';
-		
+
+		$initial_time = sprintf(
+			'%02d:%02d:%02d',
+			floor( $remaining / HOUR_IN_SECONDS ),
+			floor( ( $remaining % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS ),
+			$remaining % MINUTE_IN_SECONDS
+		);
+
+		$code_html      = '<code>' . esc_html( $coupon_code ) . '</code>';
+		$countdown_html = '<div class="caddy-countdown" id="' . esc_attr( $countdown_id ) . '">'
+			. '<div class="caddy-countdown-timer"><div class="caddy-countdown-item">'
+			. '<span class="caddy-countdown-number" id="' . esc_attr( $timer_id ) . '">' . esc_html( $initial_time ) . '</span>'
+			. '<span class="caddy-countdown-label">' . esc_html__( 'hours', 'caddy' ) . '</span>'
+			. '</div></div></div>';
+		$discount_html  = '<strong>' . esc_html( $discount_text ) . '</strong>';
+
 		// Ensure the CSS is loaded
 		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
-		
+
 		ob_start();
 		?>
 		<div class="caddy-limited-offer <?php echo esc_attr($container_class); ?>" id="<?php echo esc_attr($countdown_id); ?>-container">
 			<div class="caddy-offer-content">
 				<div class="caddy-offer-text">
-					<?php echo esc_html__('Use code', 'caddy'); ?> <code><?php echo esc_html($coupon_code); ?></code> 
-					<?php echo esc_html__( 'within the next', 'caddy' ); ?>
-					<div class="caddy-countdown" id="<?php echo esc_attr($countdown_id); ?>">
-						<div class="caddy-countdown-timer">
-							<div class="caddy-countdown-item">
-								<span class="caddy-countdown-number" id="<?php echo esc_attr($timer_id); ?>">48:00:00</span>
-								<span class="caddy-countdown-label"><?php echo esc_html__('hours', 'caddy'); ?></span>
-							</div>
-						</div>
-					</div>
-					<?php echo esc_html__( 'to take ', 'caddy' ); ?>
-					<strong><?php echo esc_html( $discount_text ); ?></strong>
+					<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Format string and placeholders are escaped above.
+					printf(
+						/* translators: 1: coupon code, 2: countdown timer, 3: discount, e.g. "25% off Caddy Pro" */
+						esc_html__( 'Use code %1$s within the next %2$s to take %3$s', 'caddy' ),
+						$code_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						$countdown_html, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						$discount_html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					);
+					?>
 				</div>
 			</div>
 		</div>
@@ -349,74 +399,35 @@ class Caddy_Admin_Notices {
 		<script type="text/javascript">
 			jQuery(document).ready(function($) {
 				(function() {
-					// Elements
 					var timerElement = document.getElementById("<?php echo esc_js($timer_id); ?>");
 					var containerElement = document.getElementById("<?php echo esc_js($countdown_id); ?>-container");
-					
+
 					if (!timerElement || !containerElement) return;
-					
-					// Shared storage key for ALL countdown timers
-					var storageKey = "<?php echo esc_js($storage_key); ?>";
-					
-					// Set default end time (48 hours from now)
-					var defaultEndTime = new Date().getTime() + (48 * 60 * 60 * 1000);
-					var endTime;
-					
-					// Try to get stored end time
-					try {
-						var storedEndTime = localStorage.getItem(storageKey);
-						
-						if (storedEndTime) {
-							// Check if the stored end time is valid
-							endTime = parseInt(storedEndTime);
-							
-							// If the end time is in the past, reset it
-							if (endTime < new Date().getTime()) {
-								endTime = defaultEndTime;
-								localStorage.setItem(storageKey, endTime);
-							}
-						} else {
-							// No stored end time, set default
-							endTime = defaultEndTime;
-							localStorage.setItem(storageKey, endTime);
-						}
-					} catch (e) {
-						// If localStorage fails, use default
-						endTime = defaultEndTime;
-					}
-					
-					// Function to update the display
+
+					var endTime = new Date().getTime() + (<?php echo (int) $remaining; ?> * 1000);
+					var countdownInterval;
+
 					function updateCountdown() {
-						var now = new Date().getTime();
-						var distance = endTime - now;
-						
-						// If countdown expired
-						if (distance < 0) {
+						var distance = endTime - new Date().getTime();
+
+						if (distance <= 0) {
 							clearInterval(countdownInterval);
 							containerElement.style.display = 'none';
 							return;
 						}
-						
-						// Calculate hours, minutes, seconds
+
 						var totalSeconds = Math.floor(distance / 1000);
 						var hours = Math.floor(totalSeconds / 3600);
 						var minutes = Math.floor((totalSeconds % 3600) / 60);
 						var seconds = totalSeconds % 60;
-						
-						// Format with leading zeros
-						var formattedHours = (hours < 10 ? "0" : "") + hours;
-						var formattedMinutes = (minutes < 10 ? "0" : "") + minutes;
-						var formattedSeconds = (seconds < 10 ? "0" : "") + seconds;
-						
-						// Update display
-						timerElement.innerHTML = formattedHours + ":" + formattedMinutes + ":" + formattedSeconds;
+
+						timerElement.textContent = (hours < 10 ? "0" : "") + hours + ":" +
+							(minutes < 10 ? "0" : "") + minutes + ":" +
+							(seconds < 10 ? "0" : "") + seconds;
 					}
-					
-					// Initial update
+
 					updateCountdown();
-					
-					// Update the countdown every second
-					var countdownInterval = setInterval(updateCountdown, 1000);
+					countdownInterval = setInterval(updateCountdown, 1000);
 				})();
 			});
 		</script>
@@ -428,6 +439,10 @@ class Caddy_Admin_Notices {
 	 * Display upgrade notice
 	 */
 	public function display_upgrade_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		// Don't show if the notice has been dismissed permanently or temporarily
 		if (!PAnD::is_admin_notice_active('notice-caddy-upgrade-forever') || !PAnD::is_admin_notice_active('notice-caddy-upgrade-30')) {
 			return;
@@ -440,11 +455,6 @@ class Caddy_Admin_Notices {
 
 		// Check if Caddy Premium is not active
 		if (class_exists('Caddy_Premium')) {
-			return;
-		}
-
-		// Only show after newsletter opt-in is dismissed (newsletter has priority)
-		if (PAnD::is_admin_notice_active('notice-caddy-optin-forever') && PAnD::is_admin_notice_active('notice-caddy-optin-30')) {
 			return;
 		}
 
@@ -480,7 +490,7 @@ class Caddy_Admin_Notices {
 		
 		<div data-dismissible="notice-caddy-upgrade-forever" class="notice notice-info is-dismissible inline caddy-notice upgrade-notice">
 			<div class="kt-left">
-				<img src="<?php echo esc_url( plugin_dir_url(__DIR__) . 'admin/img/caddy-mascot.svg' ); ?>" width="145" height="145" alt="Caddy Mascot">
+				<img src="<?php echo esc_url( plugin_dir_url(__DIR__) . 'admin/img/caddy-mascot.svg' ); ?>" width="145" height="145" alt="<?php echo esc_attr__( 'Caddy mascot', 'caddy' ); ?>">
 			</div>
 			<div class="kt-right">
 				<div class="welcome-heading">
@@ -499,7 +509,7 @@ class Caddy_Admin_Notices {
 				<ul class="upgrade-features">
 					<li>⚡️ <?php echo esc_html__('Advanced Cart Upsell Workflows', 'caddy'); ?></li>
 					<li>📊 <?php echo esc_html__('Conversion & Cart Analytics', 'caddy'); ?></li>
-					<li>🎁 <?php echo esc_html__('Mult-tier Cart Rewards', 'caddy'); ?></li>
+					<li>🎁 <?php echo esc_html__('Multi-tier Cart Rewards', 'caddy'); ?></li>
 					<li>💎 <?php echo esc_html__('Full design control & much more', 'caddy'); ?></li>
 				</ul>
 				
@@ -524,208 +534,18 @@ class Caddy_Admin_Notices {
 		<?php
 	}
 
-	/**
-	 * Offer a free, hand-written CSS pass so the cart matches the store, in
-	 * exchange for an email address. The request itself is what the merchant
-	 * asked for; marketing consent is a separate, optional checkbox.
-	 */
-	public function display_optin_notice() {
-		// Don't show if the notice has been dismissed permanently or temporarily
-		if (!PAnD::is_admin_notice_active('notice-caddy-optin-forever') || !PAnD::is_admin_notice_active('notice-caddy-optin-30')) {
-			return;
-		}
-
-		// Check if Caddy Premium is not active
-		if (class_exists('Caddy_Premium')) {
-			return;
-		}
-
-		// Already requested from this site, by any admin.
-		if ( get_option( 'caddy_css_offer_requested' ) ) {
-			return;
-		}
-
-		// Only show on specific admin pages
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading URL parameter to determine page context for display logic
-		$page_name = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
-		if ( 'caddy' != $page_name && 'caddy-addons' !== $page_name && 'caddy-resources' !== $page_name ) {
-			return;
-		}
-
-		wp_enqueue_style('kt-admin-notice', plugin_dir_url(__DIR__) . 'admin/css/caddy-admin-notices.css', array(), CADDY_VERSION);
-
-		$current_user = wp_get_current_user();
-
-		?>
-		<div data-dismissible="notice-caddy-optin-forever" class="notice notice-info is-dismissible inline caddy-notice caddy-optin-notice">
-			<div class="cc-offer__icon" aria-hidden="true">
-				<span class="dashicons dashicons-admin-customizer"></span>
-			</div>
-			<div class="cc-offer__body">
-				<h3 class="cc-offer__title"><?php esc_html_e( 'Claim Your Free Custom Cart Styling', 'caddy' ); ?></h3>
-				<p class="cc-offer__lede">
-					<?php esc_html_e( 'Enter your email and we’ll customize Caddy to match your store’s branding. We’ll deliver it within 1 to 2 business days.', 'caddy' ); ?>
-				</p>
-				<form id="caddy-email-signup" class="cc-offer__form" method="post">
-					<div class="cc-offer__row">
-						<label class="screen-reader-text" for="cc-offer-email"><?php esc_html_e( 'Your email address', 'caddy' ); ?></label>
-						<input type="email" id="cc-offer-email" name="email_address" value="<?php echo esc_attr( $current_user->user_email ); ?>" required>
-						<button type="submit" class="button button-primary cc-offer__submit"><?php esc_html_e( 'Claim My Free Customization', 'caddy' ); ?></button>
-					</div>
-					<label class="cc-offer__consent" for="cc-offer-consent">
-						<input type="checkbox" id="cc-offer-consent" name="consent" required>
-						<span>
-							<?php
-							echo wp_kses(
-								sprintf(
-									/* translators: %s: link reading "Privacy Policy" */
-									__( 'Yes, send me my custom cart and I agree to occasional Caddy tips, product updates, and offers. Unsubscribe anytime. %s', 'caddy' ),
-									sprintf(
-										'<a href="%1$s" target="_blank" rel="noopener">%2$s</a>',
-										esc_url( 'https://www.usecaddy.com/privacy-policy/' ),
-										esc_html__( 'Privacy Policy', 'caddy' )
-									)
-								),
-								array(
-									'a' => array(
-										'href'   => array(),
-										'target' => array(),
-										'rel'    => array(),
-									),
-								)
-							);
-							?>
-						</span>
-					</label>
-					<p class="cc-offer__fine">
-						<?php esc_html_e( 'Includes colors, type, spacing, buttons. Ask about anything bigger and the team will tell you what it takes.', 'caddy' ); ?>
-					</p>
-					<div class="cc-offer__messages">
-						<div class="success_message" style="display:none;"><?php esc_html_e( "Got it. Your CSS will land in your inbox in a day or two.", 'caddy' ); ?></div>
-						<div class="error_message" style="display:none;"><?php esc_html_e( 'Something went wrong. Please try again.', 'caddy' ); ?></div>
-					</div>
-				</form>
-				<script type="text/javascript">
-					jQuery(document).ready(function($) {
-						$('#caddy-email-signup').on('submit', function(e) {
-							e.preventDefault();
-							var $form = $(this);
-							var $button = $form.find('.cc-offer__submit');
-							var $success = $form.find('.success_message');
-							var $error = $form.find('.error_message');
-							var buttonText = $button.text();
-
-							$button.prop('disabled', true).text('<?php echo esc_js( __( 'Sending...', 'caddy' ) ); ?>');
-							$error.hide();
-
-							$.ajax({
-								url: '<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',
-								type: 'POST',
-								dataType: 'json',
-								data: {
-									action: 'caddy_subscribe_email',
-									nonce: '<?php echo esc_js( wp_create_nonce( 'caddy_subscribe_nonce' ) ); ?>',
-									email_address: $form.find('[name="email_address"]').val(),
-									consent: $form.find('[name="consent"]').is(':checked') ? 'true' : ''
-								},
-								success: function(response) {
-									if (response.success) {
-										$form.find('.cc-offer__row, .cc-offer__consent, .cc-offer__fine').slideUp(200);
-										$success.slideDown(200);
-									} else {
-										$error.slideDown(200);
-										$button.prop('disabled', false).text(buttonText);
-									}
-								},
-								error: function() {
-									$error.slideDown(200);
-									$button.prop('disabled', false).text(buttonText);
-								}
-							});
-						});
-					});
-				</script>
-			</div>
-		</div>
-		<?php
-	}
-
-	/**
-	 * Handle email subscription via admin AJAX.
-	 *
-	 * Sends the request to the "Caddy Plugin Signup" Helm form (gethelm.ai),
-	 * which stores the lead, records email consent, and runs any enrollment
-	 * workflow. Request body keys must match the Helm form field labels.
-	 *
-	 * Email consent is required, so the request is rejected without it. The name
-	 * comes from their WP profile and the site URL from this install, so neither
-	 * has to be typed in.
-	 */
-	public function handle_email_subscribe() {
-		check_ajax_referer( 'caddy_subscribe_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( 'Not allowed.', 403 );
-		}
-
-		$email   = isset( $_POST['email_address'] ) ? sanitize_email( wp_unslash( $_POST['email_address'] ) ) : '';
-		$consent = isset( $_POST['consent'] ) && 'true' === $_POST['consent'];
-
-		if ( empty( $email ) || ! is_email( $email ) ) {
-			wp_send_json_error( 'Invalid email address.' );
-		}
-
-		if ( ! $consent ) {
-			wp_send_json_error( 'Please agree to receive emails.' );
-		}
-
-		$current_user = wp_get_current_user();
-
-		// Most admins never fill in a first name, so fall back to the display
-		// name, which WordPress always populates.
-		$first_name = $current_user->first_name ? $current_user->first_name : $current_user->display_name;
-
-		$helm_form_id  = '55f9f498-0842-43c9-b49b-53d7b82a3aff';
-		$consent_label = 'I agree to receive email from Caddy. Unsubscribe anytime.';
-
-		$response = wp_remote_post( 'https://api.gethelm.ai/functions/v1/forms/' . $helm_form_id, array(
-			'headers' => array( 'Content-Type' => 'application/json' ),
-			'body'    => wp_json_encode( array(
-				'First name'   => $first_name,
-				'Email'        => $email,
-				'Site URL'     => home_url(),
-				$consent_label => 'true',
-			) ),
-			'timeout' => 15,
-		) );
-
-		if ( is_wp_error( $response ) ) {
-			wp_send_json_error( $response->get_error_message() );
-		}
-
-		$code = wp_remote_retrieve_response_code( $response );
-		if ( $code >= 200 && $code < 300 ) {
-			// Retire the notice for the whole site: the request is per store, not
-			// per admin, and it should not come back on the next page load.
-			update_option( 'caddy_css_offer_requested', time(), false );
-			wp_send_json_success();
-		} else {
-			wp_send_json_error( 'Subscription failed.' );
-		}
-	}
-
 }
 
 /**
  * Global helper function to display the limited time offer
  *
  * @param string $coupon_code The coupon code to display
- * @param string $discount_text The discount text to display
+ * @param string $discount_text The discount text to display (defaults to a translated "25% off Caddy Pro")
  * @param string $container_class Additional class for the container (optional)
  * @param string $unique_id Unique identifier for this countdown instance (optional)
- * @return string HTML content for the limited-time offer
+ * @return string HTML content for the limited-time offer, or an empty string when the offer is not live
  */
-function caddy_get_limited_time_offer($coupon_code = '1E479230A6', $discount_text = '25% off Caddy Pro', $container_class = '', $unique_id = '') {
+function caddy_get_limited_time_offer($coupon_code = '1E479230A6', $discount_text = '', $container_class = '', $unique_id = '') {
 	static $notices_instance = null;
 	
 	if ($notices_instance === null) {

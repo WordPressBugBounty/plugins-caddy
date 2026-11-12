@@ -70,8 +70,34 @@ class Caddy_Public {
 			return;
 		}
 
-		wp_enqueue_style('caddy-public', CADDY_DIR_URL . '/public/css/caddy-public.css', array(), $this->version, 'all');
-		wp_enqueue_style('caddy-icons', CADDY_DIR_URL . '/public/css/caddy-icons.css', array(), $this->version, 'all');
+		if ( Caddy_Block::should_auto_insert() || has_block( 'caddy/cart' ) || self::page_has_caddy_elements() ) {
+			Caddy_Block::enqueue_styles();
+		}
+	}
+
+	/**
+	 * Whether the page shows Caddy elements outside the drawer.
+	 *
+	 * Covers the menu icons, the classic widgets and the shortcodes in the main
+	 * content. Shortcodes placed elsewhere enqueue the styles when they render.
+	 *
+	 * @return bool
+	 */
+	public static function page_has_caddy_elements() {
+		if ( get_option( 'cc_menu_cart_widget' ) || get_option( 'cc_menu_saves_widget' ) ) {
+			return true;
+		}
+
+		if ( is_active_widget( false, false, 'caddy_cart_widget', true ) || is_active_widget( false, false, 'caddy_saved_items_widget', true ) ) {
+			return true;
+		}
+
+		$post = get_post();
+		if ( $post && ( has_shortcode( $post->post_content, 'cc_saved_items' ) || has_shortcode( $post->post_content, 'cc_cart_items' ) ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -183,6 +209,8 @@ class Caddy_Public {
 	 */
 	public function cc_cart_items_shortcode( $atts ) {
 
+		Caddy_Block::enqueue_styles();
+
 		$default = array(
 			'text' => '',
 			'icon' => '',
@@ -206,9 +234,12 @@ class Caddy_Public {
 		);
 		$cart_icon_class = wp_kses( apply_filters( 'caddy_cart_bubble_icon', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.5 -0.5 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><path d="M5.75 1.9166666666666667 2.875 5.75v13.416666666666668a1.9166666666666667 1.9166666666666667 0 0 0 1.9166666666666667 1.9166666666666667h13.416666666666668a1.9166666666666667 1.9166666666666667 0 0 0 1.9166666666666667 -1.9166666666666667V5.75l-2.875 -3.8333333333333335z" stroke-width="1.2"></path><path d="m2.875 5.75 17.25 0" stroke-width="1.2"></path><path d="M15.333333333333334 9.583333333333334a3.8333333333333335 3.8333333333333335 0 0 1 -7.666666666666667 0" stroke-width="1.2"></path></svg>' ), $allowed_svg );
 
+		// Rendered at zero like the rest of the cart markup, so the widget cannot
+		// carry one shopper's count into a cached page. updateCartWidgetCount()
+		// fills it in from the cookie before paint.
 		if ( ! is_admin() ) {
-			$cart_count = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
-			$cc_cart_class = ( $cart_count == 0 ) ? 'cc_cart_count cc_cart_zero' : 'cc_cart_count';
+			$cart_count    = 0;
+			$cc_cart_class = 'cc_cart_count cc_cart_zero';
 		}
 
 		ob_start();
@@ -241,7 +272,7 @@ class Caddy_Public {
 	 */
 	public function cc_add_product_to_sfl() {
 
-		$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options' );
+		$cc_enable_sfl_options = get_option( 'cc_enable_sfl_options', 'enabled' );
 		$cc_sfl_btn_on_product = get_option( 'cc_sfl_btn_on_product' );
 		$current_user_id       = get_current_user_id();
 		$cc_sfl_items_array    = get_user_meta( $current_user_id, 'cc_save_for_later_items', true ); // phpcs:ignore
@@ -284,45 +315,40 @@ class Caddy_Public {
 	}
 
 	/**
-	 * Caddy load Custom CSS added to custom css box into footer.
+	 * Name of the cookie carrying the cart item count.
 	 */
-	public function cc_load_custom_css() {
-
-		$cc_custom_css = get_option( 'cc_custom_css' );
-		if ( ! empty( $cc_custom_css ) ) {
-			wp_add_inline_style( 'caddy-public', wp_strip_all_tags( wp_unslash( $cc_custom_css ) ) );
-		}
-	}
+	const CART_COUNT_COOKIE = 'caddy_cart_count';
 
 	/**
-	 * Display compass icon
-	 */
-	public function cc_display_compass_icon() {
-		if ( ! class_exists( 'Caddy_Premium' ) ) {
-			$cart_count = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
-			$cc_cart_zero = ( $cart_count == 0 ) ? ' cc-cart-zero' : '';
-			?>
-			<div class="cc-compass" data-wp-interactive="caddy/cart" data-wp-on--click="actions.toggleCart">
-				<span class="licon"></span>
-				<div class="cc-loader" style="display: none;"></div>
-				<span class="cc-compass-count"
-				      data-wp-text="state.cartCount"
-				      data-wp-class--cc-cart-zero="state.cartCount === 0">
-					<?php echo esc_html( $cart_count ); ?>
-				</span>
-			</div>
-			<?php
-		}
-	}
-
-	/**
-	 * Display up-sells slider in product added screen
+	 * Keep the cart count in a cookie so the badge can render before the cart loads.
 	 *
-	 * @param int $product_id Product ID
+	 * The markup is cache-safe because it holds no cart data, which leaves the
+	 * badge at zero until the Store API responds. The cookie is per browser, so
+	 * reading it client-side restores the count without a request.
+	 *
+	 * @param bool $set Whether WooCommerce is setting or clearing its cart cookies.
+	 * @return void
 	 */
-	public function cc_display_product_upsells_slider( $product_id ) {
-		if ( ! class_exists( 'Caddy_Premium' ) && ! empty( $product_id ) ) {
-			include( plugin_dir_path( __FILE__ ) . 'partials/caddy-public-recommendations.php' );
+	public static function set_cart_count_cookie( $set ) {
+		if ( headers_sent() ) {
+			return;
+		}
+
+		$count = 0;
+		if ( $set && function_exists( 'WC' ) && WC()->cart ) {
+			$count = (int) WC()->cart->get_cart_contents_count();
+		}
+
+		$current = isset( $_COOKIE[ self::CART_COUNT_COOKIE ] ) ? absint( wp_unslash( $_COOKIE[ self::CART_COUNT_COOKIE ] ) ) : null;
+
+		if ( $count > 0 ) {
+			if ( $current !== $count ) {
+				wc_setcookie( self::CART_COUNT_COOKIE, $count, time() + DAY_IN_SECONDS * 30 );
+				$_COOKIE[ self::CART_COUNT_COOKIE ] = (string) $count;
+			}
+		} elseif ( null !== $current ) {
+			wc_setcookie( self::CART_COUNT_COOKIE, '0', time() - HOUR_IN_SECONDS );
+			unset( $_COOKIE[ self::CART_COUNT_COOKIE ] );
 		}
 	}
 
@@ -419,7 +445,9 @@ class Caddy_Public {
 		if ( ! class_exists( 'Caddy_Premium' ) ) {
 			
 			$calculate_with_tax = 'enabled' === get_option('cc_free_shipping_tax', 'disabled');
-			$final_cart_subtotal = $calculate_with_tax ? WC()->cart->get_cart_contents_total() + WC()->cart->get_cart_contents_tax() : WC()->cart->get_displayed_subtotal();
+			// Rendered at zero so the meter cannot carry one shopper's cart value
+			// into a cached page; the meter is redrawn once the cart loads.
+			$final_cart_subtotal = 0;
 
 			$cc_free_shipping_amount = get_option( 'cc_free_shipping_amount' );
 
@@ -786,13 +814,6 @@ class Caddy_Public {
 	}
 
 	/**
-	 * Prevent redirect to cart page after adding item
-	 */
-	public function prevent_cart_redirect($value) {
-		return false;
-	}
-
-	/**
 	 * Exclude Caddy scripts from WP Rocket's "Delay JavaScript execution".
 	 *
 	 * Delayed scripts only run after the first user interaction, which leaves
@@ -810,57 +831,5 @@ class Caddy_Public {
 		$excluded[] = 'importmap';                          // module import map must not be delayed
 		return $excluded;
 	}
-
-	/**
-	 * Handle post-add-to-cart actions
-	 *
-	 * @param string $cart_item_key Cart item key
-	 * @param int    $product_id Product ID
-	 * @param int    $quantity Quantity added
-	 * @param int    $variation_id Variation ID
-	 * @param array  $variation Variation data
-	 * @param array  $cart_item_data Cart item data
-	 */
-	public function after_add_to_cart($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
-		WC()->cart->calculate_totals();
-	}
-
-
-
-
-	/**
-	 * Always validate add to cart
-	 *
-	 * @since    1.0.0
-	 * @return   bool
-	 */
-	public function validate_add_to_cart() {
-		return true;
-	}
-
-	/**
-	 * Exclude cart-related endpoints from caching
-	 *
-	 * @param array $uri Array of URIs to exclude from caching
-	 * @return array Modified array of URIs
-	 */
-	public function exclude_cart_endpoints_from_cache($uri) {
-		$cart_endpoints = array(
-			'/admin-ajax\.php\?action=cc_remove_item_from_cart',
-			'/admin-ajax\.php\?action=cc_get_refreshed_fragments',
-			'/admin-ajax\.php\?action=cc_get_cart_fragments',
-			'/admin-ajax\.php\?action=caddy_get_cart_fragments',
-			'/admin-ajax\.php\?action=cc_update_item_quantity',
-			'/admin-ajax\.php\?action=cc_save_for_later',
-			'/admin-ajax\.php\?action=cc_move_to_cart',
-			'/admin-ajax\.php\?action=cc_remove_saved_item',
-			'/admin-ajax\.php\?action=cc_apply_coupon',
-			'/admin-ajax\.php\?action=cc_remove_coupon'
-		);
-
-		return array_merge($uri, $cart_endpoints);
-	}
-
-
 
 }

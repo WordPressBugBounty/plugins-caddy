@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="cc-box cc-box-cta cc-upgrade">
 				<img src="<?php echo esc_url( plugin_dir_url( CADDY_PLUGIN_FILE ) . 'admin/img/icon-lock.svg' ); ?>" />
 				<h3><?php echo esc_html( __( 'Unlock Display Settings with Caddy Pro', 'caddy' ) ); ?></h3>
-				<p><?php echo esc_html( __( 'Change the location of the cart bubble, cart drawer behaviour, and more. Plus:', 'caddy' ) ); ?></p>
+				<p><?php echo esc_html( __( 'Change the location of the cart bubble, cart drawer behavior, and more. Plus:', 'caddy' ) ); ?></p>
 				<ul>
 					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Analytics dashboard.', 'caddy' ) ); ?></li>
 					<li><span class="dashicons dashicons-saved"></span><?php echo esc_html( __( 'Cart & conversion tracking.', 'caddy' ) ); ?></li>

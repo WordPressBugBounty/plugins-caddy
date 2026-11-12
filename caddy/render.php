@@ -25,19 +25,12 @@ if (!class_exists('Caddy_Premium')) {
 	// disabled page caching site-wide for first-time visitors. Sessionless
 	// guests render an empty drawer; the Store API creates the session on
 	// their first cart mutation.
-	if (function_exists('WC') && WC()->session) {
-		// Ensure cart is loaded
-		if (WC()->cart) {
-			$cart_count = WC()->cart->get_cart_contents_count();
-			if ( $cart_count > 0 ) {
-				WC()->cart->calculate_totals();
-			}
-		} else {
-			$cart_count = 0;
-		}
-	} else {
-		$cart_count = 0;
-	}
+	//
+	// The count renders at zero for the same reason the drawer renders empty:
+	// the markup has to be identical for every visitor so a full-page cache
+	// cannot serve one shopper's count to the next. Caddy_Public::get_cart_count_cookie()
+	// carries the real count per browser and the badge picks it up before paint.
+	$cart_count = 0;
 	?>
 	<div data-wp-interactive="caddy/cart" data-wp-context='{"autoOpen": <?php echo json_encode($auto_open); ?>}'>
 		<!-- Floating cart launcher -->

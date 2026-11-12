@@ -10,27 +10,16 @@ if ( ! is_object( WC()->cart ) ) {
 	return;
 }
 
-// Determine if the cart is empty and set a class accordingly
-$cc_empty_class = WC()->cart->is_empty() ? ' cc-empty' : '';
+// The drawer renders in its empty state for every visitor. Cart contents are
+// personal, so putting them in the markup lets a full-page cache serve one
+// shopper's cart to the next visitor. The drawer hydrates from the Store API.
+$cc_empty_class = ' cc-empty';
 
 // Get the free shipping amount setting first
 $cc_free_shipping_amount = get_option('cc_free_shipping_amount');
 
-// Calculate cart total for free shipping
+// Rendered at zero; the meter is recalculated client-side once the cart loads.
 $cart_total = 0;
-
-// Get cart subtotal excluding virtual products
-foreach (WC()->cart->get_cart() as $cart_item) {
-    $product = $cart_item['data'];
-
-    // Skip virtual products in the free shipping calculation
-    if ($product->is_virtual()) {
-        continue;
-    }
-
-    // Tax-aware price calculation using WC display settings
-    $cart_total += floatval( wc_get_price_to_display( $product ) ) * $cart_item['quantity'];
-}
 
 // Calculate the remaining amount for free shipping (never negative)
 $free_shipping_remaining_amount = max(0, floatval($cc_free_shipping_amount) - floatval($cart_total));
@@ -45,28 +34,23 @@ if (!empty($cc_free_shipping_amount) && $cart_total <= $cc_free_shipping_amount)
 $wc_currency_symbol = get_woocommerce_currency_symbol();
 
 // Get the total count of items in the cart
-$total_cart_item_count = is_object(WC()->cart) ? WC()->cart->get_cart_contents_count() : 0;
+$total_cart_item_count = 0;
 
 // Flag to determine if free shipping bar is enabled
 $cc_free_shipping_bar = true;
 
 // Retrieve the current user's ID and their saved for later items
-$current_user_id = get_current_user_id();
-$cc_sfl_items_array = get_user_meta($current_user_id, 'cc_save_for_later_items', true);
-if (!is_array($cc_sfl_items_array)) {
-	$cc_sfl_items_array = array();
-}
-$cc_sfl_items = array_reverse(array_unique($cc_sfl_items_array));
+$cc_sfl_items = array();
 
 // Get the shipping destination and branding options
 $cc_shipping_country = Caddy_Public::get_free_shipping_destination();
 $cc_disable_branding = get_option('cc_disable_branding'); // Get disable branding option
-$cc_disable_branding_class = ('disabled' === $cc_disable_branding) ? ' cc-no-branding' : '';
+$cc_disable_branding_class = ('enabled' !== $cc_disable_branding) ? ' cc-no-branding' : '';
 
 // Retrieve the currency symbol and cart items
 $currency_symbol = get_woocommerce_currency_symbol();
-$cart_items = WC()->cart->get_cart();
-$cart_items_data = array_reverse($cart_items);
+$cart_items = array();
+$cart_items_data = array();
 
 // Find the first product ID in the cart
 $first_product_id = 0;
@@ -390,20 +374,12 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 
 			<?php do_action( 'caddy_before_cart_screen_totals' ); ?>
 			<?php
-			$applied_coupons = wc_coupons_enabled() ? WC()->cart->get_applied_coupons() : array();
+			$applied_coupons = array();
 			if ( wc_coupons_enabled() ) {
 				?>
 				<div class="cc-coupon">
-					<div class="woocommerce-notices-wrapper">
-						<?php
-						$notices = wc_get_notices();
-						// Only print error notices
-						if (isset($notices['error'])) {
-							WC()->session->set('wc_notices', ['error' => $notices['error']]);
-							wc_print_notices();
-						}
-						?>
-					</div>
+					<?php // Coupon errors are rendered here from Store API responses. ?>
+					<div class="woocommerce-notices-wrapper"></div>
 					<a class="cc-coupon-title" href="javascript:void(0);">
 						<?php esc_html_e( 'Apply a promo code', 'caddy' ); ?>
 						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" version="1.1" id="Tailless-Line-Arrow-Up-1--Streamline-Core">
@@ -429,7 +405,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 							$coupon_detail = new WC_Coupon( $code );
 							?>
 							<div class="cc-applied-coupon">
-								<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/tag-icon.svg" alt="Discount Code">
+								<img src="<?php echo esc_url( plugin_dir_url( __DIR__ ) ); ?>img/tag-icon.svg" alt="<?php echo esc_attr__( 'Discount code', 'caddy' ); ?>">
 								<span class="cc_applied_code"><?php echo esc_html( $code ); ?></span>
 								<a href="javascript:void(0);" class="cc-remove-coupon"><i class="ccicon-close"></i></a>
 							</div>
@@ -442,7 +418,6 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 				// Get coupon discounts only
 				$coupon_discount_amount = 0;
 				if ( wc_coupons_enabled() && !empty($applied_coupons) ) {
-					$applied_coupons = WC()->cart->get_applied_coupons();
 					if ( ! empty( $applied_coupons ) ) {
 						foreach ( $applied_coupons as $code ) {
 							$coupon = new WC_Coupon( $code );
@@ -473,34 +448,11 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 					</div>
 
 					<?php
-					// Let WooCommerce handle the subtotal calculation with discounts
-					$cart_subtotal = WC()->cart->get_displayed_subtotal();
-					
-					// Get the coupon discount amount
+					// Totals render at zero and are replaced client-side.
+					$cart_subtotal          = 0;
 					$coupon_discount_amount = 0;
-					if (wc_coupons_enabled()) {
-						$applied_coupons = WC()->cart->get_applied_coupons();
-						if (!empty($applied_coupons)) {
-							$tax_display = get_option('woocommerce_tax_display_cart');
-							$inc_tax = ('incl' === $tax_display);
-							
-							foreach ($applied_coupons as $code) {
-								$coupon = new WC_Coupon($code);
-								$coupon_discount_amount += WC()->cart->get_coupon_discount_amount($coupon->get_code(), !$inc_tax);
-							}
-						}
-					}
-					
-					// Calculate the total (subtotal minus coupon discount)
-					$cart_total = $cart_subtotal - $coupon_discount_amount;
-					
-					// Calculate original total (before any discounts) for comparison
-					$original_total = 0;
-					foreach (WC()->cart->get_cart() as $cart_item) {
-						$product = $cart_item['data'];
-						$original_price = $product->get_regular_price();
-						$original_total += floatval($original_price) * $cart_item['quantity'];
-					}
+					$cart_total             = 0;
+					$original_total         = 0;
 					?>
 					<div class="cc-total-amount">
 						<span class="woocommerce-Price-amount amount" data-wp-text="state.cartSubtotalFormatted"><?php echo esc_html( html_entity_decode( wp_strip_all_tags( wc_price($cart_total) ) ) ); ?></span>
@@ -535,7 +487,7 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 	<input type="hidden" class="cc-is-mobile" value="<?php echo esc_attr( $cc_is_mobile ); ?>">
 
 	<?php
-	if ( 'disabled' !== $cc_disable_branding ) {
+	if ( 'enabled' === $cc_disable_branding ) {
 		$cc_affiliate_id = get_option( 'cc_affiliate_id' );
 		$powered_by_link = ! empty( $cc_affiliate_id ) ? 'https://www.usecaddy.com?ref=' . esc_attr( $cc_affiliate_id ) : 'https://www.usecaddy.com';
 		?>
@@ -545,14 +497,12 @@ $cc_fs_active_class = (!empty($cc_free_shipping_amount) && $cc_free_shipping_bar
 			// SVG code
 			$powered_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.44,9.27A.48.48,0,0,0,20,9H12.62L14.49.61A.51.51,0,0,0,14.2,0a.5.5,0,0,0-.61.17l-10,14a.49.49,0,0,0,0,.52A.49.49,0,0,0,4,15h7.38L9.51,23.39A.51.51,0,0,0,9.8,24a.52.52,0,0,0,.61-.17l10-14A.49.49,0,0,0,20.44,9.27Z" fill="currentColor"></path></svg>';
 			
-			echo sprintf(
-				'%1$s %2$s %3$s <a href="%4$s" rel="noopener noreferrer" target="_blank">%5$s</a>',
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
-				$powered_svg,
-				esc_html__( 'Powered', 'caddy' ),
-				esc_html__( 'by', 'caddy' ),
-				esc_url( $powered_by_link ),
-				esc_html__( 'Caddy', 'caddy' )
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is hardcoded safe HTML
+			echo $powered_svg . ' ';
+			printf(
+				/* translators: %s: link to Caddy */
+				esc_html__( 'Powered by %s', 'caddy' ),
+				'<a href="' . esc_url( $powered_by_link ) . '" rel="noopener noreferrer" target="_blank">' . esc_html__( 'Caddy', 'caddy' ) . '</a>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			);
 			?>
 		</div>

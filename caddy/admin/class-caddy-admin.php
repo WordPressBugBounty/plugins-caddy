@@ -94,6 +94,9 @@ class Caddy_Admin {
 				$params = array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
 					'nonce'   => wp_create_nonce( 'caddy' ),
+					'i18n'    => array(
+						'copied' => __( 'Copied!', 'caddy' ),
+					),
 				);
 				wp_localize_script( $this->plugin_name, 'caddyAjaxObject', $params );
 			}
@@ -285,6 +288,22 @@ class Caddy_Admin {
 	}
 
 	/**
+	 * Restrict dismissal of Caddy's admin notices to administrators.
+	 *
+	 * Runs before the bundled notice-dismissal handler, which checks the nonce
+	 * but not the user's capability. Other plugins share that handler, so only
+	 * Caddy's own notice IDs are checked.
+	 */
+	public function guard_notice_dismissal() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The dismissal handler verifies the nonce; this only reads the notice ID.
+		$option_name = isset( $_POST['option_name'] ) ? sanitize_text_field( wp_unslash( $_POST['option_name'] ) ) : '';
+
+		if ( 0 === strpos( $option_name, 'notice-caddy-' ) && ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( null, 403 );
+		}
+	}
+
+	/**
 	 * Add Caddy Recommendations field to WooCommerce product data
 	 */
 	public function add_caddy_recommendations_field() {
@@ -332,7 +351,9 @@ class Caddy_Admin {
 		}
 		
 		$recommendations = isset($_POST['caddy_recommendations']) ? array_map('intval', (array) wp_unslash($_POST['caddy_recommendations'])) : array();
-		update_post_meta($post_id, '_caddy_recommendations', $recommendations);
+		if ( update_post_meta($post_id, '_caddy_recommendations', $recommendations) ) {
+			Caddy_Interactivity::clear_recommendations_cache($post_id);
+		}
 	}
 
 	/**
@@ -351,48 +372,34 @@ class Caddy_Admin {
 			return;
 		}
 		
-		// Get the current tab
-		$caddy_tab = (!empty($_GET['tab'])) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'settings';
-		
-		// Determine which form was submitted and set the active tab accordingly
-		$active_tab = 'cc-general-settings'; // Default
-		
+		// Determine which form was submitted
 		if (isset($_POST['caddy_general_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_general_settings_nonce'])), 'caddy-general-settings-save')) {
 			// General settings form processing
 			$this->process_general_settings();
-			$active_tab = 'cc-general-settings';
 		} elseif (isset($_POST['caddy_shipping_meter_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_shipping_meter_settings_nonce'])), 'caddy-shipping-meter-settings-save')) {
 			// Shipping meter settings form processing
 			$this->process_shipping_meter_settings();
-			$active_tab = 'cc-shipping-meter-settings';
 		} elseif (isset($_POST['caddy_recommendations_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_recommendations_settings_nonce'])), 'caddy-recommendations-settings-save')) {
 			// Recommendations settings form processing
 			$this->process_recommendations_settings();
-			$active_tab = 'cc-recommendations-settings';
 		} elseif (isset($_POST['caddy_display_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_display_settings_nonce'])), 'caddy-display-settings-save')) {
 			// Display settings form processing
 			$this->process_display_settings();
-			$active_tab = 'cc-display-settings';
 		} elseif (isset($_POST['caddy_offers_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_offers_settings_nonce'])), 'caddy-offers-settings-save')) {
 			// Offers settings form processing
 			$this->process_offers_settings();
-			$active_tab = 'cc-offers-settings';
 		} elseif (isset($_POST['caddy_sfl_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_sfl_settings_nonce'])), 'caddy-sfl-settings-save')) {
 			// Save for Later settings form processing
 			$this->process_sfl_settings();
-			$active_tab = 'cc-sfl-settings';
 		} elseif (isset($_POST['caddy_welcome_message_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_welcome_message_settings_nonce'])), 'caddy-welcome-message-settings-save')) {
 			// Welcome message settings form processing
 			$this->process_welcome_message_settings();
-			$active_tab = 'cc-welcome-message-settings';
 		} elseif (isset($_POST['caddy_announcement_bar_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_announcement_bar_settings_nonce'])), 'caddy-announcement-bar-settings-save')) {
 			// Announcement bar settings form processing
 			$this->process_announcement_bar_settings();
-			$active_tab = 'cc-announcement-bar-settings';
 		} elseif (isset($_POST['caddy_rewards_meter_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_rewards_meter_settings_nonce'])), 'caddy-rewards-meter-settings-save')) {
 			// Rewards meter settings form processing
 			$this->process_rewards_meter_settings();
-			$active_tab = 'cc-rewards-meter-settings';
 		} elseif (isset($_POST['caddy_styles_settings_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['caddy_styles_settings_nonce'])), 'caddy-styles-settings-save')) {
 			// Styles settings form processing
 			$this->process_styles_settings();
@@ -403,11 +410,6 @@ class Caddy_Admin {
 
 		// Set success message
 		set_transient('caddy_settings_updated', true, 30);
-		
-		// Override active tab if explicitly provided in the form
-		if (isset($_POST['active_tab']) && !empty($_POST['active_tab'])) {
-			$active_tab = sanitize_text_field(wp_unslash($_POST['active_tab']));
-		}
 		
 		// Get the current tab parameter from the URL
 		$current_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'settings';
@@ -424,6 +426,7 @@ class Caddy_Admin {
 		
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()
 		$cc_disable_branding = isset($_POST['cc_disable_branding']) ? sanitize_text_field(wp_unslash($_POST['cc_disable_branding'])) : 'disabled';
+		$cc_disable_branding = ( 'enabled' === $cc_disable_branding ) ? 'enabled' : 'disabled';
 		update_option('cc_disable_branding', $cc_disable_branding);
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in calling function process_settings_form()

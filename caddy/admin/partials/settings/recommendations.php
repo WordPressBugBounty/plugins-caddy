@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template partial; these variables are scoped to the including method, not the global namespace.
 
 $cc_product_recommendation = get_option( 'cc_product_recommendation' );
-$cc_product_recommendation = ( 'disabled' !== $cc_product_recommendation ) ? 'checked' : '';
+$cc_product_recommendation = ( 'enabled' === $cc_product_recommendation ) ? 'checked' : '';
 
 $cc_product_recommendation_type = get_option( 'cc_product_recommendation_type' );
 
@@ -41,7 +41,7 @@ $cc_product_recommendation_type = get_option( 'cc_product_recommendation_type' )
 					<div class="cc-toggle cc-toggle--size-small">
 						<input type="checkbox" name="cc_product_recommendation" id="cc_product_recommendation" value="enabled" <?php echo esc_attr( $cc_product_recommendation ); ?>>
 						<label for="cc_product_recommendation">
-							<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
+							<div class="cc-toggle__switch" data-checked="<?php echo esc_attr__( 'On', 'caddy' ); ?>" data-unchecked="<?php echo esc_attr__( 'Off', 'caddy' ); ?>"></div>
 						</label>
 					</div>
 				</td>

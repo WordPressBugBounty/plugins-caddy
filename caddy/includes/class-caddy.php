@@ -173,10 +173,16 @@ class Caddy {
 	 */
 	private function define_admin_hooks() {
 
-		$admin_notices = new Caddy_Admin_Notices( $this->loader );
-		$admin_notices->register_hooks();
-		
+		// Admin notices only render in wp-admin (is_admin() also covers admin-ajax).
+		if ( is_admin() ) {
+			$admin_notices = new Caddy_Admin_Notices();
+			$admin_notices->register_hooks();
+		}
+
 		$caddy_admin_obj = new Caddy_Admin( $this->get_plugin_name(), $this->get_version() );
+
+		// Only administrators may dismiss notices through the bundled dismissal handler.
+		$this->loader->add_action( 'wp_ajax_dismiss_admin_notice', $caddy_admin_obj, 'guard_notice_dismissal', 1 );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $caddy_admin_obj, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $caddy_admin_obj, 'enqueue_scripts' );
@@ -238,11 +244,6 @@ class Caddy {
 		// Initialize Save for Later class
 		$caddy_sfl_obj = new Caddy_Save_For_Later( $this->get_plugin_name(), $this->get_version() );
 
-		// Core WooCommerce integration
-		$this->loader->add_filter('woocommerce_cart_redirect_after_add', $caddy_public_obj, 'prevent_cart_redirect', 10, 1);
-		$this->loader->add_action('woocommerce_add_to_cart', $caddy_public_obj, 'after_add_to_cart', 10, 6);
-		$this->loader->add_filter('woocommerce_add_to_cart_validation', $caddy_public_obj, 'validate_add_to_cart', 10, 1);
-
 		// WP Rocket compatibility: keep Caddy scripts out of "Delay JavaScript execution"
 		$this->loader->add_filter('rocket_delay_js_exclusions', $caddy_public_obj, 'caddy_rocket_delay_js_exclusions');
 
@@ -254,13 +255,9 @@ class Caddy {
 		$this->loader->add_action('wp_footer', $caddy_public_obj, 'cc_load_widget');
 		$this->loader->add_action('wp_footer', 'Caddy_Block', 'auto_insert_block', 5);
 
-		// Load custom CSS (attached to the front-end stylesheet, so it must run after enqueue_styles)
-		$this->loader->add_action('wp_enqueue_scripts', $caddy_public_obj, 'cc_load_custom_css', 20);
-
-		// Exclude cart AJAX endpoints from caching (WP Rocket only)
-		if ( defined( 'WP_ROCKET_VERSION' ) ) {
-			$this->loader->add_filter('rocket_cache_reject_uri', $caddy_public_obj, 'exclude_cart_endpoints_from_cache');
-		}
+		// Mirror the cart count into a cookie so the badge renders before the cart loads
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core action name.
+		$this->loader->add_action( 'woocommerce_set_cart_cookies', 'Caddy_Public', 'set_cart_count_cookie' );
 
 		// Add a short-code for saved list
 		$this->loader->add_shortcode( 'cc_saved_items', $caddy_sfl_obj, 'saved_items_shortcode' );
@@ -273,12 +270,6 @@ class Caddy {
 
 		// Add action to display up-sell message in product added screen
 		$this->loader->add_action( 'caddy_free_shipping_title_text', $caddy_public_obj, 'cc_free_shipping_bar_html' );
-
-		// Add action to display compass icon
-		$this->loader->add_action( 'caddy_compass_icon', $caddy_public_obj, 'cc_display_compass_icon' );
-
-		// Add action to display up-sells slider in product added screen
-		$this->loader->add_action( 'caddy_product_upsells_slider', $caddy_public_obj, 'cc_display_product_upsells_slider', 10 );
 
 		// Add action to display free shipping Congrats text
 		$this->loader->add_action( 'caddy_fs_congrats_text', $caddy_public_obj, 'caddy_display_free_shipping_congrats_text', 10, 1 );
@@ -322,16 +313,6 @@ class Caddy {
 	 */
 	public function cc_check_premium_license_activation() {
 		return caddy_pro_is_active();
-	}
-
-	/**
-	 * Always validate add to cart
-	 *
-	 * @since    1.0.0
-	 * @return   bool
-	 */
-	public function validate_add_to_cart() {
-		return true;
 	}
 
 }

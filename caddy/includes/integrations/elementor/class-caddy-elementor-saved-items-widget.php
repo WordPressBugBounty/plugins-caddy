@@ -41,7 +41,7 @@ class Caddy_Elementor_Saved_Items_Widget extends \Elementor\Widget_Base {
 		if ( class_exists( 'Caddy_Block' ) ) {
 			Caddy_Block::ensure_frontend_assets();
 		}
-		return array( 'caddy-block-style', 'caddy-icons-style' );
+		return array( 'caddy-public', 'caddy-icons' );
 	}
 
 	protected function register_controls() {
@@ -245,8 +245,7 @@ class Caddy_Elementor_Saved_Items_Widget extends \Elementor\Widget_Base {
 		// stays live as items are saved/removed.
 		$count_html = '';
 		if ( $show_count && is_user_logged_in() ) {
-			$sfl_items   = get_user_meta( get_current_user_id(), 'cc_save_for_later_items', true );
-			$count       = is_array( $sfl_items ) ? count( array_unique( $sfl_items ) ) : 0;
+			$count       = Caddy_Interactivity::count_visible_saved_items( get_current_user_id() );
 			$count_class = ( 0 === $count ) ? 'cc-saved-count cc-saved-zero' : 'cc-saved-count';
 			$count_html  = sprintf( '<span class="%1$s">%2$s</span>', esc_attr( $count_class ), esc_html( $count ) );
 		}

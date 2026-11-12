@@ -32,7 +32,7 @@ if ( ! class_exists( 'caddy_cart_widget' ) ) {
 	public function widget( $args, $instance ) {
 		$cart_widget_title = isset( $instance['cart_widget_title'] ) ? apply_filters( 'widget_title', $instance['cart_widget_title'] ) : '';
 		$cc_cart_icon = isset( $instance['cc_cart_icon'] ) ? $instance['cc_cart_icon'] : '';
-		$cart_text = isset( $instance['cart_text'] ) ? $instance['cart_text'] : '';
+		$cart_text = ! empty( $instance['cart_text'] ) ? $instance['cart_text'] : __( 'Cart', 'caddy' );
 
 		// before and after widget arguments are defined by themes
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Widget wrapper args are safe HTML from theme
@@ -42,12 +42,10 @@ if ( ! class_exists( 'caddy_cart_widget' ) ) {
 			echo $args['before_title'] . esc_html( $cart_widget_title ) . $args['after_title'];
 		}
 
+		// Rendered at zero so a cached page cannot carry one shopper's count to
+		// another visitor. updateCartWidgetCount() fills it in from the cookie.
 		$cart_count    = 0;
-		$cc_cart_class = '';
-		if ( ! is_admin() ) {
-			$cart_count    = is_object( WC()->cart ) ? WC()->cart->get_cart_contents_count() : 0;
-			$cc_cart_class = ( $cart_count == 0 ) ? 'cc_cart_count cc_cart_zero' : 'cc_cart_count';
-		}
+		$cc_cart_class = 'cc_cart_count cc_cart_zero';
 		$allowed_svg = array(
 			'svg'  => array( 'xmlns' => true, 'viewbox' => true, 'width' => true, 'height' => true, 'fill' => true, 'stroke' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true, 'style' => true, 'class' => true, 'aria-hidden' => true ),
 			'path' => array( 'd' => true, 'stroke-width' => true, 'fill' => true, 'stroke' => true ),
@@ -83,19 +81,19 @@ if ( ! class_exists( 'caddy_cart_widget' ) ) {
 	 * @return string|void
 	 */
 	public function form( $instance ) {
-		$cart_widget_title = isset( $instance['cart_widget_title'] ) ? $instance['cart_widget_title'] : __( 'New title', 'caddy' );
-		$cart_text         = isset( $instance['cart_text'] ) ? $instance['cart_text'] : __( 'Cart', 'caddy' );
+		$cart_widget_title = isset( $instance['cart_widget_title'] ) ? $instance['cart_widget_title'] : '';
+		$cart_text         = isset( $instance['cart_text'] ) ? $instance['cart_text'] : '';
 		$cc_cart_icon      = ( isset( $instance['cc_cart_icon'] ) && 'on' == $instance['cc_cart_icon'] ) ? ' checked="checked"' : '';
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'cart_widget_title' ) ); ?>"><?php esc_html_e( 'Widget Title:', 'caddy' ); ?></label>
 			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'cart_widget_title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'cart_widget_title' ) ); ?>"
-			       type="text" value="<?php echo esc_attr( $cart_widget_title ); ?>" />
+			       type="text" value="<?php echo esc_attr( $cart_widget_title ); ?>" placeholder="<?php esc_attr_e( 'Optional', 'caddy' ); ?>" />
 		</p>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'cart_text' ) ); ?>"><?php esc_html_e( 'Cart Text:', 'caddy' ); ?></label>
 			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'cart_text' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'cart_text' ) ); ?>" type="text"
-			       value="<?php echo esc_attr( $cart_text ); ?>" />
+			       value="<?php echo esc_attr( $cart_text ); ?>" placeholder="<?php esc_attr_e( 'Cart', 'caddy' ); ?>" />
 		</p>
 		<p>
 			<input class="checkbox" type="checkbox" <?php echo esc_attr( $cc_cart_icon ); ?> id="<?php echo esc_attr( $this->get_field_id( 'cc_cart_icon' ) ); ?>"

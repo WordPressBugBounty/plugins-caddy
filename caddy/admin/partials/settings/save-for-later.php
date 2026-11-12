@@ -40,7 +40,7 @@ $cc_enable_sfl_options = ( 'disabled' !== $cc_enable_sfl_options ) ? 'checked' :
 						<div class="cc-toggle cc-toggle--size-small">
 							<input type="checkbox" name="cc_enable_sfl_options" id="cc_enable_sfl_options" value="enabled" <?php echo esc_attr( $cc_enable_sfl_options ); ?>>
 							<label for="cc_enable_sfl_options">
-								<div class="cc-toggle__switch" data-checked="On" data-unchecked="Off"></div>
+								<div class="cc-toggle__switch" data-checked="<?php echo esc_attr__( 'On', 'caddy' ); ?>" data-unchecked="<?php echo esc_attr__( 'Off', 'caddy' ); ?>"></div>
 							</label>
 						</div>
 						<p class="description"><?php echo esc_html( __( 'Allow logged-in users to save items for later viewing.', 'caddy' ) ); ?></p>
